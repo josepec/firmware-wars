@@ -190,7 +190,10 @@
 
   /* ── Tabla ────────────────────────────────────────────────── */
   table {
-    width: 100%;
+    display: block;
+    overflow-x: auto;
+    width: max-content;
+    max-width: 100%;
     border-collapse: collapse;
     margin: 0 0 1.75rem;
     font-size: 0.875rem;

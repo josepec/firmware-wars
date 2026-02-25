@@ -7,6 +7,11 @@
     <nav>
       <!-- Mobile: horizontal | Desktop: vertical -->
       <ul class="flex md:flex-col gap-4 md:gap-1 flex-wrap">
+
+        <!-- // SISTEMA -->
+        <li class="hidden md:block mt-1 mb-0.5">
+          <span class="text-[9px] tracking-[0.35em] text-green-500/30 uppercase">// Sistema</span>
+        </li>
         <li>
           <a routerLink="/docs/intro"
              routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
@@ -16,13 +21,56 @@
           </a>
         </li>
         <li>
-          <a routerLink="/docs/core-rules"
+          <a routerLink="/docs/setup"
              routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
              class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
-            Reglas Básicas
+            Preparación
           </a>
         </li>
+
+        <!-- // REGLAS -->
+        <li class="hidden md:block mt-2 mb-0.5">
+          <span class="text-[9px] tracking-[0.35em] text-green-500/30 uppercase">// Reglas</span>
+        </li>
+        <li>
+          <a routerLink="/docs/core-cycle"
+             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
+             class="block text-green-400/70 hover:text-green-300 transition-colors
+                    py-1 text-xs tracking-widest uppercase">
+            Core Cycle
+          </a>
+        </li>
+        <li>
+          <a routerLink="/docs/bots"
+             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
+             class="block text-green-400/70 hover:text-green-300 transition-colors
+                    py-1 text-xs tracking-widest uppercase">
+            Bots
+          </a>
+        </li>
+
+        <!-- // REFERENCIA -->
+        <li class="hidden md:block mt-2 mb-0.5">
+          <span class="text-[9px] tracking-[0.35em] text-green-500/30 uppercase">// Referencia</span>
+        </li>
+        <li>
+          <a routerLink="/docs/technical-ref"
+             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
+             class="block text-green-400/70 hover:text-green-300 transition-colors
+                    py-1 text-xs tracking-widest uppercase">
+            Técnica
+          </a>
+        </li>
+        <li>
+          <a routerLink="/docs/quick-ref"
+             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
+             class="block text-green-400/70 hover:text-green-300 transition-colors
+                    py-1 text-xs tracking-widest uppercase">
+            Ref. Rápida
+          </a>
+        </li>
+
       </ul>
     </nav>
   </aside>
