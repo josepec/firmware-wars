@@ -2,70 +2,50 @@
 
   <!-- Sidebar ───────────────────────────────────────────────── -->
   <aside class="bg-black/60 border-b md:border-b-0 md:border-r border-green-500/15
-                p-4 md:p-6 md:w-56 md:flex-shrink-0">
+                p-4 md:p-6 md:w-56 md:flex-shrink-0
+                md:sticky md:top-0 md:h-screen md:overflow-y-auto">
     <div class="text-[10px] tracking-[0.4em] text-green-500/55 mb-3 md:mb-5">// DOCS.CFG</div>
     <nav>
       <!-- Mobile: horizontal | Desktop: vertical -->
       <ul class="flex md:flex-col gap-4 md:gap-1 flex-wrap">
 
-        <!-- // SISTEMA -->
-        <li class="hidden md:block mt-1 mb-0.5">
-          <span class="text-[9px] tracking-[0.35em] text-green-500/30 uppercase">// Sistema</span>
-        </li>
         <li>
-          <a routerLink="/docs/intro"
-             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
-             class="block text-green-400/70 hover:text-green-300 transition-colors
+          <a routerLink="/docs/intro" routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3" class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
             Introducción
           </a>
         </li>
         <li>
-          <a routerLink="/docs/setup"
-             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
-             class="block text-green-400/70 hover:text-green-300 transition-colors
+          <a routerLink="/docs/setup" routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3" class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
             Preparación
           </a>
         </li>
 
-        <!-- // REGLAS -->
-        <li class="hidden md:block mt-2 mb-0.5">
-          <span class="text-[9px] tracking-[0.35em] text-green-500/30 uppercase">// Reglas</span>
-        </li>
         <li>
-          <a routerLink="/docs/core-cycle"
-             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
-             class="block text-green-400/70 hover:text-green-300 transition-colors
+          <a routerLink="/docs/core-cycle" routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
+            class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
             Core Cycle
           </a>
         </li>
         <li>
-          <a routerLink="/docs/bots"
-             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
-             class="block text-green-400/70 hover:text-green-300 transition-colors
+          <a routerLink="/docs/bots" routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3" class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
             Bots
           </a>
         </li>
 
-        <!-- // REFERENCIA -->
-        <li class="hidden md:block mt-2 mb-0.5">
-          <span class="text-[9px] tracking-[0.35em] text-green-500/30 uppercase">// Referencia</span>
-        </li>
         <li>
           <a routerLink="/docs/technical-ref"
-             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
-             class="block text-green-400/70 hover:text-green-300 transition-colors
+            routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3" class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
             Técnica
           </a>
         </li>
         <li>
-          <a routerLink="/docs/quick-ref"
-             routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
-             class="block text-green-400/70 hover:text-green-300 transition-colors
+          <a routerLink="/docs/quick-ref" routerLinkActive="text-green-400 md:border-l-2 md:border-green-400 md:pl-3"
+            class="block text-green-400/70 hover:text-green-300 transition-colors
                     py-1 text-xs tracking-widest uppercase">
             Ref. Rápida
           </a>
@@ -78,11 +58,11 @@
   <!-- Content ───────────────────────────────────────────────── -->
   <main class="flex-1 p-6 md:p-10 max-w-4xl relative z-20">
     @if (markdownSrc) {
-      <markdown [src]="markdownSrc" />
+    <markdown [src]="markdownSrc" />
     } @else {
-      <p class="text-green-400/65 text-xs tracking-widest">
-        &gt; Selecciona una sección del menú lateral.<span class="cursor-blink ml-1">&#9646;</span>
-      </p>
+    <p class="text-green-400/65 text-xs tracking-widest">
+      &gt; Selecciona una sección del menú lateral.<span class="cursor-blink ml-1">&#9646;</span>
+    </p>
     }
   </main>
 
