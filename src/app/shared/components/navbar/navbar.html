@@ -1,0 +1,19 @@
+<nav class="bg-gray-900 text-white px-6 py-4 flex items-center justify-between border-b border-gray-700">
+  <a routerLink="/" class="text-xl font-bold tracking-wider text-cyan-400 hover:text-cyan-300 transition-colors">
+    FIRMWARE WARS
+  </a>
+  <ul class="flex gap-6 text-sm font-medium">
+    <li>
+      <a routerLink="/" routerLinkActive="text-cyan-400" [routerLinkActiveOptions]="{exact: true}"
+         class="hover:text-cyan-300 transition-colors">Inicio</a>
+    </li>
+    <li>
+      <a routerLink="/docs" routerLinkActive="text-cyan-400"
+         class="hover:text-cyan-300 transition-colors">Documentación</a>
+    </li>
+    <li>
+      <a routerLink="/army-builder" routerLinkActive="text-cyan-400"
+         class="hover:text-cyan-300 transition-colors">Creador de Lista</a>
+    </li>
+  </ul>
+</nav>

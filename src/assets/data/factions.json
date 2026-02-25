@@ -1,0 +1,16 @@
+{
+  "factions": [
+    {
+      "id": "cybernetica",
+      "name": "Cybernetica Corp",
+      "description": "Corporación militar con tecnología de vanguardia. Sus unidades son costosas pero letales.",
+      "playstyle": "Elite, alto coste por unidad, capacidades de hackeo avanzadas."
+    },
+    {
+      "id": "rustborn",
+      "name": "Rustborn Collective",
+      "description": "Supervivientes de las guerras de firmware que adaptaron tecnología obsoleta para combatir.",
+      "playstyle": "Horda, bajo coste, abrumadores en número."
+    }
+  ]
+}

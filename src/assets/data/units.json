@@ -1,0 +1,64 @@
+{
+  "units": [
+    {
+      "id": "cyber-assault-trooper",
+      "name": "Assault Trooper",
+      "faction": "cybernetica",
+      "points": 45,
+      "keywords": ["Infantería", "Elite", "Hackeo"],
+      "stats": {
+        "move": 6,
+        "ranged": 4,
+        "melee": 3,
+        "defense": 3,
+        "wounds": 2
+      },
+      "abilities": ["Protocolo de Hackeo: una vez por turno puede deshabilitar una habilidad enemiga.", "Blindaje Reactivo: ignora el primer impacto del turno."]
+    },
+    {
+      "id": "cyber-scout",
+      "name": "Scout Unit",
+      "faction": "cybernetica",
+      "points": 25,
+      "keywords": ["Infantería", "Reconocimiento"],
+      "stats": {
+        "move": 8,
+        "ranged": 3,
+        "melee": 2,
+        "defense": 2,
+        "wounds": 1
+      },
+      "abilities": ["Avanzada: puede desplegar a 12\" de su zona de despliegue."]
+    },
+    {
+      "id": "rustborn-scrapper",
+      "name": "Scrapper",
+      "faction": "rustborn",
+      "points": 12,
+      "keywords": ["Infantería", "Horda"],
+      "stats": {
+        "move": 5,
+        "ranged": 2,
+        "melee": 3,
+        "defense": 1,
+        "wounds": 1
+      },
+      "abilities": ["En masa: +1 a melee por cada 3 unidades aliadas adyacentes."]
+    },
+    {
+      "id": "rustborn-warboss",
+      "name": "Warboss",
+      "faction": "rustborn",
+      "points": 60,
+      "keywords": ["Personaje", "Élite", "Horda"],
+      "stats": {
+        "move": 5,
+        "ranged": 3,
+        "melee": 5,
+        "defense": 4,
+        "wounds": 4
+      },
+      "abilities": ["WAAAGH!: las unidades aliadas a 6\" repiten los dados de melee fallidos.", "Furia Oxidada: cuando recibe una herida, +1 a melee hasta el fin del turno."]
+    }
+  ]
+}
