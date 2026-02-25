@@ -1,4 +1,4 @@
-# AMBIENT.DSK: Entorno del Sistema
+# AMBIENT.DSK: Ambientación
 
 ## Las 28ª Firmware Wars
 

@@ -1,0 +1,107 @@
+<!-- ═══════════════════════════════════════════════════════════
+     Barra de control (solo pantalla)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="no-print ctrl-bar">
+  <a routerLink="/docs" class="ctrl-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
+    </svg>
+    Volver a Docs
+  </a>
+
+  <span class="ctrl-title">FIRMWARE WARS — System Manual v1.0</span>
+
+  <button (click)="print()" class="ctrl-print">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 16V4M12 16l-4-4M12 16l4-4"/>
+      <path d="M4 20h16"/>
+    </svg>
+    Imprimir / PDF
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     Encabezado fijo (visible en cada página impresa)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="print-header print-only">
+  <span class="ph-brand">FIRMWARE WARS</span>
+  <span class="ph-sep">◆</span>
+  <span class="ph-title">System Manual v1.0</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     Pie fijo (visible en cada página impresa)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="print-footer print-only">
+  <span>28ª FIRMWARE WARS — Core Combat System</span>
+  <span>Firmware Wars © 2025</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PORTADA
+     ═══════════════════════════════════════════════════════════ -->
+<div class="fw-page cover-page">
+  <div class="cover-frame">
+
+    <div class="cover-top">
+      <div class="cover-badge">CORE COMBAT SYSTEM</div>
+    </div>
+
+    <div class="cover-center">
+      <div class="cover-hex">⬡</div>
+      <div class="cover-main-title">FIRMWARE</div>
+      <div class="cover-main-title wars">WARS</div>
+      <div class="cover-rule"></div>
+      <div class="cover-subtitle">System Manual <span>v1.0</span></div>
+      <div class="cover-edition">28ª Firmware Wars — Core Combat System</div>
+    </div>
+
+    <div class="cover-bottom">
+      <div class="cover-classified">CLASSIFIED · SENIOR PROGRAMMER ACCESS ONLY</div>
+      <div class="cover-year">2025</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ÍNDICE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="fw-page toc-page">
+  <div class="toc-header">
+    <div class="toc-label">ÍNDICE DE CONTENIDOS</div>
+    <div class="toc-rule"></div>
+  </div>
+
+  <ol class="toc-list">
+    @for (s of sections; track s.id) {
+      <li class="toc-item">
+        <span class="toc-num">{{ s.num }}.</span>
+        <span class="toc-title">{{ s.title }}</span>
+        <span class="toc-leader"></span>
+        <span class="toc-sub">{{ s.subtitle }}</span>
+      </li>
+    }
+  </ol>
+
+  <div class="toc-footer">
+    <p>Este manual cubre todas las fases del ciclo de turno, el sistema de operaciones,
+    funciones de combate, mantenimiento, estados alterados y referencia técnica completa.</p>
+    <p>Para los perfiles completos de cada Bot consulta la sección <strong>BOTS.CFG</strong>
+    cuando esté disponible.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECCIONES DE CONTENIDO
+     ═══════════════════════════════════════════════════════════ -->
+@for (s of sections; track s.id) {
+  <div class="fw-page content-page">
+    <div class="section-header">
+      <span class="section-num">{{ s.num }}</span>
+      <span class="section-id">{{ s.title }}</span>
+      <span class="section-sub">{{ s.subtitle }}</span>
+    </div>
+    <markdown [src]="'assets/docs/' + s.id + '.md'" />
+  </div>
+}

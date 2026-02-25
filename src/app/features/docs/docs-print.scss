@@ -1,0 +1,654 @@
+/* ============================================================
+   DOCS-PRINT — Manual de Firmware Wars (impresión / PDF)
+   ============================================================ */
+
+/* ── @page: A4 con márgenes que coinciden con la vista previa ── */
+@page {
+  size: A4;
+  margin: 1.8cm 2cm 1.2cm;
+  /* top: 1.8cm (header 0.85cm + gap) | sides: 2cm | bottom: 1.2cm (footer 0.85cm + gap) */
+}
+
+/* ── Visibilidad print/screen ────────────────────────────────── */
+.print-only { display: none; }
+
+@media print {
+  .no-print   { display: none !important; }
+  .print-only { display: flex; }
+}
+
+/* ── Host: fondo de vista previa ─────────────────────────────── */
+:host {
+  display: block;
+  background: #1c1c1c;
+  min-height: 100vh;
+  padding: 5rem 1rem 3rem;
+
+  @media print {
+    background: white;
+    padding: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BARRA DE CONTROL (solo pantalla)
+   ═══════════════════════════════════════════════════════════════ */
+.ctrl-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.92);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 1.5rem;
+  gap: 1rem;
+}
+
+.ctrl-back {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: rgba(74, 222, 128, 0.6);
+  text-decoration: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+
+  &:hover { color: #4ade80; }
+}
+
+.ctrl-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: rgba(0, 255, 136, 0.3);
+  text-transform: uppercase;
+}
+
+.ctrl-print {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  background: transparent;
+  color: #4ade80;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: rgba(0, 255, 136, 0.08);
+    color: #86efac;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENCABEZADO / PIE — position: fixed se repite en cada página
+   ═══════════════════════════════════════════════════════════════ */
+.print-header {
+  @media print {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 0.85cm;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-bottom: 0.75pt solid #b8deba;
+    font-family: 'Orbitron', monospace;
+    font-size: 6.5pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #3a6640;
+  }
+
+  .ph-sep { color: #6ea878; margin: 0 0.4em; }
+}
+
+.print-footer {
+  @media print {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 0.85cm;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-top: 0.75pt solid #b8deba;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 6pt;
+    letter-spacing: 0.08em;
+    color: #4a7a52;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PÁGINAS — wrapper A4
+   ═══════════════════════════════════════════════════════════════ */
+.fw-page {
+  /* Vista previa: tarjeta A4 con sombra */
+  background: white;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto 2rem;
+  box-shadow: 0 6px 50px rgba(0, 0, 0, 0.55);
+  position: relative;
+
+  @media print {
+    width: auto;
+    min-height: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    page-break-after: always;
+
+    &:last-child { page-break-after: avoid; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PORTADA
+   ═══════════════════════════════════════════════════════════════ */
+.cover-page {
+  display: flex;
+  align-items: stretch;
+
+  @media print {
+    /* En impresión el @page margin proporciona el espacio exterior.
+       Añadimos clearance del header (0.85cm) + del footer (0.85cm) */
+    padding-top: 0.95cm;
+    padding-bottom: 0.95cm;
+  }
+}
+
+.cover-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid #1a5c28;
+  margin: 1.2cm;
+
+  @media print { margin: 0.6cm; }
+}
+
+.cover-top {
+  padding: 0.75cm 1cm 0.5cm;
+  border-bottom: 1px solid #c8e6cc;
+}
+
+.cover-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7.5pt;
+  letter-spacing: 0.35em;
+  color: #3a6640;
+  text-transform: uppercase;
+}
+
+.cover-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2cm 1cm;
+  gap: 0;
+}
+
+.cover-hex {
+  font-size: 3.5rem;
+  color: #2d8a42;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  opacity: 0.3;
+}
+
+.cover-main-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 44pt;
+  font-weight: 900;
+  color: #0a1a0d;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+
+  &.wars {
+    color: #1a5c28;
+    font-size: 36pt;
+    letter-spacing: 0.28em;
+    margin-top: -0.1em;
+  }
+
+  @media print {
+    font-size: 40pt;
+    &.wars { font-size: 32pt; }
+  }
+}
+
+.cover-rule {
+  width: 6cm;
+  height: 1.5pt;
+  background: #1a5c28;
+  margin: 1rem 0;
+}
+
+.cover-subtitle {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11pt;
+  color: #2d4a32;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+
+  span { color: #1a5c28; font-weight: 700; }
+}
+
+.cover-edition {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7pt;
+  color: #6ea878;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.cover-bottom {
+  padding: 0.5cm 1cm;
+  border-top: 1px solid #c8e6cc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cover-classified {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 6.5pt;
+  letter-spacing: 0.2em;
+  color: #6ea878;
+  text-transform: uppercase;
+}
+
+.cover-year {
+  font-family: 'Orbitron', monospace;
+  font-size: 9pt;
+  color: #3a6640;
+  letter-spacing: 0.1em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ÍNDICE
+   ═══════════════════════════════════════════════════════════════ */
+.toc-page {
+  padding: 2.5cm 2cm 2.2cm;
+
+  @media print {
+    /* Coincide con @page margin (1.8cm top + 1.2cm bottom) más clearance header/footer */
+    padding: 0.95cm 0 0.95cm;
+  }
+}
+
+.toc-header { margin-bottom: 1.5rem; }
+
+.toc-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 14pt;
+  font-weight: 700;
+  color: #0a1a0d;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.625rem;
+}
+
+.toc-rule {
+  height: 2pt;
+  background: linear-gradient(to right, #1a5c28, transparent);
+  width: 100%;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 0.5pt solid #e8f5ea;
+  font-family: 'Share Tech Mono', monospace;
+
+  &:last-child { border-bottom: none; }
+}
+
+.toc-num {
+  font-size: 8pt;
+  color: #1a5c28;
+  font-weight: 700;
+  min-width: 2em;
+  letter-spacing: 0.05em;
+}
+
+.toc-title {
+  font-size: 10pt;
+  color: #0a1a0d;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  min-width: 8em;
+}
+
+.toc-leader {
+  flex: 1;
+  border-bottom: 1pt dotted #c8e6cc;
+  margin: 0 0.5rem;
+  position: relative;
+  top: -0.3em;
+}
+
+.toc-sub {
+  font-size: 8.5pt;
+  color: #4a7a52;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.toc-footer {
+  margin-top: 1.5rem;
+  padding-top: 0.875rem;
+  border-top: 0.5pt solid #c8e6cc;
+
+  p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8pt;
+    color: #4a6e52;
+    line-height: 1.7;
+    margin: 0 0 0.35rem;
+
+    strong { color: #1a5c28; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PÁGINAS DE CONTENIDO
+   ═══════════════════════════════════════════════════════════════ */
+.content-page {
+  /* Vista previa: simula márgenes @page + clearance de header/footer */
+  padding: 2.5cm 2cm 2.2cm;
+
+  @media print {
+    /* @page ya pone 1.8cm arriba y 1.2cm abajo (papel).
+       Añadimos 0.95cm extra para limpiar el header (0.85cm) + gap,
+       y 0.95cm para limpiar el footer. */
+    padding: 0.95cm 0 0.95cm;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2pt solid #1a5c28;
+  page-break-after: avoid;
+}
+
+.section-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 8pt;
+  color: #1a5c28;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: #e8f5ea;
+  padding: 0.15rem 0.4rem;
+  white-space: nowrap;
+}
+
+.section-id {
+  font-family: 'Orbitron', monospace;
+  font-size: 9pt;
+  font-weight: 700;
+  color: #0a1a0d;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.section-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8pt;
+  color: #4a7a52;
+  letter-spacing: 0.1em;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ESTILOS MARKDOWN — negro sobre blanco (override tema dark)
+   ═══════════════════════════════════════════════════════════════ */
+:host ::ng-deep markdown {
+  display: block;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  color: #1a2e1e;
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 15pt;
+    font-weight: 900;
+    color: #0a1a0d;
+    border-bottom: 1.5pt solid #1a5c28;
+    padding-bottom: 0.4rem;
+    margin: 0 0 1.1rem;
+    text-shadow: none;
+    letter-spacing: 0.06em;
+    page-break-after: avoid;
+
+    &::before {
+      content: '// ';
+      color: #6ea878;
+      font-size: 0.65em;
+    }
+  }
+
+  h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0d2e14;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-left: 2.5pt solid #1a5c28;
+    padding-left: 0.5rem;
+    margin: 1.4rem 0 0.5rem;
+    line-height: 1.4;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 8pt;
+    font-weight: 700;
+    color: #2d5c35;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin: 1.1rem 0 0.4rem;
+    page-break-after: avoid;
+
+    &::before { content: '> '; color: #6ea878; }
+  }
+
+  p {
+    font-size: 9pt;
+    color: #1a2e1e;
+    line-height: 1.75;
+    margin: 0 0 0.6rem;
+  }
+
+  strong {
+    color: #0a1a0d;
+    font-weight: 700;
+  }
+
+  em { color: #3a6640; font-style: italic; }
+
+  a { color: #1a5c28; text-decoration: underline; }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.75rem;
+
+    li {
+      font-size: 9pt;
+      color: #1a2e1e;
+      line-height: 1.7;
+      padding-left: 1.1rem;
+      margin-bottom: 0.15rem;
+      position: relative;
+
+      &::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: #1a5c28;
+        font-size: 0.85em;
+      }
+
+      strong { color: #0a1a0d; }
+    }
+  }
+
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.75rem;
+    counter-reset: fw-ol;
+
+    li {
+      font-size: 9pt;
+      color: #1a2e1e;
+      line-height: 1.7;
+      padding-left: 1.75rem;
+      margin-bottom: 0.2rem;
+      position: relative;
+      counter-increment: fw-ol;
+
+      &::before {
+        content: counter(fw-ol, decimal-leading-zero) '.';
+        position: absolute;
+        left: 0;
+        color: #3a6640;
+        font-size: 0.75em;
+        top: 0.28em;
+      }
+
+      strong { color: #0a1a0d; }
+    }
+  }
+
+  :not(pre) > code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85em;
+    color: #1a5c28;
+    background: #f0f8f1;
+    border: 0.5pt solid #a3d8aa;
+    padding: 0.05em 0.35em;
+  }
+
+  pre {
+    background: #f4faf5;
+    border: 0.5pt solid #b8deba;
+    border-left: 2.5pt solid #1a5c28;
+    padding: 0.65rem 0.875rem;
+    overflow-x: auto;
+    margin: 0 0 0.75rem;
+    page-break-inside: avoid;
+
+    &::before {
+      content: 'SYS://';
+      display: block;
+      text-align: right;
+      color: #6ea878;
+      font-family: 'Orbitron', monospace;
+      font-size: 6pt;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.2rem;
+    }
+
+    code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #0d2e14;
+      font-size: 8.5pt;
+      line-height: 1.6;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 0.875rem;
+    font-size: 8pt;
+    page-break-inside: avoid;
+
+    thead {
+      background: #e8f5ea;
+      border-bottom: 1pt solid #a3d8aa;
+
+      th {
+        font-family: 'Orbitron', monospace;
+        font-size: 6.5pt;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #1a5c28;
+        padding: 0.35rem 0.5rem;
+        text-align: left;
+        white-space: nowrap;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 0.5pt solid #d4edda;
+
+        &:last-child { border-bottom: none; }
+        &:nth-child(even) { background: #f9fdfb; }
+
+        td {
+          color: #1a2e1e;
+          padding: 0.3rem 0.5rem;
+          vertical-align: top;
+          line-height: 1.5;
+        }
+      }
+    }
+  }
+
+  blockquote {
+    margin: 0 0 0.75rem;
+    padding: 0.45rem 0.75rem;
+    border-left: 2.5pt solid #6ea878;
+    background: #f4faf5;
+    page-break-inside: avoid;
+
+    p {
+      color: #2d5c35;
+      font-style: italic;
+      margin: 0;
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 0.75pt solid #c8e6cc;
+    margin: 1.25rem 0;
+  }
+}

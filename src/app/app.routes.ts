@@ -10,6 +10,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/docs/docs').then(m => m.Docs)
   },
   {
+    path: 'docs/print',
+    loadComponent: () => import('./features/docs/docs-print').then(m => m.DocsPrint)
+  },
+  {
     path: 'docs/:section',
     loadComponent: () => import('./features/docs/docs').then(m => m.Docs)
   },
