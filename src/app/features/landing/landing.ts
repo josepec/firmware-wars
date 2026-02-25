@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 
+const TERMINAL_KEY = 'fw_terminal_closed';
+
 @Component({
   selector: 'app-landing',
   imports: [RouterLink, NgClass],
@@ -12,6 +14,7 @@ export class Landing implements OnInit, OnDestroy {
   readonly bootLines = signal<string[]>([]);
   readonly bootDone = signal(false);
   readonly showContent = signal(false);
+  readonly terminalVisible = signal(true);
 
   private interval: ReturnType<typeof setInterval> | null = null;
   private timeout: ReturnType<typeof setTimeout> | null = null;
@@ -26,6 +29,12 @@ export class Landing implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
+    if (sessionStorage.getItem(TERMINAL_KEY)) {
+      this.terminalVisible.set(false);
+      this.showContent.set(true);
+      return;
+    }
+
     let i = 0;
     this.interval = setInterval(() => {
       if (i < this.allBootLines.length) {
@@ -37,6 +46,12 @@ export class Landing implements OnInit, OnDestroy {
         this.timeout = setTimeout(() => this.showContent.set(true), 500);
       }
     }, 380);
+  }
+
+  closeTerminal() {
+    sessionStorage.setItem(TERMINAL_KEY, '1');
+    this.terminalVisible.set(false);
+    this.showContent.set(true);
   }
 
   ngOnDestroy() {
