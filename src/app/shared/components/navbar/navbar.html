@@ -1,27 +1,57 @@
-<nav class="border-b border-green-500/20 px-8 py-3 flex justify-between items-center text-xs text-green-500/50 tracking-widest relative z-20 bg-black/40 backdrop-blur-sm">
-  <div class="flex items-center gap-6">
-    <span class="text-green-500/60">:: FIRMWARE WARS SYSTEM v28.0 ::</span>
-    <div class="hidden sm:flex items-center gap-6 border-l border-green-500/15 ml-2 pl-6">
-      <a routerLink="/"
-         routerLinkActive="text-green-400"
-         [routerLinkActiveOptions]="{exact: true}"
-         class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
-        Inicio
-      </a>
-      <a routerLink="/docs"
-         routerLinkActive="text-green-400"
-         class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
-        Docs
-      </a>
-      <a routerLink="/army-builder"
-         routerLinkActive="text-green-400"
-         class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
-        Lista
-      </a>
+<header class="relative z-20">
+
+  <!-- Barra principal ─────────────────────────────────────── -->
+  <div class="border-b border-green-500/20 px-4 sm:px-8 py-3 flex justify-between items-center
+              text-green-500/50 tracking-widest bg-black/40 backdrop-blur-sm">
+    <div class="flex items-center gap-3 sm:gap-6">
+      <span class="text-green-500/60 text-[10px] sm:text-xs">
+        :: FIRMWARE WARS <span class="hidden sm:inline">SYSTEM v28.0</span> ::
+      </span>
+      <!-- Nav links — sólo desktop -->
+      <div class="hidden md:flex items-center gap-6 border-l border-green-500/15 ml-2 pl-6">
+        <a routerLink="/"
+           routerLinkActive="text-green-400"
+           [routerLinkActiveOptions]="{exact: true}"
+           class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+          Inicio
+        </a>
+        <a routerLink="/docs"
+           routerLinkActive="text-green-400"
+           class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+          Docs
+        </a>
+        <a routerLink="/army-builder"
+           routerLinkActive="text-green-400"
+           class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+          Lista
+        </a>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-[10px] sm:text-xs">
+      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+      <span><span class="hidden xs:inline">ARENA </span>ONLINE</span>
     </div>
   </div>
-  <div class="flex items-center gap-2">
-    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-    <span>ARENA ONLINE</span>
+
+  <!-- Nav links — sólo mobile/tablet ──────────────────────── -->
+  <div class="md:hidden flex items-center justify-center gap-8 px-4 py-2
+              border-b border-green-500/10 bg-black/30 backdrop-blur-sm">
+    <a routerLink="/"
+       routerLinkActive="text-green-400"
+       [routerLinkActiveOptions]="{exact: true}"
+       class="text-green-500/50 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+      Inicio
+    </a>
+    <a routerLink="/docs"
+       routerLinkActive="text-green-400"
+       class="text-green-500/50 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+      Docs
+    </a>
+    <a routerLink="/army-builder"
+       routerLinkActive="text-green-400"
+       class="text-green-500/50 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+      Lista
+    </a>
   </div>
-</nav>
+
+</header>
