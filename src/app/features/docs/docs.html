@@ -1,18 +1,21 @@
-<div class="flex min-h-screen bg-gray-950 text-white">
-  <!-- Sidebar -->
-  <aside class="w-64 bg-gray-900 border-r border-gray-700 p-6 flex-shrink-0">
-    <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Documentación</h2>
+<div class="flex min-h-screen">
+
+  <!-- Sidebar ───────────────────────────────────────────────── -->
+  <aside class="w-56 bg-black/60 border-r border-green-500/15 p-6 flex-shrink-0">
+    <div class="text-[10px] tracking-[0.4em] text-green-500/30 mb-5">// DOCS.CFG</div>
     <nav>
-      <ul class="space-y-2">
+      <ul class="space-y-1">
         <li>
-          <a routerLink="/docs/intro" routerLinkActive="text-cyan-400 font-semibold"
-             class="block text-gray-300 hover:text-white transition-colors py-1">
+          <a routerLink="/docs/intro"
+             routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3"
+             class="block text-green-500/50 hover:text-green-300 transition-colors py-1.5 text-xs tracking-widest uppercase">
             Introducción
           </a>
         </li>
         <li>
-          <a routerLink="/docs/core-rules" routerLinkActive="text-cyan-400 font-semibold"
-             class="block text-gray-300 hover:text-white transition-colors py-1">
+          <a routerLink="/docs/core-rules"
+             routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3"
+             class="block text-green-500/50 hover:text-green-300 transition-colors py-1.5 text-xs tracking-widest uppercase">
             Reglas Básicas
           </a>
         </li>
@@ -20,8 +23,11 @@
     </nav>
   </aside>
 
-  <!-- Content -->
-  <main class="flex-1 p-10 max-w-4xl">
-    <p class="text-gray-400">Selecciona una sección del menú lateral.</p>
+  <!-- Content ───────────────────────────────────────────────── -->
+  <main class="flex-1 p-10 max-w-4xl relative z-20">
+    <p class="text-green-500/40 text-xs tracking-widest">
+      &gt; Selecciona una sección del menú lateral.<span class="cursor-blink ml-1">&#9646;</span>
+    </p>
   </main>
+
 </div>

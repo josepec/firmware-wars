@@ -1,1 +1,78 @@
 @import "tailwindcss";
+
+/* ============================================================
+   FIRMWARE WARS — GLOBAL DESIGN SYSTEM
+   Fuentes: Share Tech Mono (body), Orbitron (títulos/UI)
+   Paleta: #040c0f bg, #00ff88 accent, green-400 text
+   ============================================================ */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  background-color: #040c0f;
+  color: #4ade80; /* green-400 */
+  overflow-x: hidden;
+}
+
+/* ── Fuente decorativa ─────────────────────────────────────── */
+.font-orbitron {
+  font-family: 'Orbitron', monospace;
+}
+
+/* ── Animaciones ───────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── Utilidades de efecto ──────────────────────────────────── */
+.fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.terminal-line {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+.glow-text {
+  text-shadow: 0 0 30px #00ff88, 0 0 60px rgba(0, 255, 136, 0.31);
+}
+
+.glow-green {
+  text-shadow: 0 0 20px #00ff88;
+}
+
+/* ── Fondo hexagonal ───────────────────────────────────────── */
+.hex-grid {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M30 4 L56 19 L56 49 L30 64 L4 49 L4 19 Z' fill='none' stroke='%2300ff88' stroke-width='0.4'/%3E%3C/svg%3E");
+  background-size: 60px 52px;
+}
+
+/* ── Overlay de líneas de escaneo ──────────────────────────── */
+.scanline-overlay {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 136, 0.015) 2px,
+    rgba(0, 255, 136, 0.015) 4px
+  );
+}
+
+/* ── Hover de tarjeta ──────────────────────────────────────── */
+.card-hover {
+  transition: all 0.25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+}
