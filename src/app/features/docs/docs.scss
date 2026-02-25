@@ -1,0 +1,266 @@
+/* ============================================================
+   DOCS — Markdown renderer estilo terminal Firmware Wars
+   ============================================================ */
+
+:host ::ng-deep markdown {
+  display: block;
+  animation: fadeIn 0.4s ease-out forwards;
+
+  /* ── H1 ──────────────────────────────────────────────────── */
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: 900;
+    color: #00ff88;
+    text-shadow: 0 0 30px rgba(0, 255, 136, 0.45);
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    margin: 0 0 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+
+    &::before {
+      content: '// ';
+      color: rgba(0, 255, 136, 0.35);
+      font-size: 0.65em;
+      letter-spacing: 0.1em;
+    }
+  }
+
+  /* ── H2 ──────────────────────────────────────────────────── */
+  h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+    font-weight: 700;
+    color: #4ade80;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 2.75rem 0 1rem;
+    padding-left: 0.875rem;
+    border-left: 2px solid #00ff88;
+    line-height: 1.4;
+
+    &:first-child { margin-top: 0; }
+  }
+
+  /* ── H3 ──────────────────────────────────────────────────── */
+  h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(74, 222, 128, 0.7);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 2rem 0 0.75rem;
+
+    &::before {
+      content: '> ';
+      color: rgba(0, 255, 136, 0.35);
+    }
+  }
+
+  /* ── Párrafos ─────────────────────────────────────────────── */
+  p {
+    color: rgba(74, 222, 128, 0.8);
+    line-height: 1.85;
+    margin: 0 0 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  strong {
+    color: rgba(220, 252, 231, 0.92);
+    font-weight: 600;
+  }
+
+  em {
+    color: rgba(74, 222, 128, 0.65);
+    font-style: italic;
+  }
+
+  a {
+    color: #00ff88;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+    transition: color 0.2s, border-color 0.2s;
+
+    &:hover {
+      color: #d4ffe8;
+      border-bottom-color: rgba(212, 255, 232, 0.5);
+    }
+  }
+
+  /* ── Listas ───────────────────────────────────────────────── */
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+
+    li {
+      color: rgba(74, 222, 128, 0.8);
+      font-size: 0.9rem;
+      line-height: 1.8;
+      padding-left: 1.5rem;
+      margin-bottom: 0.3rem;
+      position: relative;
+
+      &::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: #00ff88;
+        font-size: 0.85em;
+        top: 0.1em;
+      }
+
+      strong { color: rgba(220, 252, 231, 0.92); }
+    }
+  }
+
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    counter-reset: fw-ol;
+
+    li {
+      color: rgba(74, 222, 128, 0.8);
+      font-size: 0.9rem;
+      line-height: 1.8;
+      padding-left: 2.25rem;
+      margin-bottom: 0.4rem;
+      position: relative;
+      counter-increment: fw-ol;
+
+      &::before {
+        content: counter(fw-ol, decimal-leading-zero) '.';
+        position: absolute;
+        left: 0;
+        color: rgba(0, 255, 136, 0.4);
+        font-size: 0.75em;
+        letter-spacing: 0.05em;
+        top: 0.28em;
+      }
+
+      strong { color: rgba(220, 252, 231, 0.92); }
+    }
+  }
+
+  /* ── Código inline ────────────────────────────────────────── */
+  :not(pre) > code {
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-size: 0.85em;
+    color: #00ff88;
+    background: rgba(0, 255, 136, 0.07);
+    border: 1px solid rgba(0, 255, 136, 0.22);
+    padding: 0.1em 0.45em;
+    border-radius: 2px;
+  }
+
+  /* ── Bloque de código ─────────────────────────────────────── */
+  pre {
+    background: #010a07;
+    border: 1px solid rgba(0, 255, 136, 0.18);
+    border-left: 3px solid rgba(0, 255, 136, 0.7);
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    margin: 0 0 1.5rem;
+    position: relative;
+
+    &::before {
+      content: 'SYS://';
+      position: absolute;
+      top: 0.5rem;
+      right: 0.875rem;
+      color: rgba(0, 255, 136, 0.18);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+    }
+
+    code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #4ade80;
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.75;
+    }
+  }
+
+  /* ── Tabla ────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1.75rem;
+    font-size: 0.875rem;
+    border: 1px solid rgba(0, 255, 136, 0.12);
+
+    thead {
+      background: rgba(0, 255, 136, 0.04);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.25);
+
+      th {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(0, 255, 136, 0.65);
+        padding: 0.65rem 1rem;
+        text-align: left;
+        white-space: nowrap;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid rgba(0, 255, 136, 0.07);
+        transition: background 0.15s;
+
+        &:last-child { border-bottom: none; }
+        &:hover { background: rgba(0, 255, 136, 0.03); }
+
+        td {
+          color: rgba(74, 222, 128, 0.75);
+          padding: 0.6rem 1rem;
+          vertical-align: top;
+          line-height: 1.6;
+        }
+      }
+    }
+  }
+
+  /* ── Cita ─────────────────────────────────────────────────── */
+  blockquote {
+    margin: 0 0 1.25rem;
+    padding: 0.75rem 1.25rem;
+    border-left: 3px solid rgba(0, 255, 136, 0.35);
+    background: rgba(0, 255, 136, 0.03);
+
+    p {
+      color: rgba(74, 222, 128, 0.6);
+      font-style: italic;
+      margin: 0;
+    }
+  }
+
+  /* ── Separador ────────────────────────────────────────────── */
+  hr {
+    border: none;
+    border-top: 1px solid rgba(0, 255, 136, 0.12);
+    margin: 2.5rem 0;
+    position: relative;
+
+    &::after {
+      content: '◆';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(0, 255, 136, 0.25);
+      background: #040c0f;
+      padding: 0 0.75rem;
+      font-size: 0.5rem;
+    }
+  }
+}

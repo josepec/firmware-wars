@@ -30,7 +30,7 @@
   <!-- Content ───────────────────────────────────────────────── -->
   <main class="flex-1 p-6 md:p-10 max-w-4xl relative z-20">
     @if (markdownSrc) {
-      <markdown [src]="markdownSrc" class="prose prose-invert prose-green max-w-none" />
+      <markdown [src]="markdownSrc" />
     } @else {
       <p class="text-green-400/65 text-xs tracking-widest">
         &gt; Selecciona una sección del menú lateral.<span class="cursor-blink ml-1">&#9646;</span>
