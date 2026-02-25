@@ -17,8 +17,8 @@ export class Landing implements OnInit, OnDestroy {
   private timeout: ReturnType<typeof setTimeout> | null = null;
 
   private readonly allBootLines = [
-    '> SYSTEM INITIATED 2025...',
-    '> LOADING FIRMWARE WARS v28.0...',
+    '> SYSTEM INITIATED...',
+    '> LOADING FIRMWARE WARS 28TH CYCLE...',
     '> CONNECTING TO ARENA DIGITAL...',
     '> BOTS.CFG LOADED [4 UNITS READY]',
     '> CORE COMBAT SYSTEM ONLINE',
