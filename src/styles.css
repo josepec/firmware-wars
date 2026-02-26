@@ -76,3 +76,22 @@ body {
 .card-hover:hover {
   transform: translateY(-3px);
 }
+
+/* ── Directivas de columna (markdown zinewire-style) ─────────
+   El contenido fluye automáticamente por las columnas CSS.
+   /col → break-after: column  (salta a la siguiente columna)
+   /end-columns → cierra el contenedor
+   docs.scss reduce a 1 columna para la vista lateral estrecha.
+   ─────────────────────────────────────────────────────────── */
+.md-col-2 { column-count: 2; column-gap: 1.5rem; }
+.md-col-3 { column-count: 3; column-gap: 1rem;   }
+
+.md-col-break  { break-after: column; height: 0; }
+.md-page-break { height: 0; }
+.md-space      { height: 1rem; }
+
+@media print {
+  .md-col-2 { column-gap: 0.6cm; }
+  .md-col-3 { column-gap: 0.4cm; }
+  .md-page-break { break-after: page; }
+}

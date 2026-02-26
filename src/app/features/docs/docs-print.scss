@@ -2,11 +2,11 @@
    DOCS-PRINT — Manual de Firmware Wars (impresión / PDF)
    ============================================================ */
 
-/* ── @page: A4 con márgenes que coinciden con la vista previa ── */
+/* ── @page: A5 con márgenes que coinciden con la vista previa ── */
 @page {
-  size: A4;
-  margin: 1.8cm 2cm 1.2cm;
-  /* top: 1.8cm (header 0.85cm + gap) | sides: 2cm | bottom: 1.2cm (footer 0.85cm + gap) */
+  size: A5;
+  margin: 1.5cm 1.5cm 1.2cm;
+  /* top: 1.5cm (header 0.85cm + gap) | sides: 1.5cm | bottom: 1.2cm (footer 0.85cm + gap) */
 }
 
 /* ── Visibilidad print/screen ────────────────────────────────── */
@@ -135,17 +135,22 @@
    PÁGINAS — wrapper A4
    ═══════════════════════════════════════════════════════════════ */
 .fw-page {
-  /* Vista previa: tarjeta A4 con sombra */
+  /* Vista previa: rectángulo A5 exacto en pantalla.
+     height + overflow:hidden = ventana de una sola página A5.
+     El contenido que no cabe (siguiente página en impresión)
+     queda en el DOM y se imprime correctamente con @page.     */
   background: white;
-  width: 210mm;
-  min-height: 297mm;
+  width: 148mm;
+  height: 210mm;
+  overflow: hidden;
   margin: 0 auto 2rem;
   box-shadow: 0 6px 50px rgba(0, 0, 0, 0.55);
   position: relative;
 
   @media print {
     width: auto;
-    min-height: auto;
+    height: auto;
+    overflow: visible;
     margin: 0;
     padding: 0;
     box-shadow: none;
@@ -175,9 +180,9 @@
   display: flex;
   flex-direction: column;
   border: 3px solid #1a5c28;
-  margin: 1.2cm;
+  margin: 0.8cm;
 
-  @media print { margin: 0.6cm; }
+  @media print { margin: 0.4cm; }
 }
 
 .cover-top {
@@ -213,7 +218,7 @@
 
 .cover-main-title {
   font-family: 'Orbitron', monospace;
-  font-size: 44pt;
+  font-size: 32pt;
   font-weight: 900;
   color: #0a1a0d;
   letter-spacing: 0.12em;
@@ -222,14 +227,14 @@
 
   &.wars {
     color: #1a5c28;
-    font-size: 36pt;
+    font-size: 26pt;
     letter-spacing: 0.28em;
     margin-top: -0.1em;
   }
 
   @media print {
-    font-size: 40pt;
-    &.wars { font-size: 32pt; }
+    font-size: 30pt;
+    &.wars { font-size: 24pt; }
   }
 }
 
@@ -286,11 +291,10 @@
    ÍNDICE
    ═══════════════════════════════════════════════════════════════ */
 .toc-page {
-  padding: 2.5cm 2cm 2.2cm;
+  padding: 2cm 1.5cm 1.8cm;
 
   @media print {
-    /* Coincide con @page margin (1.8cm top + 1.2cm bottom) más clearance header/footer */
-    padding: 0.95cm 0 0.95cm;
+    padding: 0.85cm 0 0.85cm;
   }
 }
 
@@ -381,13 +385,10 @@
    ═══════════════════════════════════════════════════════════════ */
 .content-page {
   /* Vista previa: simula márgenes @page + clearance de header/footer */
-  padding: 2.5cm 2cm 2.2cm;
+  padding: 2cm 1.5cm 1.8cm;
 
   @media print {
-    /* @page ya pone 1.8cm arriba y 1.2cm abajo (papel).
-       Añadimos 0.95cm extra para limpiar el header (0.85cm) + gap,
-       y 0.95cm para limpiar el footer. */
-    padding: 0.95cm 0 0.95cm;
+    padding: 0.85cm 0 0.85cm;
   }
 }
 
@@ -651,4 +652,26 @@
     border-top: 0.75pt solid #c8e6cc;
     margin: 1.25rem 0;
   }
+
+  /* ── Token colors para bloques BattleScript (oscuro sobre blanco) */
+  pre.bs-pre code {
+    .bs-kw    { color: #b45309; } /* amber-700   — keywords    */
+    .bs-op    { color: #be185d; } /* pink-700    — operators   */
+    .bs-num   { color: #c2410c; } /* orange-700  — numbers     */
+    .bs-var   { color: #0e7490; } /* cyan-700    — variables   */
+    .bs-fn    { color: #15803d; } /* green-700   — functions   */
+    .bs-type  { color: #6d28d9; } /* violet-700  — types       */
+    .bs-phase { color: #374151; } /* gray-700    — structure   */
+  }
+
+  /* ── Token colors inline ─────────────────────────────────── */
+  :not(pre) > code {
+    &.bs-kw    { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
+    &.bs-fn    { color: #166534; background: #f0fdf4; border-color: #86efac; }
+    &.bs-phase { color: #4c1d95; background: #f5f3ff; border-color: #c4b5fd; }
+  }
+
+  /* ── Directivas de columna: estilos globales en styles.css ─
+     Aquí solo sobreescribimos spacing para el tamaño A5.      */
+  .md-space { height: 0.4cm; }
 }
