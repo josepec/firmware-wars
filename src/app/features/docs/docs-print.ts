@@ -81,6 +81,9 @@ export class DocsPrint implements OnDestroy {
           this.applyColumnHeights();
           if (!this.autoPrinted && this.sectionsLoaded >= this.sections.length) {
             this.autoPrinted = true;
+            if (this.isWorkerRequest) {
+              this.injectPageNumbers();
+            }
             document.body.setAttribute('data-pdf-ready', 'true');
             if (!this.isWorkerRequest) {
               window.print();
@@ -138,6 +141,21 @@ export class DocsPrint implements OnDestroy {
            No se pierde contenido; se ve fuera del box A5.              */
         col.style.overflow = 'visible';
       }
+    });
+  }
+
+  /** Inyecta números de página en cada .fw-page (modo Worker/Puppeteer).
+   *  Pares a la izquierda, impares a la derecha, portada sin número. */
+  private injectPageNumbers(): void {
+    const pages = Array.from(document.querySelectorAll<HTMLElement>('.fw-page'));
+    pages.forEach((page, i) => {
+      if (i === 0) return; // portada sin número
+      const pageNum = i + 1;
+      const el = document.createElement('div');
+      el.className = 'pdf-page-num';
+      el.dataset['side'] = pageNum % 2 === 0 ? 'left' : 'right';
+      el.textContent = String(pageNum);
+      page.appendChild(el);
     });
   }
 
