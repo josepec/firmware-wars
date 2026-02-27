@@ -1,4 +1,4 @@
-# CORE.CYCLE: Estructura del Turno
+# CORE.CYCLE: Turno
 
 ## Fases del Sistema
 
