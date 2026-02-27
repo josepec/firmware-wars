@@ -1,6 +1,8 @@
 import { Component, NgZone, OnDestroy } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
+
+const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 
 @Component({
   selector: 'app-docs-print',
@@ -20,24 +22,35 @@ export class DocsPrint implements OnDestroy {
     { id: 'quick-ref', num: '08', title: 'QUICK.REF', subtitle: 'Referencia Rápida' },
   ];
 
+  readonly pdfUrl = PDF_WORKER_URL;
+
+  /* Cuando el Worker llama a la página añade ?worker=1.
+     En ese modo no llamamos a window.print() ni navegamos de vuelta. */
+  private readonly isWorkerRequest = new URLSearchParams(window.location.search).has('worker');
+
   /* ── 1 mm en px CSS (calculado una vez al montar) ────────── */
   private readonly oneMmPx: number;
 
-  /* ── Handlers de impresión como propiedades para poder      *
-   *    desregistrarlos correctamente en ngOnDestroy            */
-  private readonly beforePrintFn = () => this.clearColumnHeights();
-  private readonly afterPrintFn = () => this.applyColumnHeights();
+  private sectionsLoaded = 0;
+  private autoPrinted = false;
 
-  constructor(private readonly ngZone: NgZone) {
-    /* Calcula 1 mm en px CSS midiendo un elemento temporal */
+  private readonly beforePrintFn = () => this.clearColumnHeights();
+  private readonly afterPrintFn = () => {
+    if (!this.isWorkerRequest) {
+      this.router.navigate(['/docs']);
+    }
+  };
+
+  constructor(
+    private readonly ngZone: NgZone,
+    private readonly router: Router,
+  ) {
     const probe = document.createElement('div');
     probe.style.cssText = 'width:1mm;position:absolute;visibility:hidden;';
     document.body.appendChild(probe);
     this.oneMmPx = probe.getBoundingClientRect().width;
     document.body.removeChild(probe);
 
-    /* Al imprimir: quita alturas JS para que @page las controle;
-       al volver: las restaura para la vista previa.            */
     window.addEventListener('beforeprint', this.beforePrintFn);
     window.addEventListener('afterprint', this.afterPrintFn);
   }
@@ -53,12 +66,23 @@ export class DocsPrint implements OnDestroy {
 
   /**
    * Llamado por (load) y (error) de cada <markdown>.
-   * Doble rAF garantiza que el layout ya está pintado.
+   * Cuando todas las secciones están listas, aplica alturas y señaliza al Worker.
+   * En el browser del usuario además lanza el diálogo de impresión.
    */
   onSectionReady(): void {
+    this.sectionsLoaded++;
     this.ngZone.runOutsideAngular(() => {
       requestAnimationFrame(() =>
-        requestAnimationFrame(() => this.applyColumnHeights())
+        requestAnimationFrame(() => {
+          this.applyColumnHeights();
+          if (!this.autoPrinted && this.sectionsLoaded >= this.sections.length) {
+            this.autoPrinted = true;
+            document.body.setAttribute('data-pdf-ready', 'true');
+            if (!this.isWorkerRequest) {
+              window.print();
+            }
+          }
+        })
       );
     });
   }

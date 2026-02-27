@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 
+const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
+
 @Component({
   selector: 'app-docs',
   imports: [RouterLink, RouterLinkActive, MarkdownComponent],
@@ -9,9 +11,10 @@ import { MarkdownComponent } from 'ngx-markdown';
   styleUrl: './docs.scss',
 })
 export class Docs implements OnInit {
+  readonly pdfUrl = PDF_WORKER_URL;
   markdownSrc: string | null = null;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {

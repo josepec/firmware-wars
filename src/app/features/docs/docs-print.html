@@ -11,13 +11,13 @@
 
   <span class="ctrl-title">FIRMWARE WARS — System Manual v1.0</span>
 
-  <button (click)="print()" class="ctrl-print">
+  <a [href]="pdfUrl" target="_blank" rel="noopener" class="ctrl-print">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M12 16V4M12 16l-4-4M12 16l4-4"/>
       <path d="M4 20h16"/>
     </svg>
-    Imprimir / PDF
-  </button>
+    Descargar PDF
+  </a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════

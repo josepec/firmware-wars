@@ -8,7 +8,7 @@
     <!-- ── Desktop header ────────────────────────────────────── -->
     <div class="hidden md:flex px-6 pt-6 pb-3 items-center justify-between">
       <span class="text-[10px] tracking-[0.4em] text-green-500/55">// DOCS.CFG</span>
-      <a routerLink="/docs/print" title="Descargar manual PDF"
+      <a [href]="pdfUrl" target="_blank" rel="noopener" title="Descargar manual PDF"
         class="text-green-500/35 hover:text-green-400 transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
           stroke-linecap="round">
@@ -78,7 +78,7 @@
         </li>
         <li class="flex items-center text-green-500/20 text-[9px] select-none px-0.5">/</li>
         <li>
-          <a routerLink="/docs/print" title="Descargar manual PDF"
+          <a [href]="pdfUrl" target="_blank" rel="noopener" title="Descargar manual PDF"
             class="flex items-center gap-1 px-2 py-1.5 text-green-500/35 hover:text-green-400 transition-colors">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round">
