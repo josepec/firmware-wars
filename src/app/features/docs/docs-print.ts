@@ -51,6 +51,10 @@ export class DocsPrint implements OnDestroy {
     this.oneMmPx = probe.getBoundingClientRect().width;
     document.body.removeChild(probe);
 
+    if (this.isWorkerRequest) {
+      document.body.setAttribute('data-worker', 'true');
+    }
+
     window.addEventListener('beforeprint', this.beforePrintFn);
     window.addEventListener('afterprint', this.afterPrintFn);
   }

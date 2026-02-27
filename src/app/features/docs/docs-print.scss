@@ -131,6 +131,12 @@
   }
 }
 
+/* En modo Worker (Puppeteer) el header/footer lo pone Puppeteer — ocultamos el HTML */
+@media print {
+  :host-context(body[data-worker]) .print-header,
+  :host-context(body[data-worker]) .print-footer { display: none !important; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    PÁGINAS — wrapper A4
    ═══════════════════════════════════════════════════════════════ */
