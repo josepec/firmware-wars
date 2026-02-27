@@ -137,23 +137,6 @@
   :host-context(body[data-worker]) .print-footer { display: none !important; }
 }
 
-/* Números de página inyectados por injectPageNumbers() — solo en modo Worker */
-:host ::ng-deep .pdf-page-num {
-  display: none; /* oculto en pantalla */
-
-  @media print {
-    display: block;
-    position: absolute;
-    bottom: 0.2cm;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 6pt;
-    letter-spacing: 0.08em;
-    color: #4a7a52;
-
-    &[data-side="right"] { right: 0; }
-    &[data-side="left"]  { left: 0; }
-  }
-}
 
 /* ═══════════════════════════════════════════════════════════════
    PÁGINAS — wrapper A4
