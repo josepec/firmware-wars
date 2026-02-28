@@ -332,14 +332,20 @@
 }
 
 .toc-item {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
   padding: 0.45rem 0;
   border-bottom: 0.5pt solid #e8f5ea;
   font-family: 'Share Tech Mono', monospace;
 
   &:last-child { border-bottom: none; }
+}
+
+.toc-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
 }
 
 .toc-num {
@@ -364,6 +370,15 @@
   margin: 0 0.5rem;
   position: relative;
   top: -0.3em;
+}
+
+.toc-pn {
+  font-size: 8pt;
+  color: #1a5c28;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  min-width: 2em;
+  text-align: right;
 }
 
 .toc-sub {

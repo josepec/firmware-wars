@@ -76,10 +76,13 @@
   <ol class="toc-list">
     @for (s of sections; track s.id) {
       <li class="toc-item">
-        <span class="toc-num">{{ s.num }}.</span>
-        <span class="toc-title">{{ s.title }}</span>
-        <span class="toc-leader"></span>
-        <span class="toc-sub">{{ s.subtitle }}</span>
+        <a class="toc-link" [href]="'#fw-section-' + s.id">
+          <span class="toc-num">{{ s.num }}.</span>
+          <span class="toc-title">{{ s.title }}</span>
+          <span class="toc-leader"></span>
+          <span class="toc-sub">{{ s.subtitle }}</span>
+          <span class="toc-pn" [attr.data-section-id]="s.id"></span>
+        </a>
       </li>
     }
   </ol>
@@ -96,7 +99,7 @@
      SECCIONES DE CONTENIDO
      ═══════════════════════════════════════════════════════════ -->
 @for (s of sections; track s.id) {
-  <div class="fw-page content-page">
+  <div class="fw-page content-page" [id]="'fw-section-' + s.id">
     <div class="section-header">
       <span class="section-num">{{ s.num }}</span>
       <span class="section-id">{{ s.title }}</span>
