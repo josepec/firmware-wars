@@ -68,6 +68,7 @@
      ÍNDICE
      ═══════════════════════════════════════════════════════════ -->
 <div class="fw-page toc-page">
+  <span class="pdf-marker">FWMARK-TOC</span>
   <div class="toc-header">
     <div class="toc-label">ÍNDICE DE CONTENIDOS</div>
     <div class="toc-rule"></div>
@@ -76,13 +77,11 @@
   <ol class="toc-list">
     @for (s of sections; track s.id) {
       <li class="toc-item">
-        <a class="toc-link" [href]="'#fw-section-' + s.id">
-          <span class="toc-num">{{ s.num }}.</span>
-          <span class="toc-title">{{ s.title }}</span>
-          <span class="toc-leader"></span>
-          <span class="toc-sub">{{ s.subtitle }}</span>
-          <span class="toc-pn" [attr.data-section-id]="s.id"></span>
-        </a>
+        <span class="toc-num">{{ s.num }}.</span>
+        <span class="toc-title">{{ s.title }}</span>
+        <span class="toc-leader"></span>
+        <span class="toc-sub">{{ s.subtitle }}</span>
+        <span class="toc-page-num" id="toc-pn-{{ s.num }}"></span>
       </li>
     }
   </ol>
@@ -99,7 +98,8 @@
      SECCIONES DE CONTENIDO
      ═══════════════════════════════════════════════════════════ -->
 @for (s of sections; track s.id) {
-  <div class="fw-page content-page" [id]="'fw-section-' + s.id">
+  <div class="fw-page content-page">
+    <span class="pdf-marker">FWMARK-{{ s.num }}-{{ s.title }}</span>
     <div class="section-header">
       <span class="section-num">{{ s.num }}</span>
       <span class="section-id">{{ s.title }}</span>
