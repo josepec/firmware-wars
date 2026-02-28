@@ -4,7 +4,7 @@
 <div class="no-print ctrl-bar">
   <a routerLink="/docs" class="ctrl-back">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
+      <path d="M19 12H5M5 12l7-7M5 12l7 7" />
     </svg>
     Volver a Docs
   </a>
@@ -13,8 +13,8 @@
 
   <a [href]="pdfUrl" target="_blank" rel="noopener" class="ctrl-print">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 16V4M12 16l-4-4M12 16l4-4"/>
-      <path d="M4 20h16"/>
+      <path d="M12 16V4M12 16l-4-4M12 16l4-4" />
+      <path d="M4 20h16" />
     </svg>
     Descargar PDF
   </a>
@@ -78,24 +78,17 @@
 
   <ol class="toc-list">
     @for (s of sections; track s.id) {
-      <li class="toc-item">
-        <a class="toc-link" href="#section-{{ s.id }}">
-          <span class="toc-num">{{ s.num }}.</span>
-          <span class="toc-title">{{ s.title }}</span>
-          <span class="toc-leader"></span>
-          <span class="toc-sub">{{ s.subtitle }}</span>
-          <span class="toc-page-num" id="toc-pn-{{ s.num }}"></span>
-        </a>
-      </li>
+    <li class="toc-item">
+      <a class="toc-link" href="#section-{{ s.id }}">
+        <span class="toc-num">{{ s.num }}.</span>
+        <span class="toc-title">{{ s.title }}</span>
+        <span class="toc-sub">{{ s.subtitle }}</span>
+        <span class="toc-page-num" id="toc-pn-{{ s.num }}"></span>
+      </a>
+    </li>
     }
   </ol>
 
-  <div class="toc-footer">
-    <p>Este manual cubre todas las fases del ciclo de turno, el sistema de operaciones,
-    funciones de combate, mantenimiento, estados alterados y referencia técnica completa.</p>
-    <p>Para los perfiles completos de cada Bot consulta la sección <strong>BOTS.CFG</strong>
-    cuando esté disponible.</p>
-  </div>
 </div>
 
 <!-- Página en blanco (reverso de índice) -->
@@ -105,15 +98,13 @@
      SECCIONES DE CONTENIDO
      ═══════════════════════════════════════════════════════════ -->
 @for (s of sections; track s.id) {
-  <div class="fw-page content-page" id="section-{{ s.id }}">
-    <span class="pdf-marker">FWMARK-{{ s.num }}-{{ s.title }}</span>
-    <div class="section-header">
-      <span class="section-num">{{ s.num }}</span>
-      <span class="section-id">{{ s.title }}</span>
-      <span class="section-sub">{{ s.subtitle }}</span>
-    </div>
-    <markdown [src]="'assets/docs/' + s.id + '.md'"
-              (load)="onSectionReady()"
-              (error)="onSectionReady()" />
+<div class="fw-page content-page" id="section-{{ s.id }}">
+  <span class="pdf-marker">FWMARK-{{ s.num }}-{{ s.title }}</span>
+  <div class="section-header">
+    <span class="section-num">{{ s.num }}</span>
+    <span class="section-id">{{ s.title }}</span>
+    <span class="section-sub">{{ s.subtitle }}</span>
   </div>
+  <markdown [src]="'assets/docs/' + s.id + '.md'" (load)="onSectionReady()" (error)="onSectionReady()" />
+</div>
 }
