@@ -37,14 +37,14 @@ const jsonTableExt = {
     return i >= 0 ? i + 1 : undefined;
   },
 
-  tokenizer(src: string): { type: string; raw: string; src: string } | undefined {
+  tokenizer(src: string): { type: string; raw: string; path: string } | undefined {
     const m = /^\/json[ \t]+(\S+)[ \t]*(?:\n|$)/.exec(src);
-    if (m) return { type: 'jsonTable', raw: m[0], src: m[1] };
+    if (m) return { type: 'jsonTable', raw: m[0], path: m[1] };
     return undefined;
   },
 
-  renderer(token: { type: string; raw: string; src: string }): string {
-    return `<div class="md-json-table" data-src="assets/data/${token.src}"></div>`;
+  renderer(token: { type: string; raw: string; path: string }): string {
+    return `<div class="md-json-table" data-src="assets/data/${token.path}"></div>`;
   },
 };
 
