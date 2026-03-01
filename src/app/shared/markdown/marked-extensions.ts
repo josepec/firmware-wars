@@ -25,6 +25,29 @@ function safeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/* ── JSON-table directive: /json <path> ────────────────────────── */
+
+const jsonTableExt = {
+  name: 'jsonTable',
+  level: 'block' as const,
+
+  start(src: string): number | undefined {
+    if (src.startsWith('/json ')) return 0;
+    const i = src.indexOf('\n/json ');
+    return i >= 0 ? i + 1 : undefined;
+  },
+
+  tokenizer(src: string): { type: string; raw: string; src: string } | undefined {
+    const m = /^\/json[ \t]+(\S+)[ \t]*(?:\n|$)/.exec(src);
+    if (m) return { type: 'jsonTable', raw: m[0], src: m[1] };
+    return undefined;
+  },
+
+  renderer(token: { type: string; raw: string; src: string }): string {
+    return `<div class="md-json-table" data-src="assets/data/${token.src}"></div>`;
+  },
+};
+
 /* ── Column-directive block extension ───────────────────────────── */
 
 const columnDirectiveExt = {
@@ -77,7 +100,7 @@ const columnDirectiveExt = {
 /* ── Full extension object ───────────────────────────────────────── */
 
 export const markdownExtensions: MarkedExtension = {
-  extensions: [columnDirectiveExt],
+  extensions: [jsonTableExt, columnDirectiveExt],
 
   renderer: {
     /** BattleScript code blocks (`​`​`bs` or `​`​`battlescript) */

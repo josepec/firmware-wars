@@ -1,0 +1,4 @@
+[
+  { "Función": "`getNumbers()`", "Efectos y Reglas": "Tira nd10 y almacena los resultados en `numbers`, hasta llenar `MAX_NUMBERS`." },
+  { "Función": "`upgrade()`", "Efectos y Reglas": "Sube la `version` del Bot en 1 punto, hasta `MAX_VERSION` (3)." }
+]

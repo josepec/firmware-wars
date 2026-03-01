@@ -1,0 +1,8 @@
+[
+  { "Fase": "`INIT()`", "Momento": "Inicio de Ronda (una vez)", "Acciones Clave": "Negociación de CPU Time (PPT protocol) para determinar el orden de activación." },
+  { "Fase": "`BOOT()`", "Momento": "Inicio de Ronda (una vez)", "Acciones Clave": "Recuperación de Energía, Carga de Operaciones y Depuración de Efectos Temporales." },
+  { "Fase": "`COMPILE()`", "Momento": "Ciclo del Bot", "Acciones Clave": "Programador ordena las Operaciones en el Terminal. Asigna Funciones y prepara el código." },
+  { "Fase": "`RUN()`", "Momento": "Ciclo del Bot", "Acciones Clave": "Ejecución de Operaciones y Funciones. Resolución de ataques, condiciones y costes energéticos." },
+  { "Fase": "`DEBUG()`", "Momento": "Ciclo del Bot (Opcional)", "Acciones Clave": "Intervención manual: omite `RUN()`. Permite ejecutar Funciones de Mantenimiento." },
+  { "Fase": "`END()`", "Momento": "Fin del Ciclo del Bot", "Acciones Clave": "Descarte de Operaciones. Conservación de Números y Energía. Transferencia del turno." }
+]

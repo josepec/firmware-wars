@@ -1,0 +1,6 @@
+[
+  { "Función": "`debug()`", "Energía": "3", "Efecto en Fase DEBUG()": "Elimina 1 Bug de los `bugs` activos." },
+  { "Función": "`patch()`", "Energía": "8", "Efecto en Fase DEBUG()": "Elimina todos los `bugs` activos." },
+  { "Función": "`optimize()`", "Energía": "5", "Efecto en Fase DEBUG()": "+1 a las tiradas de Energía durante el próximo turno." },
+  { "Función": "`reboot()`", "Energía": "0", "Efecto en Fase DEBUG()": "Pierde el próximo turno. Reinicia `energy=0`, `numbers=[]`, `bugs=0`." }
+]

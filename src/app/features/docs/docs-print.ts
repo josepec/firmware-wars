@@ -1,6 +1,7 @@
 import { Component, NgZone, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
+import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 
@@ -81,14 +82,21 @@ export class DocsPrint implements OnDestroy {
           this.applyColumnHeights();
           if (!this.autoPrinted && this.sectionsLoaded >= this.sections.length) {
             this.autoPrinted = true;
-            document.body.setAttribute('data-pdf-ready', 'true');
-            if (!this.isWorkerRequest) {
-              window.print();
-            }
+            this.hydrateAndFinalize();
           }
         })
       );
     });
+  }
+
+  private async hydrateAndFinalize(): Promise<void> {
+    await hydrateJsonTables(document.body);
+    /* Re-apply column heights after tables have been injected */
+    this.applyColumnHeights();
+    document.body.setAttribute('data-pdf-ready', 'true');
+    if (!this.isWorkerRequest) {
+      window.print();
+    }
   }
 
   /* ── Paginator ──────────────────────────────────────────── */

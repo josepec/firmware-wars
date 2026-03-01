@@ -1,0 +1,8 @@
+[
+  { "Función": "`ReinforcedChassis()`", "Efectos": "El Bot aumenta su `shield` en +1 de forma permanente." },
+  { "Función": "`EnergyRecycler()`", "Efectos": "Cada vez que el Bot dañe a un enemigo, recupera 1 de `energy` inmediatamente." },
+  { "Función": "`BufferedMemory()`", "Efectos": "El Bot ignora el primer BUG que reciba en cada turno." },
+  { "Función": "`ReactiveServos()`", "Efectos": "Si un enemigo falla un ataque, el Bot puede moverse 1 Hex gratis." },
+  { "Función": "`ReactiveLogic()`", "Efectos": "Si un Bot se destraba, recibe 1 de Daño." },
+  { "Función": "`CriticalEvasion()`", "Efectos": "El Bot puede esquivar el daño. Debe superar 1d6 (>4); si falla recibe el doble de daño." }
+]

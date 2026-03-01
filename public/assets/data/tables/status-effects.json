@@ -1,0 +1,6 @@
+[
+  { "Estado": "`LAG`", "Efecto en el Bot": "Pierde 1 punto de `MAX_MOVEMENT` durante el turno actual." },
+  { "Estado": "`SAFE_MODE`", "Efecto en el Bot": "El Bot es inmune a recibir nuevos BUGS hasta el inicio de su próximo turno." },
+  { "Estado": "`DMZ`", "Efecto en el Bot": "El Bot no puede ejecutar funciones de ataque durante el próximo turno." },
+  { "Estado": "`REBOOTING`", "Efecto en el Bot": "El Bot se está reiniciando y pierde el próximo turno." }
+]

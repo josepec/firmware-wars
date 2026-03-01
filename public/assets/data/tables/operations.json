@@ -1,0 +1,5 @@
+[
+  { "Versión": "V1", "Operaciones Permitidas": "`IF`, `IF-ELSE`", "Límite de Bucle": "—", "Notas": "Condicionales básicos." },
+  { "Versión": "V2", "Operaciones Permitidas": "`IF`, `IF-ELSE`, `FOR`, `WHILE`", "Límite de Bucle": "1 `FOR` ó 1 `WHILE`", "Notas": "Condicionales y pequeña lógica." },
+  { "Versión": "V3", "Operaciones Permitidas": "`IF`, `IF-ELSE`, `FOR`, `WHILE`, `TRY-CATCH`", "Límite de Bucle": "1 `FOR` ó 1 `WHILE`", "Notas": "Condicionales y lógica avanzada." }
+]

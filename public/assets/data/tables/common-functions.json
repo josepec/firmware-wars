@@ -1,0 +1,5 @@
+[
+  { "Función": "`move(valor)`", "Energía": "valor", "Efectos y Reglas": "Mueve el Bot hasta `valor` Hexes. `valor` debe ser ≤ `MAX_MOVEMENT`. Si es mayor, se genera un BUG." },
+  { "Función": "`attack(FunciónAtaque)`", "Energía": "FunciónAtaque", "Efectos y Reglas": "Ejecuta una Función de ataque específica del modelo de Bot." },
+  { "Función": "`shield()`", "Energía": "2", "Efectos y Reglas": "Añade un punto de Escudo en `shield`, sin superar `MAX_SHIELD`." }
+]

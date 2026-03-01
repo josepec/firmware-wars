@@ -1,0 +1,21 @@
+[
+  { "Función": "`PowerSmash()`", "V.": "1", "Rango": "1", "Daño": "2", "Energía": "3", "Efectos": "Empuja al objetivo 1 Hex." },
+  { "Función": "`RocketPunch()`", "V.": "1", "Rango": "1", "Daño": "1d4", "Energía": "4", "Efectos": "Ninguno." },
+  { "Función": "`LaserBeam()`", "V.": "1", "Rango": "8", "Daño": "2", "Energía": "3", "Efectos": "Ataque en línea recta." },
+  { "Función": "`DashStrike()`", "V.": "1", "Rango": "2", "Daño": "2", "Energía": "3", "Efectos": "Puede mover 1 Hex después de atacar." },
+  { "Función": "`PinpointBurst()`", "V.": "1", "Rango": "4", "Daño": "2", "Energía": "2", "Efectos": "Ataque en línea recta." },
+  { "Función": "`PulseShot()`", "V.": "1", "Rango": "2", "Daño": "2", "Energía": "1", "Efectos": "Si objetivo está a 1 Hex → +1 daño." },
+  { "Función": "`StabilizerHit()`", "V.": "1", "Rango": "1", "Daño": "1", "Energía": "1", "Efectos": "Superar 1d6 (>3) o recibe LAG (-1 MAX_MOVEMENT)." },
+  { "Función": "`NanoRepair()`", "V.": "2", "Rango": "—", "Daño": "—", "Energía": "4", "Efectos": "El Bot recupera 1d4 puntos de Vida." },
+  { "Función": "`TraceShot()`", "V.": "2", "Rango": "6", "Daño": "1d4", "Energía": "4", "Efectos": "Sin línea visual, solo requiere rango." },
+  { "Función": "`GhostProtocol()`", "V.": "2", "Rango": "2", "Daño": "0", "Energía": "3", "Efectos": "Objetivo recibe 1 BUG y pierde hasta 2 `numbers`." },
+  { "Función": "`ShadowStep()`", "V.": "2", "Rango": "—", "Daño": "—", "Energía": "3", "Efectos": "Se teleporta 3 Hexes ignorando obstáculos." },
+  { "Función": "`OverdriveStrike()`", "V.": "3", "Rango": "1", "Daño": "*", "Energía": "*", "Efectos": "Gasta toda la Energía (min 2). 1 daño por cada 2 Energías." },
+  { "Función": "`ChargedStrike()`", "V.": "3", "Rango": "1", "Daño": "charge", "Energía": "0", "Efectos": "Daño igual al valor acumulado de `charge`." },
+  { "Función": "`DataSpike()`", "V.": "3", "Rango": "2", "Daño": "1d8", "Energía": "6", "Efectos": "El objetivo recibe 1 BUG." },
+  { "Función": "`FlashSpin()`", "V.": "3", "Rango": "*", "Daño": "1", "Energía": "2", "Efectos": "Área Hexes adyacentes. Daño 1 a todos los Bots en alcance." },
+  { "Función": "`SyncBlast()`", "V.": "3", "Rango": "1", "Daño": "3", "Energía": "3", "Efectos": "Si `energy` ≥ 10 al declarar: +1 a la Tirada de Combate." },
+  { "Función": "`RelayNode()`", "V.": "3", "Rango": "—", "Daño": "—", "Energía": "2", "Efectos": "Despliega Nodo (Vida 2, Máx 3). Inflige 2 daño a Bots adyacentes en `BOOT()`." },
+  { "Función": "`NovaBlast()`", "V.": "3", "Rango": "5", "Daño": "1d10", "Energía": "6", "Efectos": "Genera 1 BUG al usuario por el retroceso." },
+  { "Función": "`EMP_Field()`", "V.": "3", "Rango": "5", "Daño": "1d6", "Energía": "6", "Efectos": "Área Rango 1. Bots deben superar 1d6 (>3) o reciben estado DMZ." }
+]

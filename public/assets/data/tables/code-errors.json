@@ -1,0 +1,7 @@
+[
+  { "Error": "Infinite Loop", "Función/Operación": "`FOR`", "Consecuencia": "Si el número guardado es > 3, la operación no se ejecuta y se obtiene 1 BUG." },
+  { "Error": "Bucle Fallido", "Función/Operación": "`WHILE`", "Consecuencia": "Si la Función no se ejecuta ni una sola vez, se obtiene 1 BUG." },
+  { "Error": "Critical Exception", "Función/Operación": "`TRY-CATCH`", "Consecuencia": "Si ninguna de las dos Funciones llega a ejecutarse, se obtiene 1 BUG." },
+  { "Error": "Error de Sintaxis", "Función/Operación": "`RUN()`", "Consecuencia": "Si el resto de Programadores detectan una instrucción imposible, no se ejecuta y el Bot obtiene 1 BUG." },
+  { "Error": "Movimiento Excedido", "Función/Operación": "`move()`", "Consecuencia": "Si el parámetro numérico es > `MAX_MOVEMENT`, la operación no se ejecuta y se obtiene 1 BUG." }
+]

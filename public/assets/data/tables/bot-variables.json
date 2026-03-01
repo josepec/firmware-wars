@@ -1,0 +1,16 @@
+[
+  { "Variable": "`life`", "Tipo": "Numérico", "Propósito y Uso": "Puntos de vida actuales. Si ≤ 0, el Bot está destruido." },
+  { "Variable": "`energy`", "Tipo": "Numérico", "Propósito y Uso": "Puntos de Energía actuales. Se consume con funciones, se recupera en `BOOT()`." },
+  { "Variable": "`shield`", "Tipo": "Numérico", "Propósito y Uso": "Puntos de Escudo actuales. Se consume para evitar daño (1 escudo por 1 daño)." },
+  { "Variable": "`version`", "Tipo": "Numérico (1-3)", "Propósito y Uso": "Nivel de versión del Bot. Determina Operaciones y Ataques disponibles." },
+  { "Variable": "`bugs`", "Tipo": "Numérico", "Propósito y Uso": "Fallos de código activos. Cada BUG resta una ranura de ejecución." },
+  { "Variable": "`numbers`", "Tipo": "Array (d10)", "Propósito y Uso": "Números almacenados en memoria RAM, usados para condiciones." },
+  { "Variable": "`max_numbers`", "Tipo": "Numérico", "Propósito y Uso": "Capacidad máxima del array `numbers`. V1→5, V2→7, V3→8." },
+  { "Variable": "`ENERGY_DICE`", "Tipo": "Constante", "Propósito y Uso": "Tipo de dado para la recuperación de energía." },
+  { "Variable": "`MAX_LIFE`", "Tipo": "Constante", "Propósito y Uso": "Límite máximo de Vida." },
+  { "Variable": "`MAX_ENERGY`", "Tipo": "Constante", "Propósito y Uso": "Límite máximo de Energía." },
+  { "Variable": "`MAX_SHIELD`", "Tipo": "Constante", "Propósito y Uso": "Límite máximo de Escudo." },
+  { "Variable": "`MAX_MOVEMENT`", "Tipo": "Constante", "Propósito y Uso": "Número máximo de Hexes por `move()`." },
+  { "Variable": "`MAX_VERSION`", "Tipo": "Constante (3)", "Propósito y Uso": "Máxima versión alcanzable con `upgrade()`." },
+  { "Variable": "`MAX_OPERATIONS`", "Tipo": "Constante (3)", "Propósito y Uso": "Capacidad máxima de Operaciones por turno." }
+]
