@@ -44,7 +44,7 @@ const jsonTableExt = {
   },
 
   renderer(token: { type: string; raw: string; path: string }): string {
-    return `<div class="md-json-table" data-src="assets/data/${token.path}"></div>`;
+    return `<div class="md-json-table" data-src="/assets/data/${token.path}"></div>`;
   },
 };
 
