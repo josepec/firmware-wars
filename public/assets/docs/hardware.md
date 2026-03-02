@@ -25,6 +25,7 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 | Fichas de vida | Variable | Para llevar el registro de `life`. |
 | Terminal de programación | 1 x Bot | Hoja de turno donde anotar el BattleScript (Organizar tus Operaciones, Funciones, Números, etc.) |
 
+> Todos los dados de 6 Caras personalizados pueden ser sustituido fácilmente por tablas de equivalencias. Algunas de ellas están presentes en el manual.
 ---
 
 ## El Terminal de Programación

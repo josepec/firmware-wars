@@ -13,19 +13,9 @@ El objetivo es claro: superar a los Bots rivales mediante la combinación de est
 
 ## ¿Cómo se juega?
 
-Cada turno, el Programador ejecuta el **CORE.CYCLE**: una secuencia de fases que simula el proceso de compilación y ejecución de código en tiempo real.
+Cada turno, el Programador ejecuta el **CORE.CYCLE** en cada uno de sus Bots. Este consiste en una secuencia de fases que simula el proceso de compilación y ejecución de código en tiempo real.
 
-Inicio de ronda:
-1. **`INIT()`** — Se determina el **orden de activación** de los Programadores. El turno rota entre jugadores (un Bot cada uno) hasta completar todos los Bots. Los Bots mejoran en las rondas 3 y 5.
-2. **`BOOT()`** — El Bot arranca, recupera Energía, carga **Operaciones** aleatorias del sistema y limpia **efectos temporales**.
-
-Ciclo del Bot Activo:
-1. **`COMPILE()`** — El Programador ordena sus **Operaciones** y define qué **Funciones** ejecutará cada una.
-2. **`RUN()`** — El código se ejecuta línea por línea. Los condicionales se resuelven con dados, la energía se consume, los ataques impactan.
-3. **`DEBUG()`** — Mantenimiento opcional: Permite purgar **Bugs**, recuperar el sistema y reparar el núcleo.
-4. **`END()`** — Se descartan Operaciones, se conserva la memoria y la energía. El turno pasa al siguiente Bot o termina la ronda. Si se cumplen las condiciones de victoria, termina la partida.
-
-Los Bots creados difieren en estadísticas y Funciones. A medida que avanza la partida, los Bots evolucionan hasta su `version` 3, desbloqueando Operaciones, Funciones y capacidades más avanzadas.
+Cada Bot difiere en estadísticas y Funciones. A medida que avanza la partida, los Bots evolucionan desbloqueando Operaciones, Funciones y capacidades más avanzadas.
 
 ---
 

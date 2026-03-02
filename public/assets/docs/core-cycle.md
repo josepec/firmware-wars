@@ -4,12 +4,15 @@
 
 Cada ronda representa un ciclo de procesamiento compartido donde los Bots compiten por prioridad y recursos del sistema.
 
-- **`INIT()`** — Inicio de ciclo, al inicio de ronda.
-1. **`BOOT()`** — Secuencia de Inicialización del Sistema.
-2. **`COMPILE()`** — Compilación del programa.
-3. **`RUN()`** — Ejecución del código.
-4. **`DEBUG()`** — Mantenimiento.
-5. **`END()`** — Cierre y traspaso de turno.
+Inicio de ronda:
+1. **`INIT()`** — Se determina el **orden de activación** de los Programadores. El turno rota entre jugadores (un Bot cada uno) hasta completar todos los Bots. Los Bots mejoran en las rondas 3 y 5.
+2. **`BOOT()`** — Los Bots arrancan, recuperan Energía, cargan **Operaciones** aleatorias del sistema y limpian **efectos temporales**.
+
+Ciclo de Bot:
+1. **`COMPILE()`** — El Programador ordena sus **Operaciones** y define qué **Funciones** ejecutará cada una.
+2. **`RUN()`** — El código se ejecuta línea por línea. Los condicionales se resuelven con dados, la energía se consume, los ataques impactan.
+3. **`DEBUG()`** — Mantenimiento opcional: Permite purgar **Bugs**, recuperar el sistema y reparar el núcleo.
+4. **`END()`** — Se descartan Operaciones, se conserva la memoria y la energía. El turno pasa al siguiente Bot o termina la ronda. Si se cumplen las condiciones de victoria, termina la partida.
 
 ---
 
@@ -22,72 +25,64 @@ Esta fase se realiza **una única vez al comienzo de cada ronda**, antes de que 
 1. Cada Programador lanza un mini-duelo de **Piedra-Papel-Tijera** (**PPT protocol**).
    - Gana el Programador que vence la jugada.
    - En caso de empate, repetir.
-2. El ganador obtiene la **Prioridad de CPU** y uno de sus Bots empieza la fase de `BOOT()`. Una vez que el Bot complete todas las fases del turno, el turno pasa al siguiente Programador (p. ej., sentido horario). Este orden permanece fijo durante toda la ronda. Al finalizar todos los Bots, se inicia una nueva ronda y se vuelve a ejecutar `INIT()`.
+2. El ganador obtiene la **Prioridad de CPU** y uno de sus Bots comenzará su ciclo después de la fase de `BOOT()`. Una vez que el Bot complete todas las fases del turno, el turno pasa al siguiente Programador (siguiendo el sentido horario). El turno rota de forma individual (un Bot por jugador) hasta que todas las unidades hayan actuado. Este orden permanece fijo durante toda la ronda. Al finalizar todos los Bots, se inicia una nueva ronda y se vuelve a ejecutar `INIT()`.
+3. Al inicio de los siguientes turnos, se produce un upgrade() de todos los Bots:
+ - Ronda 3 → Ejecución de `upgrade()` → Todos los Bots pasan a `version` 2.
+ - Ronda 5 → Ejecución de `upgrade()` → Todos los Bots pasan a `version` 3.
+
 
 ---
 
 ## BOOT()
 
+Todos los Programadores ejecutan la secuencia de `BOOT()` de forma simultánea en todas sus unidades.
+
 Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema. Representa los **protocolos automáticos de diagnóstico y calibración** que preparan la unidad para un nuevo ciclo de combate.
 
-### 1. Depuración de Efectos Temporales
+### 1. Chequeo de Estado
+
+- Si el valor de `life` ≤ 0, el Bot se considera **destruido** y se apaga de manera irreversible. El procesador principal se apaga, y el cuerpo queda como chatarra sobre el campo de batalla (obstáculo).
+
+### 2. Depuración de Efectos Temporales
 
 - Se limpian todos los procesos de memoria volátil. Efectos temporales que hayan alcanzado el fin de su duración.
 - Se aplican los posibles Efectos temporales que se activan durante la fase de `BOOT()`.
 
-### 2. Chequeo de Estado
-
-- Si el valor de `life` ≤ 0, el Bot se considera **destruido** y se apaga de manera irreversible. El procesador principal se apaga, y el cuerpo queda como chatarra sobre el campo de batalla.
-
 ### 3. Recuperación de Energía
 
-- El Bot lanza el dado de energía asignado a su modelo (`ENERGY_DICE`), suma a esa tirada la versión del Bot (`version`) y recupera esa cantidad de puntos de **Energía**, sin superar su límite máximo (`MAX_ENERGY`).
+- El Bot ejecuta `getEnergy(n)`: Lanza nd6, siendo n del 1 al 3, y almacena la Energía obtenida en `numbers`. Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
 
-### 4. Carga forzada de números
+### 4. Carga de números en RAM
 
-- Si el Bot no tiene ningún número (`numbers`) cargado en su memoria RAM, ejecuta de manera forzada e inmediatamente la función `getNumbers()`.
+- El Bot ejecuta `getNumbers()`: Lanza tantos dados (d6) como espacios vacíos queden en su reserva de `numbers` hasta alcanzar el límite de `MAX_NUMBERS`. 
+
+> Cada resultado obtenido se almacena en el terminal (colocando el dado físicamente o anotando su valor). 
 
 ### 5. Carga de Operaciones del Turno
 
-- Cada Bot tiene 3 Operaciones base por turno (`MAX_OPERATIONS`), pero por cada BUG activo (`bugs`), pierde una **ranura de ejecución**.
-- El jugador tira un dado por cada ranura disponible. El dado a tirar depende de la versión:
+- Cada Bot tiene 3 Operaciones base por turno (`MAX_OPERATIONS`), pero por cada BUG activo `bugs`, pierde una Operación.
+- Cada Operación requiere el lanzamiento de un dado. El dado utilizado depende directamente de la `version` del Bot (V1, V2 o V3). Utiliza el dado correspondiente a la `version` de tu Bot (Dado V1, Dado V2 o Dado V3). Si no dispones de los dados específicos, puedes utilizar un 1d6 consultando la Tabla de Equivalencias que figura a continuación:
 
-**Versión V1 — 1d4**
+| Resultado | V1 | V2 | V3 |
+|---|---|---|---|
+| 1 | IF | IF | IF |
+| 2 | IF-ELSE | IF-ELSE | IF-ELSE |
+| 3 | IF | FOR | FOR |
+| 4 | IF-ELSE | WHILE | WHILE |
+| 5 | IF | FOR | TRY-CATCH |
+| 6 | IF-ELSE | WHILE | TRY-CATCH |
 
-| Tirada | Operación |
-|---|---|
-| 1 | IF |
-| 2 | IF-ELSE |
-| 3 | IF |
-| 4 | IF-ELSE |
-
-**Versión V2 — 1d4**
-
-| Tirada | Operación |
-|---|---|
-| 1 | IF |
-| 2 | IF-ELSE |
-| 3 | FOR |
-| 4 | WHILE |
-
-**Versión V3 — 1d6**
-
-| Tirada | Operación |
-|---|---|
-| 1 | IF |
-| 2 | IF-ELSE |
-| 3 | FOR |
-| 4 | WHILE |
-| 5 | TRY-CATCH |
-| 6 | Vuelve a tirar |
-
-> Solo se puede ejecutar un bucle FOR y un bucle WHILE por turno. Si ya ha salido uno, repite la tirada.
+> Solo un bucle (FOR o WHILE) por turno. Si ya ha salido uno, vuelve a tirar.
 
 ### 6. Mantenimiento Manual (opcional)
 
 Si el Bot se encuentra **gravemente dañado o desestabilizado**, el programador puede omitir las fases operativas normales y dirigirlo directamente a la Fase `DEBUG()`. Esto representa una intervención manual para estabilizar el núcleo, reparar circuitos o purgar fallos críticos antes de volver al combate.
 
 Durante este modo, el Bot **no ejecuta acciones ofensivas**, pero puede **recuperar vida, energía o eliminar BUGS**, según las reglas de mantenimiento aplicables.
+
+### 7. Fin de fase
+
+Al terminar esta fase, el Programador con la **Prioridad de CPU** inicia el **Ciclo de Bot** en uno de sus Bots. El **Ciclo de Bot** comienza con la fase de `COMPILE()`.
 
 ---
 
@@ -100,9 +95,17 @@ Una vez completada la inicialización, el robot entra en la fase de programació
 - El programador toma las Operaciones obtenidas en `BOOT()` y las dispone en el orden deseado en su terminal. Cada línea de código representa una instrucción que el robot ejecutará en ese orden durante `RUN()`.
 - No es necesario programar todas las operaciones. Si no se puede programar ninguna, se salta a `DEBUG()`.
 
+> Puedes utilizar las Tarjetas de Operación en vez de escribir el código con las Operaciones. 
+
 ### 2. Vinculación de Operaciones y Funciones
 
-- No se puede ejecutar una **Función** fuera de una **Operación**. Algunas funciones como `IF-ELSE` o `TRY-CATCH` necesitan que se definan dos Funciones, una a cada lado de la condición.
+- Toda Función requiere una Operación activa para ser procesada; no es posible ejecutar funciones de forma aislada. La mayoría de las Operaciones permiten alojar una única Función, pero algunas Operaciones como `IF-ELSE` o `TRY-CATCH` poseen dos ranuras de ejecución (una para cada rama de la condición) 
+ - Ranura Primaria: Es de uso Obligatorio.
+ - Ranura Secundaria: Es de uso Opcional.
+ - Restricción de Duplicado: Bajo ninguna circunstancia se puede asignar la misma Función a ambas ranuras de una misma Operación.
+
+
+- Todas las **Operaciones** tienen **Funciones** asociadas. No se puede ejecutar una **Función** fuera de una **Operación**. Algunas Operaciones como `IF-ELSE` o `TRY-CATCH` permiten dos Funciones, una a cada lado de la condición, la primera es **Obligatoria** y la segunda es **Opcional**, pero nunca pueden ser la misma **Función**.
 - Los Bots tienen Funciones comunes (`COMMON.INTERFACE`) y funciones específicas del modelo.
 
 Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven `TRUE` o `FALSE`. Los Bots utilizan sus **números** (`numbers`) guardados en los condicionales, obtenidos mediante `getNumbers()`.
