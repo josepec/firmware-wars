@@ -163,9 +163,11 @@
     margin: 0;
     padding: 0;
     box-shadow: none;
-    page-break-after: always;
-
-    &:last-child { page-break-after: avoid; }
+    /* Forzamos el salto ANTES de cada página (excepto la primera)
+       en vez de después.  page-break-after puede crear una página
+       en blanco espuria cuando el contenido ya fluye a varias
+       páginas impresas (p. ej. columnas largas).                 */
+    &:not(:first-child) { page-break-before: always; }
   }
 }
 
