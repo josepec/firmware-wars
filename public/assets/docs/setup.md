@@ -36,18 +36,18 @@ Algunos ataques calculan su rango de otras maneras:
 
 ### Construcción del tablero 
 
-#### Escenarios
+- Escenarios
 En los escenarios se seguirán las instrucciones definadas en el propio escenario.
 
-#### Eliminación total
+- Eliminación total
 Los jugadores se van alternando colocando Hexes para formar el **Entorno Digitalizado de Combate** (campo de batalla). Se irán colocando piezas hasta que estén todas colocadas (100). Las piezas pueden ponerse con su cara negra visible para representar un obstáculo y el bloqueo de línea de visión. Se recomienda no crear agrupaciones de piezas con el mismo color asignado.
 
 ### Despliegue
 
-#### Escenarios
+- Escenarios
 El escenario puede tener definida una forma de despliegue propia. En tal caso, se seguirán las instrucciones definadas en el propio escenario. Si no, se desplegará igual que en Eliminación total.
 
-#### Eliminación total
+- Eliminación total
 La secuencia de inicio comienza con el **Programador de menor experiencia** (el mas Junior); no obstante, si este criterio genera conflicto o se prefiere una selección aleatoria, se ejecutará de inmediato el **Protocolo PPT** (Piedra-Papel-Tijera) para designarlo.
 
 Una vez establecido el orden, cada Programador debe realizar un **Lanzamiento de Dado de Colores** para determinar su Hex de entrada. El Bot podrá ser desplegado en **cualquier Hex del tablero que coincida con el color obtenido** en el dado, siempre y cuando se respete el perímetro de seguridad táctica. Este perímetro dicta que ningún Bot puede desplegarn a una **distancia inferior a 6 Hexes** de cualquier Bot enemigo ya desplegado.
