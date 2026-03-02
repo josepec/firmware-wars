@@ -91,6 +91,10 @@ const columnDirectiveExt = {
         return '<div class="md-page-break"></div>';
       case 'space':
         return '<div class="md-space"></div>';
+      case 'keep':
+        return '<div class="md-keep">';
+      case 'end-keep':
+        return '</div>';
       default:
         return '';
     }

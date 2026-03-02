@@ -90,6 +90,8 @@ body {
 .md-page-break { height: 0; }
 .md-space      { height: 1rem; }
 
+.md-keep { break-inside: avoid; }
+
 @media print {
   .md-col-2 { column-gap: 0.6cm; }
   .md-col-3 { column-gap: 0.4cm; }
