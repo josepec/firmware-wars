@@ -430,7 +430,7 @@
   align-items: baseline;
   gap: 0.75rem;
   padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
   border-bottom: 2pt solid #1a5c28;
   page-break-after: avoid;
 }
@@ -448,7 +448,7 @@
 
 .section-id {
   font-family: 'Orbitron', monospace;
-  font-size: 11pt;
+  font-size: 14pt;
   font-weight: 700;
   color: #0a1a0d;
   letter-spacing: 0.15em;
@@ -496,14 +496,14 @@
 
   h2 {
     font-family: 'Orbitron', monospace;
-    font-size: 12pt;
+    font-size: 10pt;
     font-weight: 700;
     color: #0d2e14;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     border-left: 3pt solid #1a5c28;
     padding-left: 0.5rem;
-    margin: 1.4rem 0 0.6rem;
+    margin: 1.2rem 0 0.5rem;
     line-height: 1.4;
     page-break-after: avoid;
   }
