@@ -77,7 +77,7 @@
   </div>
 
   <ol class="toc-list">
-    @for (s of sections; track s.id) {
+    @for (s of sections(); track s.id) {
     <li class="toc-item">
       <a class="toc-link" href="#section-{{ s.id }}">
         <span class="toc-num">{{ s.num }}</span>
@@ -98,7 +98,7 @@
 <!-- ═══════════════════════════════════════════════════════════
      SECCIONES DE CONTENIDO
      ═══════════════════════════════════════════════════════════ -->
-@for (s of sections; track s.id) {
+@for (s of sections(); track s.id) {
 <div class="fw-page content-page" id="section-{{ s.id }}">
   <span class="pdf-marker">FWMARK-{{ s.num }}-{{ s.title }}</span>
   <div class="section-header">

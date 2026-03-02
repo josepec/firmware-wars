@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
@@ -14,12 +14,11 @@ const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 export class Docs implements OnInit {
   readonly pdfUrl = PDF_WORKER_URL;
   markdownSrc: string | null = null;
-  sections: { id: string; num: string; title: string; subtitle: string }[] = [];
+  sections = signal<{ id: string; num: string; title: string; subtitle: string }[]>([]);
 
-  constructor(
-    private route: ActivatedRoute,
-    private el: ElementRef<HTMLElement>,
-  ) { }
+  private readonly route = inject(ActivatedRoute);
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   async ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -29,8 +28,10 @@ export class Docs implements OnInit {
 
     try {
       const resp = await fetch('/assets/config/docs.config.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const cfg = await resp.json();
-      this.sections = cfg.sections;
+      this.sections.set(cfg.sections ?? []);
+      this.cdr.markForCheck();
     } catch (e) {
       console.error('[docs] Error loading config:', e);
     }

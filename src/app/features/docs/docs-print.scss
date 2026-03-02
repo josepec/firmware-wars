@@ -5,8 +5,8 @@
 /* ── @page: A5 con márgenes que coinciden con la vista previa ── */
 @page {
   size: A5;
-  margin: 1.5cm 1.5cm 1.2cm;
-  /* top: 1.5cm (header 0.85cm + gap) | sides: 1.5cm | bottom: 1.2cm (footer 0.85cm + gap) */
+  margin: 1.5cm 1.8cm 1.2cm;
+  /* top: 1.5cm (header 0.85cm + gap) | sides: 1.8cm | bottom: 1.2cm (footer 0.85cm + gap) */
 }
 
 /* ── Visibilidad print/screen ────────────────────────────────── */
@@ -300,7 +300,7 @@
    ÍNDICE
    ═══════════════════════════════════════════════════════════════ */
 .toc-page {
-  padding: 2cm 1.5cm 1.8cm;
+  padding: 2cm 1.8cm 1.8cm;
 
   @media print {
     padding: 0.85cm 0 0.85cm;
@@ -418,7 +418,7 @@
    ═══════════════════════════════════════════════════════════════ */
 .content-page {
   /* Vista previa: simula márgenes @page + clearance de header/footer */
-  padding: 2cm 1.5cm 1.8cm;
+  padding: 2cm 1.8cm 1.8cm;
 
   @media print {
     padding: 0.85cm 0 0.85cm;
@@ -448,7 +448,7 @@
 
 .section-id {
   font-family: 'Orbitron', monospace;
-  font-size: 9pt;
+  font-size: 11pt;
   font-weight: 700;
   color: #0a1a0d;
   letter-spacing: 0.15em;
@@ -477,7 +477,7 @@
 
   h1 {
     font-family: 'Orbitron', monospace;
-    font-size: 15pt;
+    font-size: 17pt;
     font-weight: 900;
     color: #0a1a0d;
     border-bottom: 1.5pt solid #1a5c28;
@@ -496,21 +496,21 @@
 
   h2 {
     font-family: 'Orbitron', monospace;
-    font-size: 10pt;
+    font-size: 12pt;
     font-weight: 700;
     color: #0d2e14;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    border-left: 2.5pt solid #1a5c28;
+    border-left: 3pt solid #1a5c28;
     padding-left: 0.5rem;
-    margin: 1.4rem 0 0.5rem;
+    margin: 1.4rem 0 0.6rem;
     line-height: 1.4;
     page-break-after: avoid;
   }
 
   h3 {
     font-family: 'Orbitron', monospace;
-    font-size: 8pt;
+    font-size: 8.5pt;
     font-weight: 700;
     color: #2d5c35;
     text-transform: uppercase;
@@ -600,9 +600,9 @@
   }
 
   pre {
-    background: #f4faf5;
+    background: #edf5ee;
     border: 0.5pt solid #b8deba;
-    border-left: 2.5pt solid #1a5c28;
+    border-left: 4pt solid #1a5c28;
     padding: 0.65rem 0.875rem;
     overflow-x: auto;
     margin: 0 0 0.75rem;
@@ -637,16 +637,16 @@
     page-break-inside: avoid;
 
     thead {
-      background: #e8f5ea;
-      border-bottom: 1pt solid #a3d8aa;
+      background: #1a3d22;
+      border-bottom: none;
 
       th {
         font-family: 'Orbitron', monospace;
         font-size: 6.5pt;
         letter-spacing: 0.15em;
         text-transform: uppercase;
-        color: #1a5c28;
-        padding: 0.35rem 0.5rem;
+        color: #e8f5ea;
+        padding: 0.4rem 0.5rem;
         text-align: left;
         white-space: nowrap;
       }
@@ -657,11 +657,11 @@
         border-bottom: 0.5pt solid #d4edda;
 
         &:last-child { border-bottom: none; }
-        &:nth-child(even) { background: #f9fdfb; }
+        &:nth-child(even) { background: #f0f8f1; }
 
         td {
           color: #1a2e1e;
-          padding: 0.3rem 0.5rem;
+          padding: 0.35rem 0.5rem;
           vertical-align: top;
           line-height: 1.5;
         }
@@ -685,8 +685,23 @@
 
   hr {
     border: none;
-    border-top: 0.75pt solid #c8e6cc;
-    margin: 1.25rem 0;
+    border-top: 0.75pt solid #b8deba;
+    margin: 1.5rem 0;
+    position: relative;
+    overflow: visible;
+
+    &::after {
+      content: '⬡';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 0 0.4rem;
+      font-size: 8pt;
+      color: #6ea878;
+      line-height: 1;
+    }
   }
 
   /* ── Token colors para bloques BattleScript (oscuro sobre blanco) */
@@ -703,7 +718,7 @@
   /* ── Token colors inline ─────────────────────────────────── */
   :not(pre) > code {
     &.bs-kw    { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
-    &.bs-fn    { color: #166534; background: #f0fdf4; border-color: #86efac; }
+    &.bs-fn    { color: #15803d; background: #ecfdf5; border-color: #6ee7b7; }
     &.bs-phase { color: #4c1d95; background: #f5f3ff; border-color: #c4b5fd; }
   }
 

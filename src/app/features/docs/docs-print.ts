@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
@@ -12,7 +12,7 @@ const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
   styleUrl: './docs-print.scss',
 })
 export class DocsPrint implements OnDestroy {
-  sections: { id: string; num: string; title: string; subtitle: string }[] = [];
+  sections = signal<{ id: string; num: string; title: string; subtitle: string }[]>([]);
 
   readonly pdfUrl = PDF_WORKER_URL;
 
@@ -26,6 +26,9 @@ export class DocsPrint implements OnDestroy {
   private sectionsLoaded = 0;
   private autoPrinted = false;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
+
   private readonly beforePrintFn = () => this.clearColumnHeights();
   private readonly afterPrintFn = () => {
     if (!this.isWorkerRequest) {
@@ -33,10 +36,7 @@ export class DocsPrint implements OnDestroy {
     }
   };
 
-  constructor(
-    private readonly ngZone: NgZone,
-    private readonly router: Router,
-  ) {
+  constructor() {
     const probe = document.createElement('div');
     probe.style.cssText = 'width:1mm;position:absolute;visibility:hidden;';
     document.body.appendChild(probe);
@@ -56,10 +56,14 @@ export class DocsPrint implements OnDestroy {
   private async loadConfig(): Promise<void> {
     try {
       const resp = await fetch('/assets/config/docs.config.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const cfg = await resp.json();
-      this.ngZone.run(() => { this.sections = cfg.sections; });
+      this.sections.set(cfg.sections ?? []);
+      this.cdr.markForCheck();
     } catch (e) {
       console.error('[docs-print] Error loading config:', e);
+      /* Signal ready so Puppeteer doesn't hang if config is missing */
+      document.body.setAttribute('data-pdf-ready', 'true');
     }
   }
 
@@ -79,17 +83,15 @@ export class DocsPrint implements OnDestroy {
    */
   onSectionReady(): void {
     this.sectionsLoaded++;
-    this.ngZone.runOutsideAngular(() => {
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          this.applyColumnHeights();
-          if (!this.autoPrinted && this.sectionsLoaded >= this.sections.length) {
-            this.autoPrinted = true;
-            this.hydrateAndFinalize();
-          }
-        })
-      );
-    });
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        this.applyColumnHeights();
+        if (!this.autoPrinted && this.sectionsLoaded >= this.sections().length) {
+          this.autoPrinted = true;
+          this.hydrateAndFinalize();
+        }
+      })
+    );
   }
 
   private async hydrateAndFinalize(): Promise<void> {
