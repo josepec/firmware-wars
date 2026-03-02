@@ -21,61 +21,18 @@
     <!-- ── Mobile nav: grid wrap, siempre visible ───────────── -->
     <nav class="md:hidden py-2 px-3">
       <ul class="flex flex-wrap gap-x-1 gap-y-0.5">
+        @for (s of sections; track s.id; let last = $last) {
         <li>
-          <a routerLink="/docs/intro" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Introducción
+          <a [routerLink]="'/docs/' + s.id" routerLinkActive="!text-green-300"
+            class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
+                   text-green-400/45 hover:text-green-300/80 transition-colors">
+            {{ s.subtitle }}
           </a>
         </li>
+        @if (!last) {
         <li class="flex items-center text-green-500/15 text-[9px] select-none">·</li>
-        <li>
-          <a routerLink="/docs/ambient" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Ambiente
-          </a>
-        </li>
-        <li class="flex items-center text-green-500/15 text-[9px] select-none">·</li>
-        <li>
-          <a routerLink="/docs/hardware" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Componentes
-          </a>
-        </li>
-        <li class="flex items-center text-green-500/15 text-[9px] select-none">·</li>
-        <li>
-          <a routerLink="/docs/setup" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Preparación
-          </a>
-        </li>
-        <li class="flex items-center text-green-500/20 text-[9px] select-none px-0.5">/</li>
-        <li>
-          <a routerLink="/docs/core-cycle" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Turno
-          </a>
-        </li>
-        <li class="flex items-center text-green-500/15 text-[9px] select-none">·</li>
-        <li>
-          <a routerLink="/docs/bots" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Bots
-          </a>
-        </li>
-        <li class="flex items-center text-green-500/20 text-[9px] select-none px-0.5">/</li>
-        <li>
-          <a routerLink="/docs/tables" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Tablas
-          </a>
-        </li>
-        <li class="flex items-center text-green-500/15 text-[9px] select-none">·</li>
-        <li>
-          <a routerLink="/docs/quick-ref" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
-                    text-green-400/45 hover:text-green-300/80 transition-colors">
-            Ref.Rápida
-          </a>
-        </li>
+        }
+        }
         <li class="flex items-center text-green-500/20 text-[9px] select-none px-0.5">/</li>
         <li>
           <a [href]="pdfUrl" target="_blank" rel="noopener" title="Descargar manual PDF"
@@ -94,54 +51,16 @@
     <!-- ── Desktop nav: vertical ─────────────────────────────── -->
     <nav class="hidden md:block px-6 pb-6">
       <ul class="flex flex-col gap-0.5">
+        @for (s of sections; track s.id) {
         <li>
-          <a routerLink="/docs/intro" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Introducción
+          <a [routerLink]="'/docs/' + s.id"
+            routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3"
+            class="block text-green-400/60 hover:text-green-300 transition-colors
+                   py-1 pl-0 text-xs tracking-widest uppercase">
+            {{ s.subtitle }}
           </a>
         </li>
-        <li>
-          <a routerLink="/docs/ambient" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Ambientación
-          </a>
-        </li>
-        <li>
-          <a routerLink="/docs/hardware" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Componentes
-          </a>
-        </li>
-        <li>
-          <a routerLink="/docs/setup" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Preparación
-          </a>
-        </li>
-        <li>
-          <a routerLink="/docs/core-cycle" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Turno
-          </a>
-        </li>
-        <li>
-          <a routerLink="/docs/bots" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Bots
-          </a>
-        </li>
-        <li>
-          <a routerLink="/docs/tables" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Tablas
-          </a>
-        </li>
-        <li>
-          <a routerLink="/docs/quick-ref" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
-                    py-1 pl-0 text-xs tracking-widest uppercase">
-            Referencia Rápida
-          </a>
-        </li>
+        }
       </ul>
     </nav>
 

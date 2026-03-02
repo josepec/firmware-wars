@@ -12,16 +12,7 @@ const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
   styleUrl: './docs-print.scss',
 })
 export class DocsPrint implements OnDestroy {
-  readonly sections = [
-    { id: 'intro', num: '01', title: 'INIT.SYS', subtitle: 'Introducción' },
-    { id: 'ambient', num: '02', title: 'AMBIENT.DSK', subtitle: 'Ambientación' },
-    { id: 'hardware', num: '03', title: 'HARDWARE.CFG', subtitle: 'Componentes' },
-    { id: 'setup', num: '04', title: 'SETUP.PRT', subtitle: 'Preparación' },
-    { id: 'core-cycle', num: '05', title: 'CORE.CYCLE', subtitle: 'Ciclo de Turno' },
-    { id: 'bots', num: '06', title: 'BOTS.CFG', subtitle: 'Unidades de Combate' },
-    { id: 'tables', num: '07', title: 'TECH.REF', subtitle: 'Referencia Técnica' },
-    { id: 'quick-ref', num: '08', title: 'QUICK.REF', subtitle: 'Referencia Rápida' },
-  ];
+  sections: { id: string; num: string; title: string; subtitle: string }[] = [];
 
   readonly pdfUrl = PDF_WORKER_URL;
 
@@ -58,6 +49,18 @@ export class DocsPrint implements OnDestroy {
 
     window.addEventListener('beforeprint', this.beforePrintFn);
     window.addEventListener('afterprint', this.afterPrintFn);
+
+    this.loadConfig();
+  }
+
+  private async loadConfig(): Promise<void> {
+    try {
+      const resp = await fetch('/assets/config/docs.config.json');
+      const cfg = await resp.json();
+      this.ngZone.run(() => { this.sections = cfg.sections; });
+    } catch (e) {
+      console.error('[docs-print] Error loading config:', e);
+    }
   }
 
   ngOnDestroy(): void {
