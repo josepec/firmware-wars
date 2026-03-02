@@ -91,7 +91,7 @@ body {
 .md-space      { height: 1rem; }
 
 @media print {
-  .md-col-2 { column-gap: 0.6cm; }
-  .md-col-3 { column-gap: 0.4cm; }
+  .md-col-2 { column-gap: 0.6cm; column-fill: auto; }
+  .md-col-3 { column-gap: 0.4cm; column-fill: auto; }
   .md-page-break { break-after: page; }
 }
