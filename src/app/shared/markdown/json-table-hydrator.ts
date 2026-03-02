@@ -1,15 +1,15 @@
 /**
- * Busca elementos .md-json-table[data-src] dentro de un contenedor,
- * carga el JSON y renderiza una tabla HTML en su lugar.
+ * Busca elementos .md-json-table dentro de un contenedor,
+ * carga el JSON (ruta en el textContent del div) y renderiza una tabla HTML.
  *
  * Los valores de celda soportan markdown inline básico (`code`).
  */
 export async function hydrateJsonTables(container: HTMLElement): Promise<void> {
-  const placeholders = container.querySelectorAll<HTMLElement>('.md-json-table[data-src]');
+  const placeholders = container.querySelectorAll<HTMLElement>('.md-json-table');
   if (!placeholders.length) return;
 
   await Promise.all(Array.from(placeholders).map(async (el) => {
-    const src = el.dataset['src'];
+    const src = el.textContent?.trim();
     if (!src) return;
 
     try {
