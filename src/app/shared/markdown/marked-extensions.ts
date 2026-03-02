@@ -101,10 +101,35 @@ const columnDirectiveExt = {
   },
 };
 
+/* ── Image directive: /img, /img-center, /img-small ────────────── */
+
+const imgDirectiveExt = {
+  name: 'imgDirective',
+  level: 'block' as const,
+
+  start(src: string): number | undefined {
+    if (src.startsWith('/img')) return 0;
+    const i = src.indexOf('\n/img');
+    return i >= 0 ? i + 1 : undefined;
+  },
+
+  tokenizer(src: string): { type: string; raw: string; variant: string; path: string } | undefined {
+    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)[ \t]*(?:\n|$)/.exec(src);
+    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2] };
+    return undefined;
+  },
+
+  renderer(token: { type: string; raw: string; variant: string; path: string }): string {
+    const src = token.path.startsWith('http') ? token.path : `/assets/docs/img/${token.path}`;
+    const cls = token.variant === 'img' ? 'md-img' : token.variant === 'img-center' ? 'md-img-center' : 'md-img-small';
+    return `<div class="${cls}"><img src="${src}" alt="" loading="lazy" /></div>`;
+  },
+};
+
 /* ── Full extension object ───────────────────────────────────────── */
 
 export const markdownExtensions: MarkedExtension = {
-  extensions: [jsonTableExt, columnDirectiveExt],
+  extensions: [jsonTableExt, imgDirectiveExt, columnDirectiveExt],
 
   renderer: {
     /** BattleScript code blocks (`​`​`bs` or `​`​`battlescript) */

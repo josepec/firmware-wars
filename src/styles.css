@@ -92,6 +92,19 @@ body {
 
 .md-keep { break-inside: avoid; }
 
+/* ── Directivas de imagen ────────────────────────────────────── */
+.md-img,
+.md-img-center,
+.md-img-small {
+  margin: 0.75rem 0;
+  break-inside: avoid;
+}
+.md-img img         { width: 100%; height: auto; display: block; }
+.md-img-center      { text-align: center; }
+.md-img-center img  { display: inline-block; max-width: 100%; height: auto; }
+.md-img-small       { text-align: center; }
+.md-img-small img   { display: inline-block; max-width: 50%; height: auto; }
+
 @media print {
   .md-col-2 { column-gap: 0.6cm; }
   .md-col-3 { column-gap: 0.4cm; }

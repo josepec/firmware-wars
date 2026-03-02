@@ -83,6 +83,42 @@ El JSON debe tener la estructura `{ columns: [...], rows: [...] }`.
 
 ---
 
+## Imágenes
+
+```
+/img archivo.png            ← ancho completo (100% del contenedor)
+/img-center archivo.png     ← centrada a su tamaño natural
+/img-small archivo.png      ← centrada, máximo 50% del ancho
+```
+
+Las imágenes se buscan en `assets/docs/img/`. También acepta URLs absolutas.
+
+Dentro de columnas, las tres variantes se adaptan al ancho de la columna automáticamente.
+
+Ejemplo:
+
+```markdown
+/img tablero-completo.png
+
+/two-col
+/img-center componente-a.png
+
+/col
+/img-center componente-b.png
+
+/end-col
+
+/img-small logo-fw.png
+```
+
+| Variante      | Comportamiento                                          |
+|---------------|---------------------------------------------------------|
+| `/img`        | Estira al 100% del ancho (diagramas, mapas, tableros)  |
+| `/img-center` | Tamaño natural, centrado (fotos, capturas)              |
+| `/img-small`  | Max 50% del ancho, centrado (iconos, logos, QR)         |
+
+---
+
 ## Resumen rápido
 
 | Directiva      | Efecto                                      |
@@ -95,4 +131,7 @@ El JSON debe tener la estructura `{ columns: [...], rows: [...] }`.
 | `/keep`        | Abre bloque indivisible                     |
 | `/end-keep`    | Cierra bloque indivisible                   |
 | `/space`       | Espacio vertical                            |
+| `/img <ruta>`        | Imagen a ancho completo                |
+| `/img-center <ruta>` | Imagen centrada, tamaño natural        |
+| `/img-small <ruta>`  | Imagen centrada, max 50%               |
 | `/json <ruta>` | Tabla desde JSON                            |

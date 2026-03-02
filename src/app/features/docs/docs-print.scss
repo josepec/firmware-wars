@@ -723,4 +723,12 @@
   /* ── Directivas de columna: estilos globales en styles.css ─
      Aquí solo sobreescribimos spacing para el tamaño A5.      */
   .md-space { height: 0.4cm; }
+
+  /* ── Imágenes: ajuste A5 ──────────────────────────────────── */
+  .md-img,
+  .md-img-center,
+  .md-img-small {
+    margin: 0.4cm 0;
+    break-inside: avoid;
+  }
 }
