@@ -113,15 +113,19 @@ const imgDirectiveExt = {
     return i >= 0 ? i + 1 : undefined;
   },
 
-  tokenizer(src: string): { type: string; raw: string; variant: string; path: string } | undefined {
-    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)[ \t]*(?:\n|$)/.exec(src);
-    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2] };
+  tokenizer(src: string): { type: string; raw: string; variant: string; path: string; print: boolean } | undefined {
+    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)(?:[ \t]+(print))?[ \t]*(?:\n|$)/.exec(src);
+    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2], print: !!m[3] };
     return undefined;
   },
 
-  renderer(token: { type: string; raw: string; variant: string; path: string }): string {
+  renderer(token: { type: string; raw: string; variant: string; path: string; print: boolean }): string {
     const src = token.path.startsWith('http') || token.path.startsWith('/') ? token.path : `/assets/docs/img/${token.path}`;
     const cls = token.variant === 'img' ? 'md-img' : token.variant === 'img-center' ? 'md-img-center' : 'md-img-small';
+    if (token.print) {
+      const printSrc = src.replace(/(\.[^.]+)$/, '-print$1');
+      return `<div class="${cls}"><img src="${src}" alt="" loading="lazy" class="md-screen-only" /><img src="${printSrc}" alt="" loading="lazy" class="md-print-only" /></div>`;
+    }
     return `<div class="${cls}"><img src="${src}" alt="" loading="lazy" /></div>`;
   },
 };

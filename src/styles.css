@@ -128,7 +128,12 @@ body {
 .md-img-small       { text-align: center; }
 .md-img-small img   { display: inline-block; max-width: 50%; height: auto; }
 
+/* ── Variantes pantalla / print ─────────────────────────────── */
+.md-print-only { display: none; }
+
 @media print {
+  .md-screen-only { display: none !important; }
+  .md-print-only  { display: inline-block; }
   body { background-color: white !important; }
 
   :root {
