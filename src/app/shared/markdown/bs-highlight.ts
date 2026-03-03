@@ -27,9 +27,10 @@ function esc(s: string): string {
  * 6: fn    — word()
  * 7: phase — START / END / INIT / SETUP with optional ()
  * 8: type  — PascalCase
+ * 9: paren — parentheses ( )
  */
 const LINE_RE =
-  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|([A-Z][a-z]\w*)/;
+  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT|TRY|CATCH|TRY-CATCH)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|((?<![a-z\w])[A-Z][a-z]\w*)|([()])/;
 
 function highlightLine(line: string): string {
   // Create a fresh regex instance each call (g flag requires fresh lastIndex)
@@ -40,17 +41,18 @@ function highlightLine(line: string): string {
 
   while ((m = re.exec(line)) !== null) {
     out += esc(line.slice(last, m.index));
-    const [full, cmt, kw, op, num, variable, fn, phase, type_] = m;
+    const [full, cmt, kw, op, num, variable, fn, phase, type_, paren] = m;
 
-    if      (cmt)      out += `<span class="bs-cmt">${esc(full)}</span>`;
-    else if (kw)       out += `<span class="bs-kw">${esc(full)}</span>`;
-    else if (op)       out += `<span class="bs-op">${esc(full)}</span>`;
-    else if (num)      out += `<span class="bs-num">${esc(full)}</span>`;
+    if (cmt) out += `<span class="bs-cmt">${esc(full)}</span>`;
+    else if (kw) out += `<span class="bs-kw">${esc(full)}</span>`;
+    else if (op) out += `<span class="bs-op">${esc(full)}</span>`;
+    else if (num) out += `<span class="bs-num">${esc(full)}</span>`;
     else if (variable) out += `<span class="bs-var">${esc(full)}</span>`;
-    else if (fn)       out += `<span class="bs-fn">${esc(full)}</span>`;
-    else if (phase)    out += `<span class="bs-phase">${esc(full)}</span>`;
-    else if (type_)    out += `<span class="bs-type">${esc(full)}</span>`;
-    else               out += esc(full);
+    else if (fn) out += `<span class="bs-fn">${esc(full)}</span>`;
+    else if (phase) out += `<span class="bs-phase">${esc(full)}</span>`;
+    else if (type_) out += `<span class="bs-type">${esc(full)}</span>`;
+    else if (paren) out += `<span class="bs-type">${esc(full)}</span>`;
+    else out += esc(full);
 
     last = m.index + full.length;
   }

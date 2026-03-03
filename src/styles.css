@@ -96,15 +96,26 @@ body {
    Dark theme (screen): vibrant tones on dark background
    Light theme (print) : saturated 700-shade on white           */
 :root {
-  --bs-kw:    #fde047;                /* yellow-300  — keywords  */
-  --bs-op:    #f472b6;                /* pink-400    — operators  */
-  --bs-num:   #fdba74;                /* orange-300  — numbers    */
+  --bs-kw:    #fdba74;                /* orange-300  — keywords  */
+  --bs-op:    #f8fafc;                /* white    — operators  */
+  --bs-num:   #86efac;                /* green-300  — numbers    */
   --bs-var:   #67e8f9;                /* cyan-300    — variables  */
-  --bs-fn:    #86efac;                /* green-300   — functions  */
+  --bs-fn:    #fde047;                /* yellow-300   — functions  */
   --bs-type:  #c4b5fd;                /* violet-300  — types      */
   --bs-phase: rgba(0, 255, 136, 0.5); /* dim green  — structure  */
   --bs-cmt:   rgba(0, 255, 136, 0.3); /* dim green  — comments   */
 }
+
+/*:root {
+  --bs-kw:    #fde047;                /* yellow-300  — keywords  */
+/*  --bs-op:    #f472b6;                /* pink-400    — operators  */
+/*  --bs-num:   #fdba74;                /* orange-300  — numbers    */
+ /* --bs-var:   #67e8f9;                /* cyan-300    — variables  */
+/*  --bs-fn:    #86efac;                /* green-300   — functions  */
+/*  --bs-type:  #c4b5fd;                /* violet-300  — types      */
+/*  --bs-phase: rgba(0, 255, 136, 0.5); /* dim green  — structure  */
+/*  --bs-cmt:   rgba(0, 255, 136, 0.3); /* dim green  — comments   */
+/*}*/
 
 .bs-kw    { color: var(--bs-kw);    }
 .bs-op    { color: var(--bs-op);    }
@@ -129,7 +140,7 @@ body {
 .md-img-small img   { display: inline-block; max-width: 50%; height: auto; }
 
 /* ── Variantes pantalla / print ─────────────────────────────── */
-.md-print-only { display: none; }
+.md-print-only { display: none !important; }
 
 @media print {
   .md-screen-only { display: none !important; }

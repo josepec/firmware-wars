@@ -4,11 +4,11 @@
 
 Cada ronda representa un ciclo de procesamiento compartido donde los Bots compiten por prioridad y recursos del sistema.
 
-Inicio de ronda:
+**Inicio de ronda:**
 1. **`INIT()`** — Se determina el **orden de activación** de los Programadores. El turno rota entre jugadores (un Bot cada uno) hasta completar todos los Bots. Los Bots mejoran en las rondas 3 y 5.
 2. **`BOOT()`** — Los Bots arrancan, recuperan Energía, cargan **Operaciones** aleatorias del sistema y limpian **efectos temporales**.
 
-Ciclo de Bot:
+**Ciclo de Bot:**
 1. **`COMPILE()`** — El Programador ordena sus **Operaciones** y define qué **Funciones** ejecutará cada una.
 2. **`RUN()`** — El código se ejecuta línea por línea. Los condicionales se resuelven con dados, la energía se consume, los ataques impactan.
 3. **`DEBUG()`** — Mantenimiento opcional: Permite purgar **Bugs**, recuperar el sistema y reparar el núcleo.
