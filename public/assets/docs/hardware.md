@@ -32,6 +32,8 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 
 Cada Programador dispone de un **Terminal** por cada Bot: una hoja/tablero de turno donde registra en tiempo real el estado de sus Bots y escribe el **BattleScript** — el código que sus unidades ejecutarán en la fase `RUN()`.
 
+/page
+
 **El Terminal incluye:**
 
 ### Modo Hoja
