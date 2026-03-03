@@ -92,6 +92,27 @@ body {
 
 .md-keep { break-inside: avoid; }
 
+/* ── BattleScript token colors (single source of truth) ──────
+   Dark theme (screen): vibrant tones on dark background
+   Light theme (print) : saturated 700-shade on white           */
+:root {
+  --bs-kw:    #fde047;                /* yellow-300  — keywords  */
+  --bs-op:    #f472b6;                /* pink-400    — operators  */
+  --bs-num:   #fdba74;                /* orange-300  — numbers    */
+  --bs-var:   #67e8f9;                /* cyan-300    — variables  */
+  --bs-fn:    #86efac;                /* green-300   — functions  */
+  --bs-type:  #c4b5fd;                /* violet-300  — types      */
+  --bs-phase: rgba(0, 255, 136, 0.5); /* dim green  — structure  */
+}
+
+.bs-kw    { color: var(--bs-kw);    }
+.bs-op    { color: var(--bs-op);    }
+.bs-num   { color: var(--bs-num);   }
+.bs-var   { color: var(--bs-var);   }
+.bs-fn    { color: var(--bs-fn);    }
+.bs-type  { color: var(--bs-type);  }
+.bs-phase { color: var(--bs-phase); }
+
 /* ── Directivas de imagen ────────────────────────────────────── */
 .md-img,
 .md-img-center,
@@ -107,6 +128,17 @@ body {
 
 @media print {
   body { background-color: white !important; }
+
+  :root {
+    --bs-kw:    #b45309; /* amber-700   */
+    --bs-op:    #be185d; /* pink-700    */
+    --bs-num:   #c2410c; /* orange-700  */
+    --bs-var:   #0e7490; /* cyan-700    */
+    --bs-fn:    #15803d; /* green-700   */
+    --bs-type:  #6d28d9; /* violet-700  */
+    --bs-phase: #374151; /* gray-700    */
+  }
+
   .md-col-2 { column-gap: 0.6cm; }
   .md-col-3 { column-gap: 0.4cm; }
   .md-page-break { break-after: page; }

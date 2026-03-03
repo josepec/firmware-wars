@@ -112,7 +112,7 @@ Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven
 
 Una vez por turno, cada Bot ejecuta el siguiente bloque de código:
 
-```
+```bs
 START
   //Operación 1
   //Operación 2
@@ -130,7 +130,7 @@ END
 - **Condición TRUE:** Ejecuta Función
 - **Condición FALSE:** No se ejecuta nada
 
-```
+```bs
 IF (condición)
   THEN Función
 ```
@@ -145,7 +145,7 @@ Se puede utilizar para realizar acciones como ataques, movimiento, recarga, etc.
 - **Condición TRUE:** Ejecuta FunciónA
 - **Condición FALSE:** Ejecuta FunciónB
 
-```
+```bs
 IF (condición)
   THEN FunciónA
   ELSE FunciónB
@@ -162,7 +162,7 @@ Se puede utilizar para realizar una segunda acción en caso que falle la princip
 - **Resolución:** Elige un número guardado (valor máximo 3) — la función se ejecuta ese número de veces.
 - **Bug:** Si el valor del número es superior a 3, se produce un **Infinite Loop**. No se ejecuta la operación y el Bot obtiene un BUG (`bugs`).
 
-```
+```bs
 FOR (numero)
   Función
 ```
@@ -180,7 +180,7 @@ Se puede utilizar para realizar ataques múltiples, combos de movimiento o recar
 - **Resolución:** Se comprueba la condición — cada Bucle genera una nueva condición.
 - **Bug:** Si la Función no se ejecuta ni una sola vez, el Bot obtiene un BUG (`bugs`).
 
-```
+```bs
 WHILE (condición)
   DO Función
 ```
@@ -199,7 +199,7 @@ Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos 
   - La Función del `CATCH` **no está protegida** frente a Overload: se pierde un punto de `life` por cada punto que no se puede pagar. Además, no se ejecuta.
 - **Bug:** Si no se ejecuta ninguna de las dos funciones, se produce una **Critical Exception**. El Bot obtiene un BUG (`bugs`).
 
-```
+```bs
 TRY FunciónA
   CATCH FunciónB
 ```
@@ -216,7 +216,7 @@ Se puede utilizar para atacar o realizar acciones con seguridad.
 - **Coste energético:** El valor numérico recibido.
 - **Bug:** Si el valor supera `MAX_MOVEMENT`, la operación no se ejecuta y el Bot obtiene un BUG.
 
-```
+```bs
 IF (1 < 2)
   THEN move(3)
 ```
@@ -229,7 +229,7 @@ IF (1 < 2)
 - **Coste energético:** El valor energético definido en la función de ataque.
 - **Detalles:** Costes, daño, alcance y efectos se encuentran en la sección **BOTS.CFG**.
 
-```
+```bs
 IF (1 == 1)
   THEN attack(RocketPunch)
 ```
@@ -242,7 +242,7 @@ IF (1 == 1)
 - **Coste energético:** 0.
 - **Detalles:** La cantidad de números no puede superar `MAX_NUMBERS`. Los números obtenidos después del máximo se descartan.
 
-```
+```bs
 FOR (2)
   getNumbers()
 ```
@@ -255,7 +255,7 @@ FOR (2)
 - **Coste energético:** 15.
 - **Detalles:** La versión máxima es 3 (`MAX_VERSION`). Subir versión da acceso a más Operaciones, Funciones y Ataques.
 
-```
+```bs
 IF (5 != 2)
   THEN upgrade()
 ```

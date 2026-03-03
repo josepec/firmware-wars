@@ -152,20 +152,21 @@
     <!-- BATTLESCRIPT EXAMPLE ──────────────────────────────── -->
     <div class="bg-black/70 border border-green-500/20 rounded-sm p-4 sm:p-7 shadow-lg">
       <div class="text-[10px] tracking-widest text-green-500/55 mb-4 sm:mb-5 flex items-center gap-3">
+        <img src="assets/img/bs-logo.png" alt="BS" class="h-5 w-5 opacity-40" />
         <span>// BATTLESCRIPT_EXAMPLE.BS</span>
         <div class="hidden sm:block flex-1 h-px bg-green-500/10"></div>
       </div>
-      <pre class="text-[11px] sm:text-sm leading-6 sm:leading-8 overflow-x-auto"><span class="text-green-500/50">START</span>
-  <span class="text-yellow-300">IF</span> (<span class="text-cyan-300">enemy.distance</span> <span class="text-pink-400">==</span> <span class="text-orange-300">1</span>)
-    <span class="text-yellow-300">THEN</span> <span class="text-green-300">attack</span>(<span class="text-violet-300">RocketPunch</span>)
+      <pre class="text-[11px] sm:text-sm leading-6 sm:leading-8 overflow-x-auto"><span class="bs-phase">START</span>
+  <span class="bs-kw">IF</span> (<span class="bs-var">enemy.distance</span> <span class="bs-op">==</span> <span class="bs-num">1</span>)
+    <span class="bs-kw">THEN</span> <span class="bs-fn">attack</span>(<span class="bs-type">RocketPunch</span>)
 
-  <span class="text-yellow-300">IF-ELSE</span> (<span class="text-cyan-300">energy</span> <span class="text-pink-400">&gt;=</span> <span class="text-orange-300">8</span>)
-    <span class="text-yellow-300">THEN</span> <span class="text-green-300">move</span>(<span class="text-orange-300">2</span>)
-    <span class="text-yellow-300">ELSE</span> <span class="text-green-300">debug</span>()
+  <span class="bs-kw">IF-ELSE</span> (<span class="bs-var">energy</span> <span class="bs-op">&gt;=</span> <span class="bs-num">8</span>)
+    <span class="bs-kw">THEN</span> <span class="bs-fn">move</span>(<span class="bs-num">2</span>)
+    <span class="bs-kw">ELSE</span> <span class="bs-fn">debug</span>()
 
-  <span class="text-yellow-300">FOR</span> (<span class="text-orange-300">3</span>)
-    <span class="text-green-300">getNumbers</span>()
-<span class="text-green-500/50">END</span></pre>
+  <span class="bs-kw">FOR</span> (<span class="bs-num">3</span>)
+    <span class="bs-fn">getNumbers</span>()
+<span class="bs-phase">END</span></pre>
     </div>
 
   </div>

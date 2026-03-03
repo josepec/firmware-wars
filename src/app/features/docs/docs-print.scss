@@ -618,6 +618,17 @@
       margin-bottom: 0.2rem;
     }
 
+    /* ── BattleScript blocks: icono BS en lugar de SYS:// ───── */
+    &.bs-pre::before {
+      content: '';
+      display: block;
+      text-align: right;
+      margin-bottom: 0.2rem;
+      height: 1rem;
+      background: url('/assets/img/bs-logo.png') right center / contain no-repeat;
+      opacity: 0.35;
+    }
+
     code {
       background: none;
       border: none;
@@ -701,22 +712,22 @@
     }
   }
 
-  /* ── Token colors para bloques BattleScript (oscuro sobre blanco) */
+  /* ── Token colors BattleScript — from global CSS vars (@media print) */
   pre.bs-pre code {
-    .bs-kw    { color: #b45309; } /* amber-700   — keywords    */
-    .bs-op    { color: #be185d; } /* pink-700    — operators   */
-    .bs-num   { color: #c2410c; } /* orange-700  — numbers     */
-    .bs-var   { color: #0e7490; } /* cyan-700    — variables   */
-    .bs-fn    { color: #15803d; } /* green-700   — functions   */
-    .bs-type  { color: #6d28d9; } /* violet-700  — types       */
-    .bs-phase { color: #374151; } /* gray-700    — structure   */
+    .bs-kw    { color: var(--bs-kw);    }
+    .bs-op    { color: var(--bs-op);    }
+    .bs-num   { color: var(--bs-num);   }
+    .bs-var   { color: var(--bs-var);   }
+    .bs-fn    { color: var(--bs-fn);    }
+    .bs-type  { color: var(--bs-type);  }
+    .bs-phase { color: var(--bs-phase); }
   }
 
   /* ── Token colors inline ─────────────────────────────────── */
   :not(pre) > code {
-    &.bs-kw    { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
-    &.bs-fn    { color: #15803d; background: #ecfdf5; border-color: #6ee7b7; }
-    &.bs-phase { color: #4c1d95; background: #f5f3ff; border-color: #c4b5fd; }
+    &.bs-kw    { color: var(--bs-kw);   background: color-mix(in srgb, var(--bs-kw)   12%, white); border-color: color-mix(in srgb, var(--bs-kw)   40%, white); }
+    &.bs-fn    { color: var(--bs-fn);   background: color-mix(in srgb, var(--bs-fn)   12%, white); border-color: color-mix(in srgb, var(--bs-fn)   40%, white); }
+    &.bs-phase { color: var(--bs-type); background: color-mix(in srgb, var(--bs-type) 12%, white); border-color: color-mix(in srgb, var(--bs-type) 40%, white); }
   }
 
   /* ── Directivas de columna: estilos globales en styles.css ─

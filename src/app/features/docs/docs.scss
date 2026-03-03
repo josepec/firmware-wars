@@ -157,9 +157,9 @@
     border-radius: 2px;
 
     /* ── Token inline: operaciones / funciones / fases ──────── */
-    &.bs-kw    { color: #fde047; background: rgba(253, 224, 71, 0.07);   border-color: rgba(253, 224, 71, 0.22); }
-    &.bs-fn    { color: #86efac; background: rgba(134, 239, 172, 0.07); border-color: rgba(134, 239, 172, 0.22); }
-    &.bs-phase { color: #c4b5fd; background: rgba(196, 181, 253, 0.07); border-color: rgba(196, 181, 253, 0.22); }
+    &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    7%, transparent); border-color: color-mix(in srgb, var(--bs-kw)    22%, transparent); }
+    &.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    7%, transparent); border-color: color-mix(in srgb, var(--bs-fn)    22%, transparent); }
+    &.bs-phase { color: var(--bs-type);  background: color-mix(in srgb, var(--bs-type)  7%, transparent); border-color: color-mix(in srgb, var(--bs-type)  22%, transparent); }
   }
 
   /* ── Bloque de código ─────────────────────────────────────── */
@@ -183,6 +183,17 @@
       letter-spacing: 0.15em;
     }
 
+    /* ── BattleScript blocks: icono BS en lugar de SYS:// ───── */
+    &.bs-pre::before {
+      content: '';
+      width: 1.6rem;
+      height: 1.6rem;
+      background: url('/assets/img/bs-logo.png') center / contain no-repeat;
+      opacity: 0.18;
+      font-size: 0;
+      letter-spacing: 0;
+    }
+
     code {
       background: none;
       border: none;
@@ -192,14 +203,14 @@
       font-size: 0.875rem;
       line-height: 1.75;
 
-      /* ── Token colors (BattleScript) ──────────────────────── */
-      .bs-kw    { color: #fde047; } /* yellow-300  — keywords    */
-      .bs-op    { color: #f472b6; } /* pink-400    — operators   */
-      .bs-num   { color: #fdba74; } /* orange-300  — numbers     */
-      .bs-var   { color: #67e8f9; } /* cyan-300    — variables   */
-      .bs-fn    { color: #86efac; } /* green-300   — functions   */
-      .bs-type  { color: #c4b5fd; } /* violet-300  — types       */
-      .bs-phase { color: rgba(0, 255, 136, 0.5); } /* dim green — structure */
+      /* ── Token colors (BattleScript) — from global CSS vars ── */
+      .bs-kw    { color: var(--bs-kw);    }
+      .bs-op    { color: var(--bs-op);    }
+      .bs-num   { color: var(--bs-num);   }
+      .bs-var   { color: var(--bs-var);   }
+      .bs-fn    { color: var(--bs-fn);    }
+      .bs-type  { color: var(--bs-type);  }
+      .bs-phase { color: var(--bs-phase); }
     }
   }
 
