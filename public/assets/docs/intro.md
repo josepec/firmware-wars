@@ -18,6 +18,8 @@ Cada Bot difiere en estadísticas y Funciones. A medida que avanza la partida, l
 
 ---
 
+/page
+
 ## Objetivo de la Partida
 
 El objetivo vendrá determinado por el **Escenario** elegido. Si no se escoge un Escenario para jugar, el objetivo predeterminado es la **eliminación total**: destruye todos los Bots del equipo rival. El último Programador con unidades operativas gana la partida.
