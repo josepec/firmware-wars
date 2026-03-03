@@ -144,7 +144,7 @@ body {
 
 @media print {
   .md-screen-only { display: none !important; }
-  .md-print-only  { display: inline-block; }
+  .md-print-only  { display: inline-block !important; }
   body { background-color: white !important; }
 
   :root {

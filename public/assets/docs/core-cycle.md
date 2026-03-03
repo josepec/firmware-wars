@@ -134,7 +134,7 @@ END
 
 ```bs
 IF (condición)
-  THEN Función
+  THEN funcion()
 ```
 
 Se puede utilizar para realizar acciones como ataques, movimiento, recarga, etc.
@@ -149,8 +149,8 @@ Se puede utilizar para realizar acciones como ataques, movimiento, recarga, etc.
 
 ```bs
 IF (condición)
-  THEN FunciónA
-  ELSE FunciónB
+  THEN funcionA()
+  ELSE funcionA()
 ```
 
 Se puede utilizar para realizar una segunda acción en caso que falle la principal. *Ejemplo: Intento atacar, pero si no puedo, recargo energía.*
@@ -166,7 +166,7 @@ Se puede utilizar para realizar una segunda acción en caso que falle la princip
 
 ```bs
 FOR (numero)
-  Función
+  funcion()
 ```
 
 Se puede utilizar para realizar ataques múltiples, combos de movimiento o recargas intensas.
@@ -184,7 +184,7 @@ Se puede utilizar para realizar ataques múltiples, combos de movimiento o recar
 
 ```bs
 WHILE (condición)
-  DO Función
+  DO funcion()
 ```
 
 Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos de movimiento o recargas intensas. Con alto riesgo de sobrecarga.
@@ -202,8 +202,8 @@ Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos 
 - **Bug:** Si no se ejecuta ninguna de las dos funciones, se produce una **Critical Exception**. El Bot obtiene un BUG (`bugs`).
 
 ```bs
-TRY FunciónA
-  CATCH FunciónB
+TRY funcionA()
+  CATCH funcionB()
 ```
 
 Se puede utilizar para atacar o realizar acciones con seguridad.

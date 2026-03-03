@@ -30,7 +30,7 @@ function esc(s: string): string {
  * 9: paren — parentheses ( )
  */
 const LINE_RE =
-  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT|TRY|CATCH|TRY-CATCH)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|((?<![a-z\w])[A-Z][a-z]\w*)|([()])/;
+  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT|TRY|CATCH|TRY-CATCH|DO)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|((?<![a-z\w])[A-Z][a-z]\w*)|([()])/;
 
 function highlightLine(line: string): string {
   // Create a fresh regex instance each call (g flag requires fresh lastIndex)
