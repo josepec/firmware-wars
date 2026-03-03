@@ -157,15 +157,15 @@
         <div class="hidden sm:block flex-1 h-px bg-green-500/10"></div>
       </div>
       <pre class="text-[11px] sm:text-sm leading-6 sm:leading-8 overflow-x-auto"><span class="bs-phase">START</span>
-  <span class="bs-kw">IF</span> <span class="bs-type">(</span><span class="bs-var">enemy.distance</span> <span class="bs-op">==</span> <span class="bs-num">1</span><span class="bs-type">)</span>
-    <span class="bs-kw">THEN</span> <span class="bs-fn">attack</span><span class="bs-type">(</span><span class="bs-type">RocketPunch</span><span class="bs-type">)</span>
+  <span class="bs-kw">IF</span> <span class="bs-type">(</span><span class="bs-var">condition</span> <span class="bs-op">==</span> <span class="bs-num">1</span><span class="bs-type">)</span>
+    <span class="bs-kw">THEN</span> <span class="bs-fn">attack</span><span class="bs-type">(</span><span class="bs-fn">rocketPunch</span><span class="bs-type">(</span><span class="bs-type">)</span><span class="bs-type">)</span>
 
-  <span class="bs-kw">IF-ELSE</span> <span class="bs-type">(</span><span class="bs-var">energy</span> <span class="bs-op">&gt;=</span> <span class="bs-num">8</span><span class="bs-type">)</span>
+  <span class="bs-kw">IF-ELSE</span> <span class="bs-type">(</span><span class="bs-var">condition</span> <span class="bs-op">&gt;=</span> <span class="bs-num">8</span><span class="bs-type">)</span>
     <span class="bs-kw">THEN</span> <span class="bs-fn">move</span><span class="bs-type">(</span><span class="bs-num">2</span><span class="bs-type">)</span>
-    <span class="bs-kw">ELSE</span> <span class="bs-fn">debug</span><span class="bs-type">(</span><span class="bs-type">)</span>
+    <span class="bs-kw">ELSE</span> <span class="bs-fn">attack</span><span class="bs-type">(</span><span class="bs-fn">powerSmash</span><span class="bs-type">(</span><span class="bs-type">)</span><span class="bs-type">)</span>
 
   <span class="bs-kw">FOR</span> <span class="bs-type">(</span><span class="bs-num">3</span><span class="bs-type">)</span>
-    <span class="bs-fn">getNumbers</span><span class="bs-type">(</span><span class="bs-type">)</span>
+    <span class="bs-fn">shield</span><span class="bs-type">(</span><span class="bs-type">)</span>
 <span class="bs-phase">END</span></pre>
     </div>
 

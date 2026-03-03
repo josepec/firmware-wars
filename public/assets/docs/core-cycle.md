@@ -233,7 +233,7 @@ IF (1 < 2)
 
 ```bs
 IF (1 == 1)
-  THEN attack(RocketPunch)
+  THEN attack(rocketPunch())
 ```
 
 ---

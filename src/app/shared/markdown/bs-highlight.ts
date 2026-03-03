@@ -24,13 +24,14 @@ function esc(s: string): string {
  * 3: op
  * 4: num
  * 5: var   — a.b (property.path)
- * 6: fn    — word()
+ * 6: fn    — word followed by ( (lookahead, does not consume the paren)
  * 7: phase — START / END / INIT / SETUP with optional ()
  * 8: type  — PascalCase
  * 9: paren — parentheses ( )
+ * 10: word  — standalone lowercase words (condición, energia…)
  */
 const LINE_RE =
-  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT|TRY|CATCH|TRY-CATCH|DO)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|((?<![a-z\w])[A-Z][a-z]\w*)|([()])/;
+  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT|TRY|CATCH|TRY-CATCH|DO)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z\u00e0-\u00ff][\w\u00e0-\u00ff]*\.[a-z\u00e0-\u00ff][\w\u00e0-\u00ff]*)|([a-z\u00e0-\u00ff][\w\u00e0-\u00ff]*(?=\())|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|((?<![a-z\w])[A-Z][a-z]\w*)|([()])|([a-z\u00e0-\u00ff][\w\u00e0-\u00ff]*)/;
 
 function highlightLine(line: string): string {
   // Create a fresh regex instance each call (g flag requires fresh lastIndex)
@@ -41,7 +42,7 @@ function highlightLine(line: string): string {
 
   while ((m = re.exec(line)) !== null) {
     out += esc(line.slice(last, m.index));
-    const [full, cmt, kw, op, num, variable, fn, phase, type_, paren] = m;
+    const [full, cmt, kw, op, num, variable, fn, phase, type_, paren, word] = m;
 
     if (cmt) out += `<span class="bs-cmt">${esc(full)}</span>`;
     else if (kw) out += `<span class="bs-kw">${esc(full)}</span>`;
@@ -52,6 +53,7 @@ function highlightLine(line: string): string {
     else if (phase) out += `<span class="bs-phase">${esc(full)}</span>`;
     else if (type_) out += `<span class="bs-type">${esc(full)}</span>`;
     else if (paren) out += `<span class="bs-type">${esc(full)}</span>`;
+    else if (word) out += `<span class="bs-var">${esc(full)}</span>`;
     else out += esc(full);
 
     last = m.index + full.length;

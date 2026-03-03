@@ -148,14 +148,14 @@ body {
   body { background-color: white !important; }
 
   :root {
-    --bs-kw:    #b45309; /* amber-700   */
-    --bs-op:    #be185d; /* pink-700    */
-    --bs-num:   #c2410c; /* orange-700  */
-    --bs-var:   #0e7490; /* cyan-700    */
-    --bs-fn:    #15803d; /* green-700   */
-    --bs-type:  #6d28d9; /* violet-700  */
-    --bs-phase: #374151; /* gray-700    */
-    --bs-cmt:   #6b7280; /* gray-500    */
+    --bs-kw:    #c2410c; /* orange-700  — keywords  */
+    --bs-op:    #374151; /* gray-700    — operators */
+    --bs-num:   #15803d; /* green-700   — numbers   */
+    --bs-var:   #0e7490; /* cyan-700    — variables */
+    --bs-fn:    #b45309; /* amber-700   — functions */
+    --bs-type:  #6d28d9; /* violet-700  — types     */
+    --bs-phase: #374151; /* gray-700    — structure */
+    --bs-cmt:   #6b7280; /* gray-500    — comments  */
   }
 
   .md-col-2 { column-gap: 0.6cm; }
