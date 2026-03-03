@@ -13,7 +13,7 @@
   "pdf": {
     "page": {
       "format": "A5",
-      "margin": { "top": "1.5cm", "right": "1.5cm", "bottom": "1.3cm", "left": "1.5cm" }
+      "margin": { "top": "1.5cm", "right": "1cm", "bottom": "1.3cm", "left": "1cm" }
     },
     "header": {
       "height": "0.85cm",
@@ -30,9 +30,9 @@
     },
     "content": {
       "paddingTop": "0.25cm",
-      "paddingRight": "0.5cm",
+      "paddingRight": "0cm",
       "paddingBottom": "0.85cm",
-      "paddingLeft": "0.5cm"
+      "paddingLeft": "0cm"
     }
   }
 }
