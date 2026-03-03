@@ -186,10 +186,12 @@
     /* ── BattleScript blocks: icono BS en lugar de SYS:// ───── */
     &.bs-pre::before {
       content: '';
-      width: 1.6rem;
-      height: 1.6rem;
-      background: url('/assets/img/bs-logo.png') center / contain no-repeat;
-      opacity: 0.18;
+      width: 1.8rem;
+      height: 1.8rem;
+      background-color: #00ff88;
+      -webkit-mask: url('/assets/img/bs-logo.svg') center / contain no-repeat;
+      mask: url('/assets/img/bs-logo.svg') center / contain no-repeat;
+      opacity: 0.3;
       font-size: 0;
       letter-spacing: 0;
     }

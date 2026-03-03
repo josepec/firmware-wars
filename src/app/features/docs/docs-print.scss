@@ -606,27 +606,30 @@
     overflow-x: auto;
     margin: 0 0 0.75rem;
     page-break-inside: avoid;
+    position: relative;
 
     &::before {
       content: 'SYS://';
-      display: block;
-      text-align: right;
+      position: absolute;
+      top: 0.4rem;
+      right: 0.6rem;
       color: #6ea878;
       font-family: 'Orbitron', monospace;
       font-size: 6pt;
       letter-spacing: 0.15em;
-      margin-bottom: 0.2rem;
     }
 
     /* ── BattleScript blocks: icono BS en lugar de SYS:// ───── */
     &.bs-pre::before {
       content: '';
-      display: block;
-      text-align: right;
-      margin-bottom: 0.2rem;
-      height: 1rem;
-      background: url('/assets/img/bs-logo.png') right center / contain no-repeat;
-      opacity: 0.35;
+      width: 1.2rem;
+      height: 1.2rem;
+      background-color: #1a5c28;
+      -webkit-mask: url('/assets/img/bs-logo.svg') center / contain no-repeat;
+      mask: url('/assets/img/bs-logo.svg') center / contain no-repeat;
+      opacity: 0.4;
+      font-size: 0;
+      letter-spacing: 0;
     }
 
     code {
