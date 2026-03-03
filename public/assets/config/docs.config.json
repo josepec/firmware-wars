@@ -30,9 +30,9 @@
     },
     "content": {
       "paddingTop": "0.25cm",
-      "paddingRight": "-0.5cm",
+      "paddingRight": "0cm",
       "paddingBottom": "0.85cm",
-      "paddingLeft": "-0.5cm"
+      "paddingLeft": "0cm"
     }
   }
 }
