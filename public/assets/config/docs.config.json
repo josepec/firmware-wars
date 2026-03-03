@@ -13,14 +13,15 @@
   "pdf": {
     "page": {
       "format": "A5",
-      "margin": { "top": "1.5cm", "right": "1cm", "bottom": "1.3cm", "left": "1cm" }
+      "margin": { "top": "1.5cm", "right": "0.5cm", "bottom": "1.3cm", "left": "0.5cm" }
     },
     "header": {
       "height": "0.85cm",
       "fontSize": 7,
       "textColor": "#3a6640",
       "borderColor": "#b8deba",
-      "sectionPrefix": "// "
+      "sectionPrefix": "// ",
+      "marginH": "1cm"
     },
     "pageNumber": {
       "fontSize": 7,
