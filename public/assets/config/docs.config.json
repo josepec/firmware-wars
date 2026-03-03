@@ -21,7 +21,7 @@
       "textColor": "#3a6640",
       "borderColor": "#b8deba",
       "sectionPrefix": "// ",
-      "marginH": "1cm"
+      "marginH": "0cm"
     },
     "pageNumber": {
       "fontSize": 7,
@@ -30,9 +30,9 @@
       "skipCover": true
     },
     "content": {
-      "paddingTop": "0.25cm",
+      "paddingTop": "0cm",
       "paddingRight": "0cm",
-      "paddingBottom": "0.85cm",
+      "paddingBottom": "0cm",
       "paddingLeft": "0cm"
     }
   }
