@@ -10,6 +10,7 @@
  *  .bs-fn    — function calls (move(), attack())                     → green-300
  *  .bs-type  — PascalCase type/ability names (RocketPunch)           → violet-300
  *  .bs-phase — structural keywords (START, END, INIT, SETUP)         → green-500/50
+ *  .bs-cmt   — comments (// …)                                      → green-500/30
  */
 
 function esc(s: string): string {
@@ -18,16 +19,17 @@ function esc(s: string): string {
 
 /**
  * Groups (in priority order):
- * 1: kw    — IF-ELSE must come before IF to avoid partial match
- * 2: op
- * 3: num
- * 4: var   — a.b (property.path)
- * 5: fn    — word()
- * 6: phase — START / END / INIT / SETUP with optional ()
- * 7: type  — PascalCase
+ * 1: cmt   — line comments (// …) — must be first to prevent inner tokens
+ * 2: kw    — IF-ELSE must come before IF to avoid partial match
+ * 3: op
+ * 4: num
+ * 5: var   — a.b (property.path)
+ * 6: fn    — word()
+ * 7: phase — START / END / INIT / SETUP with optional ()
+ * 8: type  — PascalCase
  */
 const LINE_RE =
-  /(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|([A-Z][a-z]\w*)/;
+  /(\/\/.*$)|(IF-ELSE|\b(?:IF|THEN|ELSE|FOR|WHILE|AND|OR|NOT)\b)|(==|!=|>=|<=|[<>])|(\b\d+\b)|([a-z]\w*\.[a-z]\w*)|([a-z]\w*\(\))|(\b(?:START|END|INIT|SETUP)(?:\(\))?)|([A-Z][a-z]\w*)/;
 
 function highlightLine(line: string): string {
   // Create a fresh regex instance each call (g flag requires fresh lastIndex)
@@ -38,9 +40,10 @@ function highlightLine(line: string): string {
 
   while ((m = re.exec(line)) !== null) {
     out += esc(line.slice(last, m.index));
-    const [full, kw, op, num, variable, fn, phase, type_] = m;
+    const [full, cmt, kw, op, num, variable, fn, phase, type_] = m;
 
-    if      (kw)       out += `<span class="bs-kw">${esc(full)}</span>`;
+    if      (cmt)      out += `<span class="bs-cmt">${esc(full)}</span>`;
+    else if (kw)       out += `<span class="bs-kw">${esc(full)}</span>`;
     else if (op)       out += `<span class="bs-op">${esc(full)}</span>`;
     else if (num)      out += `<span class="bs-num">${esc(full)}</span>`;
     else if (variable) out += `<span class="bs-var">${esc(full)}</span>`;

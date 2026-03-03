@@ -120,7 +120,7 @@ const imgDirectiveExt = {
   },
 
   renderer(token: { type: string; raw: string; variant: string; path: string }): string {
-    const src = token.path.startsWith('http') ? token.path : `/assets/docs/img/${token.path}`;
+    const src = token.path.startsWith('http') || token.path.startsWith('/') ? token.path : `/assets/docs/img/${token.path}`;
     const cls = token.variant === 'img' ? 'md-img' : token.variant === 'img-center' ? 'md-img-center' : 'md-img-small';
     return `<div class="${cls}"><img src="${src}" alt="" loading="lazy" /></div>`;
   },

@@ -103,6 +103,7 @@ body {
   --bs-fn:    #86efac;                /* green-300   — functions  */
   --bs-type:  #c4b5fd;                /* violet-300  — types      */
   --bs-phase: rgba(0, 255, 136, 0.5); /* dim green  — structure  */
+  --bs-cmt:   rgba(0, 255, 136, 0.3); /* dim green  — comments   */
 }
 
 .bs-kw    { color: var(--bs-kw);    }
@@ -112,6 +113,7 @@ body {
 .bs-fn    { color: var(--bs-fn);    }
 .bs-type  { color: var(--bs-type);  }
 .bs-phase { color: var(--bs-phase); }
+.bs-cmt   { color: var(--bs-cmt); font-style: italic; }
 
 /* ── Directivas de imagen ────────────────────────────────────── */
 .md-img,
@@ -137,6 +139,7 @@ body {
     --bs-fn:    #15803d; /* green-700   */
     --bs-type:  #6d28d9; /* violet-700  */
     --bs-phase: #374151; /* gray-700    */
+    --bs-cmt:   #6b7280; /* gray-500    */
   }
 
   .md-col-2 { column-gap: 0.6cm; }
