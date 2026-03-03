@@ -99,14 +99,12 @@ Una vez completada la inicialización, el robot entra en la fase de programació
 
 ### 2. Vinculación de Operaciones y Funciones
 
-- Toda Función requiere una Operación activa para ser procesada; no es posible ejecutar funciones de forma aislada. La mayoría de las Operaciones permiten alojar una única Función, pero algunas Operaciones como `IF-ELSE` o `TRY-CATCH` poseen dos ranuras de ejecución (una para cada rama de la condición) 
- - Ranura Primaria: Es de uso Obligatorio.
- - Ranura Secundaria: Es de uso Opcional.
- - Restricción de Duplicado: Bajo ninguna circunstancia se puede asignar la misma Función a ambas ranuras de una misma Operación.
+Toda **Función** requiere una **Operación** para ser procesada; **no es posible ejecutar funciones de forma aislada**. La mayoría de las **Operaciones** permiten alojar una única **Función**, pero algunas **Operaciones** como `IF-ELSE` o `TRY-CATCH` poseen dos ranuras de ejecución (una para cada rama de la condición) 
+ - **Ranura Primaria:** Es de uso Obligatorio.
+ - **Ranura Secundaria:** Es de uso Opcional.
+ - **Restricción de Duplicado:** Bajo ninguna circunstancia se puede asignar la misma Función a ambas ranuras de una misma Operación.
 
-
-- Todas las **Operaciones** tienen **Funciones** asociadas. No se puede ejecutar una **Función** fuera de una **Operación**. Algunas Operaciones como `IF-ELSE` o `TRY-CATCH` permiten dos Funciones, una a cada lado de la condición, la primera es **Obligatoria** y la segunda es **Opcional**, pero nunca pueden ser la misma **Función**.
-- Los Bots tienen Funciones comunes (`COMMON.INTERFACE`) y funciones específicas del modelo.
+Los Bots tienen Funciones comunes (`COMMON.INTERFACE`) y Funciones elegidas durante la construcción.
 
 Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven `TRUE` o `FALSE`. Los Bots utilizan sus **números** (`numbers`) guardados en los condicionales, obtenidos mediante `getNumbers()`.
 
