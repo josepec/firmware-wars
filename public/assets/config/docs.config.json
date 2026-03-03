@@ -20,8 +20,7 @@
       "fontSize": 7,
       "textColor": "#3a6640",
       "borderColor": "#b8deba",
-      "sectionPrefix": "// ",
-      "marginH": "0cm"
+      "sectionPrefix": "// "
     },
     "pageNumber": {
       "fontSize": 7,

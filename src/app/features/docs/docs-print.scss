@@ -3,10 +3,9 @@
    ============================================================ */
 
 /* ── @page: A5 con márgenes que coinciden con la vista previa ── */
-/* @page margins se controlan desde docs.config.json → publish-pdf.mjs (Puppeteer).
-   Solo declaramos el tamaño de página para la vista previa del navegador. */
 @page {
   size: A5;
+  margin: 1.5cm 1.8cm 1.2cm;
 }
 
 /* ── Visibilidad print/screen ────────────────────────────────── */
