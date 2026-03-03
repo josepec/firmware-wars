@@ -421,7 +421,7 @@
   padding: 2cm 1.8cm 1.8cm;
 
   @media print {
-    padding: 0.25cm 0 0.85cm;
+    padding: var(--pdf-content-pt, 0.25cm) var(--pdf-content-pr, 0cm) var(--pdf-content-pb, 0.85cm) var(--pdf-content-pl, 0cm);
   }
 }
 
