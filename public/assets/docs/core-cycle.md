@@ -110,7 +110,7 @@ Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven
 
 ### BattleScript
 
-/img-center /assets/img/battleScript.png
+/img-center /assets/img/battleScript.png print
 
 Una vez por turno, cada Bot ejecuta el siguiente bloque de código:
 
