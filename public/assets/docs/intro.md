@@ -1,6 +1,5 @@
 # INIT.SYS: Introducción
 
-/two-columns
 ## ¿Qué es Firmware Wars?
 
 **Firmware Wars** es un juego de combate táctico por turnos de **2-3 jugadores** en el que cada participante asume el rol de un **Programador Senior**: un ingeniero de élite que diseña, despliega y opera unidades robóticas de combate llamadas **Bots**.
@@ -26,4 +25,3 @@ El objetivo vendrá determinado por el **Escenario** elegido. Si no se escoge un
 Los Bots quedan destruidos cuando su variable `life` se reduce a 0. Una unidad destruida no puede ser reparada ni reactivada.
 
 ---
-/end-columns
