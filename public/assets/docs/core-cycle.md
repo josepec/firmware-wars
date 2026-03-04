@@ -128,6 +128,8 @@ END
 
 ## Listado de Operaciones
 
+> Las condiciones de las Operaciones se determinan en la fase de `RUN()`.
+
 ### IF
 
 - **Tipo:** Condicional simple
@@ -215,55 +217,75 @@ Se puede utilizar para atacar o realizar acciones con seguridad.
 
 ## Listado de Funciones Comunes
 
+Todos los Bots tienen acceso a las Funciones Comunes `COMMON.INTERFACE` para poder usarlas en sus Operaciones.
+
 ### move()
 
 - **Uso:** Recibe un valor numérico ≤ `MAX_MOVEMENT`. Mueve el Bot ese número de casillas.
 - **Coste energético:** El valor numérico recibido.
-- **Bug:** Si el valor supera `MAX_MOVEMENT`, la operación no se ejecuta y el Bot obtiene un `BUG`.
+- **Bug:** Si el valor numérico supera `MAX_MOVEMENT`, la operación no se ejecuta y el Bot obtiene un `BUG`.
 
 ```bs
-IF (1 < 2)
+IF (condición)
   THEN move(3)
 ```
+
+> El valor numérico se ha establecido en la fase de `COMPILE()`. Este número **no pertenece a la reserva de `numbers`**.
 
 ---
 
 ### attack()
 
-- **Uso:** Recibe como parámetro una función de **Callback** de ataque definida en el modelo del Bot. Se ejecutará tal y como esté definida.
+- **Uso:** Recibe como parámetro una función de **Callback** de ataque configurada en el Bot. Se ejecutará tal y como esté definida.
 - **Coste energético:** El valor energético definido en la función de ataque.
-- **Detalles:** Costes, daño, alcance y efectos se encuentran en la sección **BOTS.CFG**.
+- **Detalles:** El coste, daño, rango y efectos se encuentran en la sección **BOTS.CFG**.
 
 ```bs
-IF (1 == 1)
+IF (condición)
   THEN attack(rocketPunch())
 ```
 
 ---
 
-### getNumbers()
+### shield()
 
-- **Uso:** Tira nd10 dados (siendo n el valor de `NDICES_NUMBERS` del modelo). Los resultados se almacenan en `numbers` para uso en condicionales.
-- **Coste energético:** 0.
-- **Detalles:** La cantidad de números no puede superar `MAX_NUMBERS`. Los números obtenidos después del máximo se descartan.
+- **Uso:** Añade un punto a `shield` siempre que `shield` < `MAX_SHIELD`.
+- **Coste energético:** 2.
 
 ```bs
-FOR (2)
-  getNumbers()
+IF (condición)
+  THEN shield(3)
 ```
+
+> El valor de `shield` se descuenta del daño causado por un ataque y se pierde.
+
+---
+
+## Listado de Funciones del Sistema
+
+Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no pueden usarlas en sus Operaciones**. Estas Funciones se llaman automáticamente en diferentes Fases del Sistema y no tienen Coste Energético.
+
+### getEnergy(n)
+
+- **Uso:** Tira nd6, siendo n del 1 al 3, y almacena la Energía en `numbers`, hasta llenar `MAX_ENERGY`.
+- **Cuando:** En la fase de `BOOT()`.
+- **Detalles:** La cantidad de energía no puede superar `MAX_NUMBERS`, descarta toda la energía que lo supere. Si con el resultado de la tirada se sobrepasaba `MAX_ENERGY` se genera un `BUG`.
+
+---
+
+### getNumbers()
+
+- **Uso:** Lanza tantos dados (d6) como espacios vacíos queden en su reserva de `numbers` hasta alcanzar el límite de `MAX_NUMBERS`.
+- **Cuando:** En la fase de `BOOT()`.
+- **Detalles:** La cantidad de números no puede superar `MAX_NUMBERS`.
 
 ---
 
 ### upgrade()
 
-- **Uso:** Sube un punto la versión (`version`) del Bot.
-- **Coste energético:** 15.
+- **Uso:** Sube un punto la versión `version` del Bot.
+- **Cuando:** En la fase de `INIT()`, rondas 3 y 5.
 - **Detalles:** La versión máxima es 3 (`MAX_VERSION`). Subir versión da acceso a más Operaciones, Funciones y Ataques.
-
-```bs
-IF (5 != 2)
-  THEN upgrade()
-```
 
 ---
 
