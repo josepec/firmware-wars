@@ -66,8 +66,8 @@
 
 | Función | Energía | Efecto |
 |---|---|---|
-| `debug()` | 3 | Elimina 1 BUG. |
-| `patch()` | 8 | Elimina TODOS los BUGS. |
+| `debug()` | 3 | Elimina 1 `BUG`. |
+| `patch()` | 8 | Elimina TODOS los `bugs`. |
 | `optimize()` | 5 | +1 tiradas de Energía próximo turno. |
 | `reboot()` | 0 | Reset total. Pierde siguiente turno. `energy=0`, `numbers=[]`, `bugs=0`. |
 

@@ -15,7 +15,9 @@ export function classifyCode(text: string): string {
   const t = text.trim();
   // Lowercase function call: move(), attack(1), getNumbers()
   if (/^[a-z]\w*\(.*\)$/.test(t)) return 'bs-fn';
-  // Status/state keywords: BUG, LAG, DMZ, SAFE_MODE…
+  // BUG — red text only, no code box
+  if (t === 'BUG') return 'bs-bug';
+  // Status/state keywords: LAG, DMZ, SAFE_MODE…
   if (STATUS_SET.has(t)) return 'bs-status';
   // UPPER_SNAKE_CASE or known constants: MAX_ENERGY, TRUE, FALSE…
   if (/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(t)) return 'bs-const';

@@ -60,7 +60,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 ### 5. Carga de Operaciones del Turno
 
-- Cada Bot tiene 3 Operaciones base por turno (`MAX_OPERATIONS`), pero por cada BUG activo `bugs`, pierde una Operación.
+- Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación.
 - Cada Operación requiere el lanzamiento de un dado. El dado utilizado depende directamente de la `version` del Bot (V1, V2 o V3). Utiliza el dado correspondiente a la `version` de tu Bot (Dado V1, Dado V2 o Dado V3). Si no dispones de los dados específicos, puedes utilizar un 1d6 consultando la Tabla de Equivalencias que figura a continuación:
 
 | Resultado | V1 | V2 | V3 |
@@ -122,6 +122,8 @@ START
 END
 ```
 
+> **Recuerda:** Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación.
+
 ---
 
 ## Listado de Operaciones
@@ -129,7 +131,7 @@ END
 ### IF
 
 - **Tipo:** Condicional simple
-- **Condición TRUE:** Ejecuta Función
+- **Condición TRUE:** Ejecuta `funcion()`
 - **Condición FALSE:** No se ejecuta nada
 
 ```bs
@@ -137,15 +139,15 @@ IF (condición)
   THEN funcion()
 ```
 
-Se puede utilizar para realizar acciones como ataques, movimiento, recarga, etc.
+Se puede utilizar para realizar acciones como ataques, movimiento, escudo, etc.
 
 ---
 
 ### IF-ELSE
 
 - **Tipo:** Condicional dual
-- **Condición TRUE:** Ejecuta FunciónA
-- **Condición FALSE:** Ejecuta FunciónB
+- **Condición TRUE:** Ejecuta `funcionA()`
+- **Condición FALSE:** Ejecuta `funcionB()`
 
 ```bs
 IF (condición)
@@ -153,41 +155,42 @@ IF (condición)
   ELSE funcionB()
 ```
 
-Se puede utilizar para realizar una segunda acción en caso que falle la principal. *Ejemplo: Intento atacar, pero si no puedo, recargo energía.*
+Se puede utilizar para realizar una segunda acción en caso que falle la principal. 
+> Ejemplo: Intento atacar, pero si no puedo, genero escudo.
 
 ---
 
 ### FOR
 
 - **Tipo:** Bucle fijo
-- **Limitación:** Solo se puede ejecutar uno por turno.
-- **Resolución:** Elige un número guardado (valor máximo 3) — la función se ejecuta ese número de veces.
-- **Bug:** Si el valor del número es superior a 3, se produce un **Infinite Loop**. No se ejecuta la operación y el Bot obtiene un BUG (`bugs`).
+- **Limitación:** Solo se puede ejecutar un Bucle por turno (`FOR` o `WHILE`).
+- **Resolución:** Determinar `numero`. **Primero** se lanza 1d6 y **después** el Programador elige un número guardado en `numbers`. La **diferencia entre ambos números** (restando el menor al mayor) define el valor de `numero`. Esa será la cantidad de veces que se ejecute la Función.
+- **Bug:** Si el valor del número es **superior a 3 o es igual a 0**, se produce un **Infinite Loop**. No se ejecuta la operación y el Bot obtiene un `BUG` en `bugs`.
 
 ```bs
 FOR (numero)
   funcion()
 ```
 
-Se puede utilizar para realizar ataques múltiples, combos de movimiento o recargas intensas.
+Se puede utilizar para realizar ataques múltiples, combos de movimiento o una gran generación de escudo.
 
 ---
 
 ### WHILE
 
 - **Tipo:** Bucle condicional
-- **Limitación:** Solo se puede ejecutar uno por turno.
-- **Condición TRUE:** Ejecuta Función y continúa otro Bucle más.
-- **Condición FALSE:** No se ejecuta la Función y se detiene el Bucle.
+- **Limitación:** Solo se puede ejecutar un Bucle por turno (`FOR` o `WHILE`).
+- **Condición TRUE:** Ejecuta `funcion()` y continúa otro Bucle más.
+- **Condición FALSE:** No se ejecuta `funcion()` y se detiene el Bucle.
 - **Resolución:** Se comprueba la condición — cada Bucle genera una nueva condición.
-- **Bug:** Si la Función no se ejecuta ni una sola vez, el Bot obtiene un BUG (`bugs`).
+- **Bug:** Si la Función **no se ejecuta ni una sola vez**, el Bot obtiene un `BUG` en `bugs`.
 
 ```bs
 WHILE (condición)
   DO funcion()
 ```
 
-Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos de movimiento o recargas intensas. Con alto riesgo de sobrecarga.
+Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos de movimiento o grandes escudos. Con alto riesgo de sobrecarga.
 
 ---
 
@@ -195,11 +198,11 @@ Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos 
 
 - **Tipo:** Control de error
 - **Resolución:**
-  - Ejecuta una acción arriesgada. Si la Función no puede ejecutarse por falta de Energía u otros factores, se ejecuta la Función del `CATCH` (FunciónB).
-  - Si la Función no se pudo ejecutar por falta de energía, **no** se produce Overload.
-  - Si la acción es un `attack()` que no impacta y/o hace daño, se ejecuta la Función del `CATCH` (FunciónB).
-  - La Función del `CATCH` **no está protegida** frente a Overload: se pierde un punto de `life` por cada punto que no se puede pagar. Además, no se ejecuta.
-- **Bug:** Si no se ejecuta ninguna de las dos funciones, se produce una **Critical Exception**. El Bot obtiene un BUG (`bugs`).
+  - Ejecuta una acción arriesgada. Si `funcionA()` no puede ejecutarse por falta de Energía u otros factores, se ejecuta `funcionB()`.
+  - La Función del `TRY` no se pudo ejecutar por falta de energía, **no** se produce Overload. Se ejecuta `funcionB()`.
+  - La Función del `TRY` va a generar un `BUG` al ejecutarse, no se ejecuta. Se ejecuta `funcionB()`.
+  - La Función del `CATCH` **no está protegida** frente a Overload o `BUG`.
+- **Bug:** Si no se ejecuta ninguna de las dos funciones, se produce una **Critical Exception**. El Bot obtiene un`BUG` en `bugs`.
 
 ```bs
 TRY funcionA()
@@ -216,7 +219,7 @@ Se puede utilizar para atacar o realizar acciones con seguridad.
 
 - **Uso:** Recibe un valor numérico ≤ `MAX_MOVEMENT`. Mueve el Bot ese número de casillas.
 - **Coste energético:** El valor numérico recibido.
-- **Bug:** Si el valor supera `MAX_MOVEMENT`, la operación no se ejecuta y el Bot obtiene un BUG.
+- **Bug:** Si el valor supera `MAX_MOVEMENT`, la operación no se ejecuta y el Bot obtiene un `BUG`.
 
 ```bs
 IF (1 < 2)
@@ -278,7 +281,7 @@ Durante esta fase, **no se pueden alterar ni reordenar las instrucciones ya comp
 
 ### 2. Verificación y Errores de Sintaxis
 
-El resto de programadores **pueden detectar errores de código** en el programa visible en el terminal. Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un BUG (`bugs`).
+El resto de programadores **pueden detectar errores de código** en el programa visible en el terminal. Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un`BUG` en `bugs`.
 
 ### 3. Ejecución de Operaciones
 
@@ -354,8 +357,8 @@ La fase de depuración permite mantener a los robots operativos. El programador 
 
 | Función | Coste | Efecto |
 |---|---|---|
-| `debug()` | 3 | Elimina **1 BUG** del Bot. |
-| `patch()` | 8 | Elimina **todos** los BUGs. |
+| `debug()` | 3 | Elimina 1 `BUG` del Bot. |
+| `patch()` | 8 | Elimina **todos** los `bugs`. |
 | `optimize()` | 5 | +1 a las tiradas de Energía durante el próximo turno. |
 | `reboot()` | 0 | Pierde el próximo turno. Reinicia: `energy = 0`, `numbers = []`, `bugs = 0`. |
 

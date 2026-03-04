@@ -8,14 +8,14 @@
   { "Función": "`stabilizerHit()`", "V.": "1", "Rango": "1", "Daño": "1", "Energía": "1", "Efectos": "Superar 1d6 (>3) o recibe LAG (-1 MAX_MOVEMENT)." },
   { "Función": "`nanoRepair()`", "V.": "2", "Rango": "—", "Daño": "—", "Energía": "4", "Efectos": "El Bot recupera 1d4 puntos de Vida." },
   { "Función": "`traceShot()`", "V.": "2", "Rango": "6", "Daño": "1d4", "Energía": "4", "Efectos": "Sin línea visual, solo requiere rango." },
-  { "Función": "`ghostProtocol()`", "V.": "2", "Rango": "2", "Daño": "0", "Energía": "3", "Efectos": "Objetivo recibe 1 BUG y pierde hasta 2 `numbers`." },
+  { "Función": "`ghostProtocol()`", "V.": "2", "Rango": "2", "Daño": "0", "Energía": "3", "Efectos": "Objetivo recibe 1 `BUG` y pierde hasta 2 `numbers`." },
   { "Función": "`shadowStep()`", "V.": "2", "Rango": "—", "Daño": "—", "Energía": "3", "Efectos": "Se teleporta 3 Hexes ignorando obstáculos." },
   { "Función": "`overdriveStrike()`", "V.": "3", "Rango": "1", "Daño": "*", "Energía": "*", "Efectos": "Gasta toda la Energía (min 2). 1 daño por cada 2 Energías." },
   { "Función": "`chargedStrike()`", "V.": "3", "Rango": "1", "Daño": "charge", "Energía": "0", "Efectos": "Daño igual al valor acumulado de `charge`." },
-  { "Función": "`dataSpike()`", "V.": "3", "Rango": "2", "Daño": "1d8", "Energía": "6", "Efectos": "El objetivo recibe 1 BUG." },
+  { "Función": "`dataSpike()`", "V.": "3", "Rango": "2", "Daño": "1d8", "Energía": "6", "Efectos": "El objetivo recibe 1 `BUG`." },
   { "Función": "`flashSpin()`", "V.": "3", "Rango": "*", "Daño": "1", "Energía": "2", "Efectos": "Área Hexes adyacentes. Daño 1 a todos los Bots en alcance." },
   { "Función": "`syncBlast()`", "V.": "3", "Rango": "1", "Daño": "3", "Energía": "3", "Efectos": "Si `energy` ≥ 10 al declarar: +1 a la Tirada de Combate." },
   { "Función": "`relayNode()`", "V.": "3", "Rango": "—", "Daño": "—", "Energía": "2", "Efectos": "Despliega Nodo (Vida 2, Máx 3). Inflige 2 daño a Bots adyacentes en `BOOT()`." },
-  { "Función": "`novaBlast()`", "V.": "3", "Rango": "5", "Daño": "1d10", "Energía": "6", "Efectos": "Genera 1 BUG al usuario por el retroceso." },
+  { "Función": "`novaBlast()`", "V.": "3", "Rango": "5", "Daño": "1d10", "Energía": "6", "Efectos": "Genera 1 `BUG` al usuario por el retroceso." },
   { "Función": "`empField()`", "V.": "3", "Rango": "5", "Daño": "1d6", "Energía": "6", "Efectos": "Área Rango 1. Bots deben superar 1d6 (>3) o reciben estado DMZ." }
 ]
