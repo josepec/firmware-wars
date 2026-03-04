@@ -7,12 +7,19 @@ const KW_SET = new Set([
   'IF-ELSE', 'IF', 'THEN', 'ELSE', 'FOR', 'WHILE', 'AND', 'OR', 'NOT', 'TRY', 'CATCH', 'TRY-CATCH', 'DO',
 ]);
 
-function classifyCode(text: string): string {
+const STATUS_SET = new Set([
+  'BUG', 'LAG', 'DMZ', 'OVERLOAD', 'REBOOTING', 'SAFE_MODE',
+]);
+
+export function classifyCode(text: string): string {
   const t = text.trim();
   // Lowercase function call: move(), attack(1), getNumbers()
   if (/^[a-z]\w*\(.*\)$/.test(t)) return 'bs-fn';
-  // UPPER_SNAKE_CASE constants: MAX_ENERGY, NDICES_NUMBERS…
+  // Status/state keywords: BUG, LAG, DMZ, SAFE_MODE…
+  if (STATUS_SET.has(t)) return 'bs-status';
+  // UPPER_SNAKE_CASE or known constants: MAX_ENERGY, TRUE, FALSE…
   if (/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(t)) return 'bs-const';
+  if (t === 'TRUE' || t === 'FALSE') return 'bs-const';
   // ALL_CAPS or UPPER.DOTTED (phases/structural): INIT(), SETUP, CORE.CYCLE
   const base = t.replace(/\(\)$/, '');
   if (/^[A-Z][A-Z0-9_.]*$/.test(base)) {

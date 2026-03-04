@@ -730,8 +730,9 @@
     &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    12%, white); border-color: color-mix(in srgb, var(--bs-kw)    40%, white); }
     &.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    12%, white); border-color: color-mix(in srgb, var(--bs-fn)    40%, white); }
     &.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   12%, white); border-color: color-mix(in srgb, var(--bs-var)   40%, white); }
-    &.bs-const { color: var(--bs-const); background: color-mix(in srgb, var(--bs-const) 12%, white); border-color: color-mix(in srgb, var(--bs-const) 40%, white); }
-    &.bs-phase { color: var(--bs-type);  background: color-mix(in srgb, var(--bs-type)  12%, white); border-color: color-mix(in srgb, var(--bs-type)  40%, white); }
+    &.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  12%, white); border-color: color-mix(in srgb, var(--bs-const)  40%, white); }
+    &.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 12%, white); border-color: color-mix(in srgb, var(--bs-status) 40%, white); }
+    &.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   12%, white); border-color: color-mix(in srgb, var(--bs-type)   40%, white); }
   }
 
   /* ── Directivas de columna: estilos globales en styles.css ─
