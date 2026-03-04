@@ -199,10 +199,10 @@ Se puede utilizar para realizar una gran cantidad de ataques múltiples, combos 
 - **Tipo:** Control de error
 - **Resolución:**
   - Ejecuta una acción arriesgada. Si `funcionA()` no puede ejecutarse por falta de Energía u otros factores, se ejecuta `funcionB()`.
-  - La Función del `TRY` no se pudo ejecutar por falta de energía, **no** se produce Overload. Se ejecuta `funcionB()`.
-  - La Función del `TRY` va a generar un `BUG` al ejecutarse, no se ejecuta. Se ejecuta `funcionB()`.
-  - La Función del `CATCH` **no está protegida** frente a Overload o `BUG`.
-- **Bug:** Si no se ejecuta ninguna de las dos funciones, se produce una **Critical Exception**. El Bot obtiene un`BUG` en `bugs`.
+  - Si la Función del `TRY` no se pudo ejecutar por falta de energía, **no** se produce `OVERLOAD`. Se ejecuta `CATCH`.
+  - Si la Función del `TRY` va a generar un `BUG` al ejecutarse, no se ejecuta. Se ejecuta `CATCH`.
+  - La Función del `CATCH` **no está protegida** frente a `OVERLOAD` o `BUG`.
+- **Bug:** Si no se ejecuta ninguna de las dos funciones, se produce una **Critical Exception**. El Bot obtiene un `BUG` en `bugs`.
 
 ```bs
 TRY funcionA()
@@ -281,7 +281,7 @@ Durante esta fase, **no se pueden alterar ni reordenar las instrucciones ya comp
 
 ### 2. Verificación y Errores de Sintaxis
 
-El resto de programadores **pueden detectar errores de código** en el programa visible en el terminal. Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un`BUG` en `bugs`.
+El resto de programadores **pueden detectar errores de código** en el programa visible en el terminal. Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un `BUG` en `bugs`.
 
 ### 3. Ejecución de Operaciones
 
@@ -299,9 +299,9 @@ Para determinar el resultado de una condición:
 
 ### 4. Coste Energético
 
-Si no se puede pagar la energía (`energy`) de una función, se produce **Overload**: se pierde un punto de `life` por cada punto que no se puede pagar y la función **no se ejecuta**.
+Si no se puede pagar la energía (`energy`) de una función, se produce `OVERLOAD`: se pierde un punto de `life` por cada punto que no se puede pagar y la función **no se ejecuta**.
 
-En Bucles, si en alguna iteración no se puede pagar el coste, esa iteración no se ejecuta, se produce Overload y el bucle se detiene.
+En Bucles, si en alguna iteración no se puede pagar el coste, esa iteración no se ejecuta, se produce `OVERLOAD` y el bucle se detiene.
 
 ---
 
