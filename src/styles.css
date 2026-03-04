@@ -102,6 +102,7 @@ body {
   --bs-var:   #67e8f9;                /* cyan-300    — variables  */
   --bs-fn:    #fde047;                /* yellow-300   — functions  */
   --bs-type:  #c4b5fd;                /* violet-300  — types      */
+  --bs-const: #7dd3fc;                /* sky-300     — constants  */
   --bs-phase: rgba(0, 255, 136, 0.5); /* dim green  — structure  */
   --bs-cmt:   rgba(0, 255, 136, 0.3); /* dim green  — comments   */
 }
@@ -123,6 +124,7 @@ body {
 .bs-var   { color: var(--bs-var);   }
 .bs-fn    { color: var(--bs-fn);    }
 .bs-type  { color: var(--bs-type);  }
+.bs-const { color: var(--bs-const); }
 .bs-phase { color: var(--bs-phase); }
 .bs-cmt   { color: var(--bs-cmt); font-style: italic; }
 
@@ -154,6 +156,7 @@ body {
     --bs-var:   #0e7490; /* cyan-700    — variables */
     --bs-fn:    #b45309; /* amber-700   — functions */
     --bs-type:  #6d28d9; /* violet-700  — types     */
+    --bs-const: #0369a1; /* sky-700     — constants */
     --bs-phase: #374151; /* gray-700    — structure */
     --bs-cmt:   #6b7280; /* gray-500    — comments  */
   }

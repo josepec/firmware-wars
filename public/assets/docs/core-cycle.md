@@ -150,7 +150,7 @@ Se puede utilizar para realizar acciones como ataques, movimiento, recarga, etc.
 ```bs
 IF (condición)
   THEN funcionA()
-  ELSE funcionA()
+  ELSE funcionB()
 ```
 
 Se puede utilizar para realizar una segunda acción en caso que falle la principal. *Ejemplo: Intento atacar, pero si no puedo, recargo energía.*

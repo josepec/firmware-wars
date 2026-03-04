@@ -4,13 +4,15 @@ import { highlightBattleScript, isBs } from './bs-highlight';
 /* ── Inline-code classification ─────────────────────────────────── */
 
 const KW_SET = new Set([
-  'IF-ELSE', 'IF', 'THEN', 'ELSE', 'FOR', 'WHILE', 'AND', 'OR', 'NOT',
+  'IF-ELSE', 'IF', 'THEN', 'ELSE', 'FOR', 'WHILE', 'AND', 'OR', 'NOT', 'TRY', 'CATCH', 'TRY-CATCH', 'DO',
 ]);
 
 function classifyCode(text: string): string {
   const t = text.trim();
   // Lowercase function call: move(), attack(1), getNumbers()
   if (/^[a-z]\w*\(.*\)$/.test(t)) return 'bs-fn';
+  // UPPER_SNAKE_CASE constants: MAX_ENERGY, NDICES_NUMBERS…
+  if (/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(t)) return 'bs-const';
   // ALL_CAPS or UPPER.DOTTED (phases/structural): INIT(), SETUP, CORE.CYCLE
   const base = t.replace(/\(\)$/, '');
   if (/^[A-Z][A-Z0-9_.]*$/.test(base)) {
@@ -18,6 +20,8 @@ function classifyCode(text: string): string {
   }
   // Control-flow keywords: IF, FOR, THEN…
   if (KW_SET.has(t)) return 'bs-kw';
+  // Lowercase words: life, energy, shield, bugs…
+  if (/^[a-z]\w*$/.test(t)) return 'bs-var';
   return '';
 }
 
