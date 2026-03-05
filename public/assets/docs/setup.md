@@ -18,21 +18,11 @@ Determinad el número de **Bots** de cada programador. Cada programador seleccio
 
 ### Escala y Medidas
 
-Las distancias se miden en **Hexes** (casillas hexagonales del tablero). Tanto al mover como al determinar el alcance de un ataque o habilidad, se cuenta el número mínimo de casillas hexagonales contiguas entre dos puntos del tablero, sin atravesar obstáculos o Bots.
+Las distancias se miden en **Hexes** (casillas hexagonales del tablero). Tanto al mover como al determinar el rango de un ataque o habilidad, se cuenta el número mínimo de casillas hexagonales contiguas entre dos puntos del tablero, sin atravesar obstáculos o Bots. El desplazamiento puede realizarse en cualquiera de las seis direcciones adyacentes al Hex actual.
 
 No se usan reglas ni cintas métricas: el sistema hexagonal garantiza la equidad táctica de las distancias.
 
-Cada Bot puede desplazarse un número de Hexes igual o menor a su atributo de **Movimiento Máximo** `MAX_MOVEMENT` cada vez que ejecuta un movimiento. Este movimiento tendrá un coste de **1 punto de Energía** por cada Hex atravesado. El desplazamiento puede realizarse en cualquiera de las seis direcciones adyacentes al Hex actual.
-
 Algunos escenarios pueden haber Hexes especiales, cuyo funcionamiento se detallará en el escenario correspondiente.
-
-### Rango de ataques
-Excepto si el ataque indica lo contrario, todos los ataques requieren línea de visión del objetivo. La distancia, o rango, será el número mínimo de casillas hexagonales contiguas entre el Bot atacante y el Bot defensor, sin atravesar obstáculos u otros Bots. Esta distancia debe estar dentro del rango del ataque.
-
-Algunos ataques calculan su rango de otras maneras:
-
-- **Línea recta:** Si el objetivo se encuentra en una **trayectoria alineada** con una de las seis caras del Hex del atacante, el ataque se propaga de forma directa. Si un obstáculo o un Bot ajeno (aliado o enemigo) ocupa un Hex en esa trayectoria, la línea de visión se interrumpe y el ataque no puede realizarse.
-- **Sin línea de visión:** Algunas habilidades o funciones pueden ignorar la Línea de Visión. Aunque ignores la visión, el objetivo debe seguir estando dentro del rango de distancia permitido por la Función.
 
 ### Construcción del tablero 
 

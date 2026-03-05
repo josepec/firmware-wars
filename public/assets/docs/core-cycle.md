@@ -297,37 +297,42 @@ Esta fase es donde **la estrategia y el caos se encuentran**. El código se tran
 
 ### 1. Resolución de Instrucciones
 
-El jugador debe ejecutar las **Operaciones** exactamente en el orden en que fueron programadas durante `COMPILE()`. Cada línea se interpreta y ejecuta de arriba abajo, como si el robot leyera su propio firmware línea por línea.
+El jugador debe ejecutar las **Operaciones** exactamente en el orden en que fueron programadas durante `COMPILE()`. Cada línea se interpreta y ejecuta de arriba abajo, como si el Bot leyera su propio firmware línea por línea.
 
 Durante esta fase, **no se pueden alterar ni reordenar las instrucciones ya compiladas**.
 
 ### 2. Verificación y Errores de Sintaxis
 
-El resto de programadores **pueden detectar errores de código** en el programa visible en el terminal. Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un `BUG` en `bugs`.
+Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un `BUG` en `bugs`.
 
 ### 3. Ejecución de Operaciones
 
-Para determinar el resultado de una condición:
+La mayoría de Operaciones han de determinar el resultado de una condición para poder ejecutar Funciones o resolver Bucles. Para determinar el resultado de una condición:
 
 ```
 (dado [comparador] numero)
 ```
 
-1. Lanza el **Dado de operación** → define el comparador.
-2. Elige uno de los números guardados (`numbers`) → define el numero.
-3. Lanza **1d10** → define el dado.
+1. Lanza el **Dado de operaciones** → define el comparador (<, ≤, ≥, >, !=, ==).
+2. Lanza **1d6** → define el dado.
+3. Elige uno de los números guardados (`numbers`) → define el numero.
 4. Evalúa la condición: `TRUE` o `FALSE`.
 5. Resuelve la Operación y ejecuta la Función si procede.
 
+#### Interceptar
+Cada Bot puede **interceptar una Operación enemiga por turno**. Cuando un Bot enemigo declara una Operación, **el Bot rival más cercano** (en Hexes) puede declarar una Intercepción. El Bot que intercepta puede **sustituir el dado en una condición** por cualquier valor de su propia reserva de `numbers`. Una vez realizada, el Bot no puede volver a interceptar hasta el inicio de su siguiente turno.
+
 ### 4. Coste Energético
 
-Si no se puede pagar la energía (`energy`) de una función, se produce `OVERLOAD`: se pierde un punto de `life` por cada punto que no se puede pagar y la función **no se ejecuta**.
+Si no se puede pagar la energía `energy` de una Función, se produce `OVERLOAD`: se pierde un punto de `life` por cada punto que no se puede pagar y la Función **no se ejecuta**.
 
 En Bucles, si en alguna iteración no se puede pagar el coste, esa iteración no se ejecuta, se produce `OVERLOAD` y el bucle se detiene.
 
 ---
 
-### Movimiento
+### Ejecución de Movimiento
+
+Al ejecutar un movimiento mediante la Función `move()` el Bot puede moverse el número de Hexes declarados siempre que tenga Energía suficiente.
 
 **Restricciones de desplazamiento.** Los Bots no pueden moverse a través de:
 
@@ -336,38 +341,39 @@ En Bucles, si en alguna iteración no se puede pagar el coste, esa iteración no
 
 El desplazamiento debe realizarse siempre hacia Hexes adyacentes.
 
-**Zonas de Amenaza.** Si al iniciar un movimiento el Bot se encuentra adyacente a uno o más Bots enemigos, el Bot recibe **2 puntos de Daño directo** al comenzar el movimiento (solo una vez, aunque haya varios enemigos).
-
 ---
 
-### Combate
+### Ejecución de Ataque
+
+El Bot ejecuta un ataque mediante la Función `attack()` y una de las Funciones de **Callback** seleccionadas a la hora de configurar el Bot en la sección `BOTS.CFG`.
+El ataque se ejecutará siempre que tenga Energía suficiente y cumpla cualquier otra posible condición detallada.
 
 #### 1. Selección del Objetivo
 
-El Programador elige un Bot dentro del **alcance en Hexes** especificado por su ataque.
+El Programador elige un Bot dentro del **rango del rango del ataque** especificado por su Función de ataque.
 
-Para validar el objetivo:
+#### Rango de los ataques
+Excepto si el ataque indica lo contrario, todos los ataques requieren **línea de visión del objetivo**. La distancia, o rango, será el número mínimo de casillas hexagonales contiguas entre el Bot atacante y el Bot defensor, **sin atravesar obstáculos u otros Bots**. Esta distancia debe estar dentro del rango del ataque.
 
-- Traza una **línea virtual** desde el centro del hexágono del Bot atacante hasta el centro del hexágono del objetivo.
-- Si esa línea atraviesa un hexágono con un **obstáculo** (cara negra), el objetivo se considera oculto y no puede ser seleccionado. El jugador debe elegir otro objetivo válido o el ataque se cancela.
+Algunos ataques calculan su rango de otras maneras:
 
-#### 2. Resolución del Combate
+- **Línea recta (LD):** Si el objetivo se encuentra en una **trayectoria alineada** con una de las seis caras del Hex del atacante, el ataque se propaga de forma directa. Si un obstáculo o un Bot ajeno (aliado o enemigo) ocupa un Hex en esa trayectoria, la línea de visión se interrumpe y el ataque no puede realizarse.
+- **Sin línea de visión (SLDV):** Algunas habilidades o funciones pueden ignorar la Línea de Visión. Aunque ignores la visión, el objetivo debe seguir estando dentro del rango de distancia permitido por la Función.
+- **Rango (R(n)):** El valor n determina el número de casillas donde el ataque es efectivo, se calcula desde el punto donde se efectua el ataque y afecta a toos los Bots que estén a esa distancia.
 
-Ambos Bots realizan una **Tirada de Combate**:
+> Ejemplo ataque de rango: `empField()` 5 R(1) -> El ataque se produce a 5 casillas del Bot atacante, respecto a ese punto, el ataque tiene un efecto de rango 1. Por lo tanto, todos los Bots a rango 1 desde ese punto, se ven afectados por el ataque.
 
-- Bot Atacante: `1d6 + ATTACK_VALUE`
-- Bot Defensor: `1d6 + ARMOR_VALUE`
+#### 2. Resolución del Daño
 
-| Resultado | Efecto |
-|---|---|
-| Atacante gana | El ataque se ejecuta con éxito. El objetivo pierde los puntos de daño del ataque. |
-| Defensor gana | El ataque falla. |
-| Empate | **EXCEPCIÓN CRÍTICA** — se resuelve con PPT protocol. |
+Los ataques a otros Bots producen daño y disminuyen su valor de vida `life`. Cuando la vida se reduce a 0, el Bot queda destruido.
 
-**EXCEPCIÓN CRÍTICA — PPT protocol:**
+**El daño se calcula como:**
 
-- **Atacante gana** → el ataque tiene éxito y causa el **doble de daño**.
-- **Defensor gana** → la acción es **deflectada**. La función de ataque se resuelve tratando al robot atacante como si fuera el objetivo.
+```
+Daño especificado en la Función de ataque - Escudo del Bot defensor
+```
+
+Ante un ataque, siempre se ha de descontar el valor acumulado del escudo `shield`. Cada daño que se haya parado, descuenta un punto de Escudo.
 
 ---
 
@@ -377,12 +383,7 @@ La fase de depuración permite mantener a los robots operativos. El programador 
 
 ### Funciones de Mantenimiento
 
-| Función | Coste | Efecto |
-|---|---|---|
-| `debug()` | 3 | Elimina 1 `BUG` del Bot. |
-| `patch()` | 8 | Elimina **todos** los `bugs`. |
-| `optimize()` | 5 | +1 a las tiradas de Energía durante el próximo turno. |
-| `reboot()` | 0 | Pierde el próximo turno. Reinicia: `energy = 0`, `numbers = []`, `bugs = 0`. |
+/json tables/debug-functions.json
 
 ---
 
