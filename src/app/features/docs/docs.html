@@ -7,7 +7,7 @@
 
     <!-- ── Desktop header ────────────────────────────────────── -->
     <div class="hidden md:flex px-6 pt-6 pb-3 items-center justify-between">
-      <span class="text-[10px] tracking-[0.4em] text-green-500/55">// DOCS.CFG</span>
+      <span class="text-[10px] tracking-[0.4em] text-green-500/55">// REGLAMENTO</span>
       <a [href]="pdfUrl" target="_blank" rel="noopener" data-tooltip="Descargar PDF" aria-label="Descargar manual PDF"
         class="text-green-500/35 hover:text-green-400 transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
@@ -23,8 +23,7 @@
       <ul class="flex flex-wrap gap-x-1 gap-y-0.5">
         @for (s of sections(); track s.id; let last = $last) {
         <li>
-          <a [routerLink]="'/docs/' + s.id" routerLinkActive="!text-green-300"
-            class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
+          <a [routerLink]="'/docs/' + s.id" routerLinkActive="!text-green-300" class="block px-2 py-1.5 text-[9px] tracking-[0.12em] uppercase
                    text-green-400/45 hover:text-green-300/80 transition-colors">
             {{ s.subtitle }}
           </a>
@@ -35,7 +34,8 @@
         }
         <li class="flex items-center text-green-500/20 text-[9px] select-none px-0.5">/</li>
         <li>
-          <a [href]="pdfUrl" target="_blank" rel="noopener" data-tooltip="Descargar PDF" aria-label="Descargar manual PDF"
+          <a [href]="pdfUrl" target="_blank" rel="noopener" data-tooltip="Descargar PDF"
+            aria-label="Descargar manual PDF"
             class="flex items-center gap-1 px-2 py-1.5 text-green-500/35 hover:text-green-400 transition-colors">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round">
@@ -53,9 +53,7 @@
       <ul class="flex flex-col gap-0.5">
         @for (s of sections(); track s.id) {
         <li>
-          <a [routerLink]="'/docs/' + s.id"
-            routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3"
-            class="block text-green-400/60 hover:text-green-300 transition-colors
+          <a [routerLink]="'/docs/' + s.id" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
                    py-1 pl-0 text-xs tracking-widest uppercase">
             {{ s.subtitle }}
           </a>
