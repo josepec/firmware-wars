@@ -6,7 +6,7 @@
     { "id": "setup",      "num": "04", "title": "SETUP.PRT",    "subtitle": "Preparación" },
     { "id": "core-cycle", "num": "05", "title": "CORE.CYCLE",   "subtitle": "Ciclo de Turno" },
     { "id": "bots",       "num": "06", "title": "BOTS.CFG",     "subtitle": "Bots" },
-    { "id": "tables",     "num": "07", "title": "TECH.REF",     "subtitle": "Referencia Técnica" },
+    { "id": "tables",     "num": "07", "title": "TECH.REF",     "subtitle": "Tablas" },
     { "id": "quick-ref",  "num": "08", "title": "QUICK.REF",    "subtitle": "Referencia Rápida" }
   ],
 
