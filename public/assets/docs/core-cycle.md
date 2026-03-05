@@ -27,8 +27,8 @@ Esta fase se realiza **una única vez al comienzo de cada ronda**, antes de que 
    - En caso de empate, repetir.
 2. El ganador obtiene la **Prioridad de CPU** y uno de sus Bots comenzará su ciclo después de la fase de `BOOT()`. Una vez que el Bot complete todas las fases del turno, el turno pasa al siguiente Programador (siguiendo el sentido horario). El turno rota de forma individual (un Bot por jugador) hasta que todas las unidades hayan actuado. Este orden permanece fijo durante toda la ronda. Al finalizar todos los Bots, se inicia una nueva ronda y se vuelve a ejecutar `INIT()`.
 3. Al inicio de los siguientes turnos, se produce un upgrade() de todos los Bots:
- - Ronda 3 → Ejecución de `upgrade()` → Todos los Bots pasan a `version` 2.
- - Ronda 5 → Ejecución de `upgrade()` → Todos los Bots pasan a `version` 3.
+ - **Ronda 3** → Ejecución de `upgrade()` → Todos los Bots pasan a `version` 2.
+ - **Ronda 5** → Ejecución de `upgrade()` → Todos los Bots pasan a `version` 3.
 
 
 ---
@@ -389,9 +389,13 @@ La fase de depuración permite mantener a los robots operativos. El programador 
 
 ## END()
 
-Esta fase ocurre cuando se completa el ciclo operativo del Bot. Aquí se liberan recursos, se estabiliza la memoria y se prepara el flujo para el siguiente programador.
+Esta fase ocurre cuando se completa el ciclo operativo del Bot activo. Aquí se liberan recursos, se estabiliza la memoria y se prepara el flujo para el siguiente Bot.
 
-1. **Descartar Operaciones Ejecutadas.** Todas las Operaciones utilizadas se eliminan del terminal. El robot limpia su pila de instrucciones para evitar residuo lógico.
-2. **Conservar Números Guardados.** Los `numbers` almacenados en la RAM se mantienen activos para futuros turnos, salvo que algún efecto indique lo contrario.
-3. **Transferencia del Turno.** El control pasa al siguiente jugador del orden de iniciativa, que inicia su ciclo desde `BOOT()`. Si todos los Bots han completado su ejecución, la ronda concluye.
-4. **Fin de Ronda.** Se vuelve a la fase `INIT()`, reiniciando el ciclo completo del sistema.
+1. **Descartar Operaciones Ejecutadas.** Todas las Operaciones utilizadas se eliminan del terminal. El Bot limpia su pila de instrucciones para evitar residuos lógicos.
+2. **Conservar Números Guardados.** Los números `numbers` almacenados en la RAM se mantienen activos para futuros turnos, salvo que algún efecto indique lo contrario.
+3. **Conservar Números Guardados.** La energía `energy` restante se mantiene para el siguiente turno.
+4. **Transferencia del Turno.** El control pasa al siguiente Programador del orden de iniciativa, que activa el siguiente Bot sin activar, comenzando su ciclo desde `COMPILE()`. Si todos los Bots han completado su activación, la ronda concluye.
+5. **Fin de Ronda.** Si se han activado todos los Bots de todos los Programadores, termina la ronda. Se vuelve a la fase `INIT()`.
+6. **Fin de Partida:**
+- **Escenarios:** En los escenarios se seguirán las instrucciones definadas en el propio escenario para dar por finalizada la partida.
+- **Eliminación total:** Si solo un Programador tiene Bots sin destruir, finaliza la partida y es el vencedor.

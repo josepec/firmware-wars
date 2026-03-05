@@ -1,4 +1,4 @@
-# BOTS.CFG
+# BOTS.CFG: Bots
 
 ## Unidades de Combate
 
