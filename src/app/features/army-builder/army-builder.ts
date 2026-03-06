@@ -78,6 +78,7 @@ export class ArmyBuilder implements OnInit, OnDestroy {
   gameConfig!: GameConfig;
 
   variableDescriptions: Record<string, string> = {};
+  botNames: string[] = [];
 
   /* ── Dropdown state ─────────────────────────────────────── */
   activeDropdown = signal<string | null>(null);
@@ -89,7 +90,8 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       attacks: this.data.getAttackFunctions(),
       points: this.data.getPoints(),
       variables: this.data.getInitialBotVariables(),
-    }).subscribe(({ config, attacks, points, variables }) => {
+      names: this.data.getBotNames(),
+    }).subscribe(({ config, attacks, points, variables, names }) => {
       this.gameConfig = config;
       this.allFunctions = attacks;
       this.v1Functions = attacks.filter(f => f.version === 1);
@@ -98,6 +100,7 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       this.pointDefinitions = points;
       this.baseStats = this.buildBaseStats(variables);
       for (const v of variables) this.variableDescriptions[v.variable] = v.description;
+      this.botNames = names;
       this.bots.set([this.createEmptyBot(0)]);
       this.loaded.set(true);
     });
@@ -153,6 +156,15 @@ export class ArmyBuilder implements OnInit, OnDestroy {
 
   updateBotName(index: number, name: string) {
     this.bots.update(b => b.map((bot, i) => i === index ? { ...bot, name: name.toUpperCase() || `BOT_${i + 1}` } : bot));
+  }
+
+  randomizeName(index: number) {
+    if (!this.botNames.length) return;
+    const usedNames = new Set(this.bots().map(b => b.name));
+    const available = this.botNames.filter(n => !usedNames.has(n));
+    const pool = available.length ? available : this.botNames;
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    this.updateBotName(index, name);
   }
 
   /* ── Points allocation ──────────────────────────────────── */

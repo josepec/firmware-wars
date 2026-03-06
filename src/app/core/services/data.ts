@@ -52,6 +52,10 @@ export class DataService {
       map(rows => rows.map(parseBotVariable))
     );
   }
+
+  getBotNames(): Observable<string[]> {
+    return this.get<string[]>('assets/data/bot-names.json');
+  }
 }
 
 export interface RulesSection {

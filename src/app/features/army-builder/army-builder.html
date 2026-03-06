@@ -100,6 +100,20 @@
                         w-full max-w-xs uppercase"
                  maxlength="16"
                  placeholder="BOT_NAME" />
+          <button (click)="randomizeName(botIdx)"
+                  class="px-2.5 py-2 bg-black/50 border border-green-500/20 rounded-sm
+                         text-green-400/60 hover:text-green-300 hover:border-green-500/40
+                         transition-colors cursor-pointer shrink-0"
+                  [attr.data-tooltip]="'Nombre aleatorio'">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 3h5v5"/>
+              <path d="M4 20 21 3"/>
+              <path d="M21 16v5h-5"/>
+              <path d="M15 15l6 6"/>
+              <path d="M4 4l5 5"/>
+            </svg>
+          </button>
         </div>
       </div>
 
