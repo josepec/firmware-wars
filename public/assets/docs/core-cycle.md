@@ -283,7 +283,7 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 
 ### upgrade()
 
-- **Uso:** Sube un punto la versión `version` del Bot.
+- **Uso:** Sube un punto la versión `version` del Bot. En nivel 2: `MAX_NUMBERS` pasa a valer 7, se desbloquean las Funciones para versión 2 y el dado que determina las Operaciones pasa a ser Dado V2. En nivel 3: `MAX_NUMBERS` pasa a valer 8, se desbloquean las Funciones para versión 3 y el dado que determina las Operaciones pasa a ser Dado V3.
 - **Cuando:** En la fase de `INIT()`, rondas 3 y 5.
 - **Detalles:** La versión máxima es 3 (`MAX_VERSION`). Subir versión da acceso a más Operaciones, Funciones y Ataques.
 

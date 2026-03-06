@@ -1,5 +1,5 @@
 [
   { "Función": "`getNumbers()`", "Efectos y Reglas": "Lanza tantos dados (d6) como espacios vacíos queden en su reserva de `numbers` hasta alcanzar el límite de `MAX_NUMBERS`." },
   { "Función": "`getEnergy(n)`", "Efectos y Reglas": "Tira nd6, siendo n del 1 al 3, y almacena la Energía en `numbers`, hasta llenar `MAX_ENERGY`. Si la Energía resultante sobrepasaba `MAX_ENERGY` se genera un `BUG` por sobrecarga." },
-  { "Función": "`upgrade()`", "Efectos y Reglas": "Sube la `version` del Bot en 1 punto, hasta `MAX_VERSION` (3)." }
+  { "Función": "`upgrade()`", "Efectos y Reglas": "Sube la `version` del Bot en 1 punto, hasta `MAX_VERSION` (3).\nNivel 2: `MAX_NUMBERS` = 7, desbloquea Funciones versión 2, dado Operaciones -> Dado V2.\nNivel 3: `MAX_NUMBERS` = 8, desbloquea Funciones versión 3, dado Operaciones -> Dado V3." }
 ]

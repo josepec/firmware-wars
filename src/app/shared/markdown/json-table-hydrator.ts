@@ -40,9 +40,9 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/** Convierte `code` en <code> con clasificación BattleScript */
+/** Convierte `code` en <code> con clasificación BattleScript, \n en <br> */
 function inlineMd(s: string): string {
-  return esc(s).replace(/`([^`]+)`/g, (_, code: string) => {
+  return esc(s).replace(/\n/g, '<br>').replace(/`([^`]+)`/g, (_, code: string) => {
     const cls = classifyCode(code);
     return cls ? `<code class="${cls}">${code}</code>` : `<code>${code}</code>`;
   });
