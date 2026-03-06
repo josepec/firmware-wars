@@ -28,9 +28,9 @@ Todos los Bots tienen acceso a las siguientes Funciones Comunes que utilizarán 
 
 ## Funciones de Ataque
 
-A el momento de construir un Bot, se definen como va a ser, que ataques y armas tendrá etc. 
+Antes de lanzarse a la red, todo Programador debe forjar el núcleo lógico de su unidad. No basta con metal y circuitos; la verdadera potencia de un Bot reside en su arquitectura de software.
 
-El Programador tiene hasta **120 Nibbles** para gastar en las funciones de su Bot. 
+Dispones de un presupuesto limitado de hasta 120 Nibbles para cargar el arsenal de funciones en el núcleo.
 Debe elegir:
 - **Dos Funciones** de **Versión 1**.
 - **Dos Funciones** de **Versión 2**.
@@ -38,13 +38,8 @@ Debe elegir:
 
 /json tables/attack-functions.json
 
-> Los Nibbles, a veces conocidos como Nibs, son la moneda oficial.
-
 ## Funciones de Mantenimiento (DEBUG.INTERFACE)
 
 Todos los Bots tienen acceso a las siguientes Funciones de Mantenimiento que pueden utilizar en la fase de `DEBUG()`.
 
 /json tables/debug-functions.json
-
-
-Una vez.... Se puede hacer con el construtor de lista...

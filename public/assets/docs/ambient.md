@@ -53,3 +53,15 @@ En la arena, la gloria es efímera; en la red, un **hard reset** bien ejecutado 
 > **[DATA_STREAM_NOTE]:** La Corporación no se hace responsable de las crisis existenciales, pérdidas de memoria o desprendimientos de retina derivados de la visualización prolongada de flujos de datos en alta resolución. Disfrute del combate bajo su propia responsabilidad.
 
 ---
+
+## Nibbles
+
+**El Mito del Bloque Cero: El Origen de los Nibs ◈**
+
+Nadie recuerda el tacto del papel moneda ni el brillo del metal en los bolsillos. Desde el **Gran Reinicio**, todo lo que no es procesable, no existe. Los Nibbles ◈ (o simplemente "Nibs") no son solo una criptomoneda; son fragmentos de tiempo de CPU cuantificado, el residuo destilado de los grandes servidores que colapsaron durante la Gran Fragmentación.
+
+Se dice que el primer Nib fue minado de un bloque de memoria huérfano que contenía el último latido de un banco central. Hoy, los Nibs son el oxígeno de las **GRID-ZONES**: una divisa intangible que fluye por cables de fibra óptica y redes inalámbricas. Para un Programador, poseer Nibs es poseer el derecho a existir en el sistema.
+
+>"En la superficie, las corporaciones lo llaman 'Crédito de Ejecución'. En la calle, lo llamamos Nibs. Pero no te equivoques: cuando instalas una función de combate en tu Bot, no estás pagando con dinero... estás quemando ciclos de vida digital." — K0-D3, Broker de Datos del Sector 7.
+
+---
