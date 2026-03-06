@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, HostListener, effect } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import {
@@ -27,21 +27,46 @@ interface BotConfig {
   collapsed: boolean;
 }
 
+interface CompileState {
+  phase: 'compiling' | 'done';
+  lines: string[];
+}
+
 @Component({
   selector: 'app-army-builder',
   imports: [NgClass],
   templateUrl: './army-builder.html',
   styleUrl: './army-builder.scss',
 })
-export class ArmyBuilder implements OnInit {
+export class ArmyBuilder implements OnInit, OnDestroy {
   private readonly data = inject(DataService);
-
 
   readonly Math = Math;
   readonly loaded = signal(false);
   readonly programmerName = signal('ANON_DEV');
   readonly editingName = signal(false);
   readonly bots = signal<BotConfig[]>([]);
+
+  /* ── Compile animation state ─────────────────────────────── */
+  readonly compileStates = signal<Record<number, CompileState>>({});
+  private compileTimers = new Map<number, ReturnType<typeof setInterval>>();
+  private validityCache: boolean[] = [];
+
+  constructor() {
+    effect(() => {
+      const bots = this.bots();
+      bots.forEach((bot, idx) => {
+        const valid = this.isBotValid(bot);
+        const wasValid = this.validityCache[idx] ?? false;
+        if (valid && !wasValid) this.startCompile(idx, bot);
+        else if (!valid && wasValid) this.clearCompile(idx);
+        this.validityCache[idx] = valid;
+      });
+      if (this.validityCache.length > bots.length) {
+        this.validityCache.length = bots.length;
+      }
+    });
+  }
 
   /* ── Data loaded from JSON ──────────────────────────────── */
   allFunctions: AttackFunction[] = [];
@@ -112,6 +137,10 @@ export class ArmyBuilder implements OnInit {
 
   removeBot(index: number) {
     if (this.bots().length > 1) {
+      for (const timer of this.compileTimers.values()) clearInterval(timer);
+      this.compileTimers.clear();
+      this.compileStates.set({});
+      this.validityCache = [];
       this.bots.update(b => b.filter((_, i) => i !== index));
     }
   }
@@ -282,5 +311,71 @@ export class ArmyBuilder implements OnInit {
       this.activeDropdown.set(null);
       this.hoveredFunction.set(null);
     }
+  }
+
+  /* ── Compile animation ───────────────────────────────────── */
+
+  private startCompile(idx: number, bot: BotConfig) {
+    const allLines = this.generateCompileLines(bot);
+    let lineIdx = 0;
+
+    this.compileStates.update(s => ({ ...s, [idx]: { phase: 'compiling' as const, lines: [] } }));
+
+    const timer = setInterval(() => {
+      if (lineIdx < allLines.length) {
+        const line = allLines[lineIdx];
+        this.compileStates.update(s => ({
+          ...s,
+          [idx]: { ...s[idx], lines: [...s[idx].lines, line] },
+        }));
+        lineIdx++;
+      } else {
+        clearInterval(timer);
+        this.compileTimers.delete(idx);
+        setTimeout(() => {
+          this.compileStates.update(s => ({
+            ...s,
+            [idx]: { ...s[idx], phase: 'done' as const },
+          }));
+        }, 350);
+      }
+    }, 250);
+
+    this.compileTimers.set(idx, timer);
+  }
+
+  private clearCompile(idx: number) {
+    const timer = this.compileTimers.get(idx);
+    if (timer) {
+      clearInterval(timer);
+      this.compileTimers.delete(idx);
+    }
+    this.compileStates.update(s => {
+      const copy = { ...s };
+      delete copy[idx];
+      return copy;
+    });
+  }
+
+  private generateCompileLines(bot: BotConfig): string[] {
+    const fns = [
+      ...bot.attackFunctions.v1.filter(Boolean).map(f => f!.name),
+      ...bot.attackFunctions.v2.filter(Boolean).map(f => f!.name),
+      ...(bot.attackFunctions.v3 ? [bot.attackFunctions.v3.name] : []),
+    ];
+    const mods = bot.points.filter(p => p.type).length;
+    return [
+      `> INIT COMPILER v28.1...`,
+      `> LOADING ${bot.name}.CFG...`,
+      `> CONSTANTS MAPPED [${mods} MODIFIED]`,
+      `> BINDING [${fns.join(', ')}]`,
+      `> NIBBLES: ${this.getNibblesCost(bot)}◈ / ${this.gameConfig.maxNibbles}◈ ALLOCATED`,
+      `> DIAGNOSTICS... PASSED`,
+      `> BUILD SUCCESSFUL`,
+    ];
+  }
+
+  ngOnDestroy() {
+    for (const timer of this.compileTimers.values()) clearInterval(timer);
   }
 }
