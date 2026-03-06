@@ -1,0 +1,306 @@
+/* ── Dropdown scrollbar ─────────────────────────────────── */
+.fn-dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 136, 0.15) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 136, 0.2);
+    border-radius: 2px;
+  }
+}
+
+/* ── Inline code tokens (effects text) ────────────────── */
+code {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85em;
+  padding: 0.05em 0.35em;
+  border-radius: 2px;
+  border: 1px solid transparent;
+
+  &.bs-fn     { color: var(--bs-fn);     background: color-mix(in srgb, var(--bs-fn)     7%, transparent); border-color: color-mix(in srgb, var(--bs-fn)     22%, transparent); }
+  &.bs-var    { color: var(--bs-var);    background: color-mix(in srgb, var(--bs-var)    7%, transparent); border-color: color-mix(in srgb, var(--bs-var)    22%, transparent); }
+  &.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  7%, transparent); border-color: color-mix(in srgb, var(--bs-const)  22%, transparent); }
+  &.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 7%, transparent); border-color: color-mix(in srgb, var(--bs-status) 22%, transparent); }
+  &.bs-bug    { color: var(--bs-status); background: transparent; border: none; padding: 0; }
+  &.bs-kw     { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    7%, transparent); border-color: color-mix(in srgb, var(--bs-kw)    22%, transparent); }
+  &.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   7%, transparent); border-color: color-mix(in srgb, var(--bs-type)   22%, transparent); }
+}
+
+/* ── Disabled buttons ──────────────────────────────────── */
+button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed !important;
+}
+
+/* ── Bot Sheet (hidden on screen, visible on print) ──── */
+.bot-sheet {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PRINT STYLES — Bot Ficha (A4 page)
+   ══════════════════════════════════════════════════════════ */
+@media print {
+  /* Hide screen UI */
+  .army-builder-screen {
+    display: none !important;
+  }
+
+  .bot-sheet {
+    display: block;
+    page-break-after: always;
+    page-break-inside: avoid;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .bot-sheet:last-of-type {
+    page-break-after: auto;
+  }
+
+  .bot-sheet-inner {
+    padding: 1.2cm 1.5cm;
+    max-width: 100%;
+  }
+
+  /* ── Header ──────────────────────────────────────────── */
+  .sheet-header {
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 0.4cm;
+    margin-bottom: 0.5cm;
+  }
+
+  .sheet-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .sheet-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 22pt;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: #1a1a1a;
+    line-height: 1;
+  }
+
+  .sheet-subtitle {
+    font-size: 8pt;
+    letter-spacing: 0.3em;
+    color: #666;
+    margin-top: 0.15cm;
+  }
+
+  .sheet-logo {
+    text-align: right;
+  }
+
+  .sheet-logo-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 18pt;
+    font-weight: 900;
+    color: #1a1a1a;
+    line-height: 1;
+  }
+
+  .sheet-logo-sub {
+    font-size: 6pt;
+    letter-spacing: 0.4em;
+    color: #999;
+  }
+
+  /* ── Sections ────────────────────────────────────────── */
+  .sheet-section {
+    margin-bottom: 0.4cm;
+  }
+
+  .sheet-section-title {
+    font-size: 7pt;
+    font-weight: bold;
+    letter-spacing: 0.35em;
+    color: #666;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.1cm;
+    margin-bottom: 0.25cm;
+    text-transform: uppercase;
+  }
+
+  /* ── Stats Grid ──────────────────────────────────────── */
+  .sheet-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3cm;
+  }
+
+  .sheet-stat {
+    border: 1px solid #ccc;
+    padding: 0.2cm 0.3cm;
+    text-align: center;
+    position: relative;
+  }
+
+  .sheet-stat-label {
+    font-size: 6pt;
+    letter-spacing: 0.2em;
+    color: #888;
+  }
+
+  .sheet-stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 16pt;
+    font-weight: 900;
+    color: #1a1a1a;
+    line-height: 1.3;
+  }
+
+  .sheet-stat-up {
+    color: #15803d;
+  }
+
+  .sheet-stat-down {
+    color: #b91c1c;
+  }
+
+  .sheet-stat-mod {
+    position: absolute;
+    top: 0.1cm;
+    right: 0.15cm;
+    font-size: 7pt;
+    font-weight: bold;
+  }
+
+  .sheet-stat-mod-up {
+    color: #15803d;
+  }
+
+  .sheet-stat-mod-down {
+    color: #b91c1c;
+  }
+
+  /* ── Variables ────────────────────────────────────────── */
+  .sheet-vars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.15cm 0.3cm;
+  }
+
+  .sheet-var {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8pt;
+    border-bottom: 1px dotted #ddd;
+    padding: 0.05cm 0;
+
+    span:first-child {
+      color: #666;
+    }
+
+    span:last-child {
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+  }
+
+  /* ── Function Lists ──────────────────────────────────── */
+  .sheet-fn-version-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #888;
+    margin-top: 0.15cm;
+    margin-bottom: 0.05cm;
+  }
+
+  .sheet-fn-list {
+    margin-bottom: 0.1cm;
+  }
+
+  .sheet-fn-item {
+    display: flex;
+    gap: 0.3cm;
+    font-size: 7.5pt;
+    padding: 0.06cm 0;
+    border-bottom: 1px dotted #eee;
+    align-items: baseline;
+  }
+
+  .sheet-fn-name {
+    font-weight: bold;
+    color: #1a1a1a;
+    white-space: nowrap;
+    min-width: 3cm;
+  }
+
+  .sheet-fn-detail {
+    color: #555;
+    font-size: 7pt;
+  }
+
+  .sheet-fn-v1 .sheet-fn-name { color: #c2410c; }
+  .sheet-fn-v2 .sheet-fn-name { color: #6d28d9; }
+  .sheet-fn-v3 .sheet-fn-name { color: #0e7490; }
+
+  /* ── Numbers Track ───────────────────────────────────── */
+  .sheet-numbers-track {
+    display: flex;
+    gap: 0.2cm;
+  }
+
+  .sheet-number-slot {
+    width: 1.1cm;
+    height: 1.1cm;
+    border: 1.5px solid #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .sheet-number-label {
+    font-size: 7pt;
+    color: #aaa;
+    position: absolute;
+    top: 0.05cm;
+    left: 0.1cm;
+  }
+
+  .sheet-number-v2 {
+    border-color: #6d28d9;
+    border-style: dashed;
+  }
+
+  .sheet-number-v3 {
+    border-color: #0e7490;
+    border-style: dashed;
+  }
+
+  .sheet-number-version {
+    font-size: 5pt;
+    letter-spacing: 0.15em;
+    color: #aaa;
+    position: absolute;
+    bottom: 0.05cm;
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  .sheet-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 6pt;
+    letter-spacing: 0.3em;
+    color: #bbb;
+    border-top: 1px solid #ddd;
+    padding-top: 0.2cm;
+    margin-top: 0.4cm;
+  }
+}

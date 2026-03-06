@@ -1,0 +1,11 @@
+{
+  "maxNibbles": 120,
+  "maxBots": 2,
+  "slotsPerVersion": {
+    "v1": 2,
+    "v2": 2,
+    "v3": 1
+  },
+  "improvementPoints": 2,
+  "disadvantagePoints": 1
+}
