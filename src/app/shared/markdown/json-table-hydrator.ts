@@ -20,12 +20,16 @@ export async function hydrateJsonTables(container: HTMLElement): Promise<void> {
       const rows: Record<string, string>[] = await resp.json();
       if (!rows.length) return;
 
-      const columns = Object.keys(rows[0]);
+      const rawColumns = Object.keys(rows[0]);
+      const centered = new Set(rawColumns.filter(c => c.endsWith('~')));
+      const columns = rawColumns.map(c => c.endsWith('~') ? c.slice(0, -1) : c);
 
-      const thead = columns.map(c => `<th>${esc(c)}</th>`).join('');
+      const thead = columns.map((c, i) =>
+        `<th${centered.has(rawColumns[i]) ? ' class="text-center"' : ''}>${esc(c)}</th>`
+      ).join('');
       const tbody = rows.map(row =>
-        '<tr>' + columns.map(col =>
-          `<td>${inlineMd(row[col] ?? '')}</td>`
+        '<tr>' + rawColumns.map((raw, i) =>
+          `<td${centered.has(raw) ? ' class="text-center"' : ''}>${inlineMd(row[raw] ?? '')}</td>`
         ).join('') + '</tr>'
       ).join('');
 

@@ -15,7 +15,7 @@
 ## BOOT() — Ambos jugadores
 
 1. **Estado:** Si `life` ≤ 0 → Destruido. Limpiar efectos temporales.
-2. **Energía:** Lanza `ENERGY_DICE` + `version`. Añade a `energy` sin superar `MAX_ENERGY`.
+2. **Energía:** Lanza ...... Añade a `energy` sin superar `MAX_ENERGY`.
 3. **Números:** Si `numbers` está vacío, ejecuta `getNumbers()`.
 4. **Operaciones:** Tira 1 dado por ranura disponible (`MAX_OPERATIONS - bugs`).
 

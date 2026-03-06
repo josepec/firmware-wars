@@ -46,6 +46,8 @@
 
 /json tables/attack-functions.json
 
+> TODO: Rangos etc.
+
 ---
 
 ## 8.9 Funciones Pasivas (Background Daemon Ext.)

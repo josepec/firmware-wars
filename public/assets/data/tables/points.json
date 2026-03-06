@@ -1,0 +1,6 @@
+[
+  { "Constante": "`MAX_LIFE`", "Punto de Mejora~": "+2", "Punto de Desventaja~": "-2" },
+  { "Constante": "`MAX_ENERGY`", "Punto de Mejora~": "+2", "Punto de Desventaja~": "-2" },
+  { "Constante": "`MAX_SHIELD`", "Punto de Mejora~": "+1", "Punto de Desventaja~": "-1" },
+  { "Constante": "`MAX_MOVEMENT`", "Punto de Mejora~": "+1", "Punto de Desventaja~": "-1" }
+]
