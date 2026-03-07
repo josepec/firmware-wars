@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, inject, OnDestroy, signal } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
+import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 
@@ -95,7 +96,7 @@ export class DocsPrint implements OnDestroy {
   }
 
   private async hydrateAndFinalize(): Promise<void> {
-    await hydrateJsonTables(document.body);
+    await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body)]);
     /* Re-apply column heights after tables have been injected */
     this.applyColumnHeights();
     document.body.setAttribute('data-pdf-ready', 'true');

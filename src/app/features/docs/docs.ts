@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, signal } from
 import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
+import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 
@@ -39,5 +40,6 @@ export class Docs implements OnInit {
 
   onMarkdownReady(): void {
     hydrateJsonTables(this.el.nativeElement);
+    hydrateConfigVars(this.el.nativeElement);
   }
 }

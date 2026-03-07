@@ -1,61 +1,61 @@
 # TECHNICAL.REF
 
-## 8.1 Ciclo de Turno
+## Ciclo de Turno
 
 /json tables/turn-cycle.json
 
 ---
 
-## 8.2 Operaciones Disponibles por Versión
+## Operaciones Disponibles por Versión
 
 /json tables/operations.json
 
 ---
 
-## 8.3 Consecuencias por Fallo de Código
+## Consecuencias por Fallo de Código
 
 /json tables/code-errors.json
 
 ---
 
-## 8.4 Variables de Estado del Bot
+## Variables de Estado del Bot
 
 /json tables/bot-variables.json
 
 ---
 
-## 8.5 Funciones del Sistema (SYSTEM.INTERFACE)
+## Funciones del Sistema (SYSTEM.INTERFACE)
 
 /json tables/system-functions.json
 
 ---
 
-## 8.6 Funciones Comunes (COMMON.INTERFACE)
+## Funciones Comunes (COMMON.INTERFACE)
 
 /json tables/common-functions.json
 
 ---
 
-## 8.7 Funciones Mantenimiento (DEBUG.INTERFACE)
+## Funciones Mantenimiento (DEBUG.INTERFACE)
 
 /json tables/debug-functions.json
 
 ---
 
-## 8.8 Funciones Ataque/Especiales
+## Funciones Ataque/Especiales
 
 /json tables/attack-functions.json
 
-> TODO: Rangos etc.
+> **Línea recta (LR):** Si el objetivo se encuentra en una **trayectoria alineada** con una de las seis caras del Hex del atacante, el ataque se propaga de forma directa. Si un obstáculo o un Bot ajeno (aliado o enemigo) ocupa un Hex en esa trayectoria, la línea de visión se interrumpe y el ataque no puede realizarse\n**Sin línea de visión (SLDV):** Algunas habilidades o funciones pueden ignorar la Línea de Visión. Aunque ignores la visión, el objetivo debe seguir estando dentro del rango de distancia permitido por la Función.\n**Rango (R(n)):** El valor n determina el número de casillas donde el ataque es efectivo, se calcula desde el punto donde se efectua el ataque y afecta a toos los Bots que estén a esa distancia.
 
 ---
 
-## 8.9 Funciones Pasivas (Background Daemon Ext.)
+## Funciones Pasivas (Background Daemon Ext.)
 
 /json tables/passive-functions.json
 
 ---
 
-## 8.10 Estados Alterados
+## Estados Alterados
 
 /json tables/status-effects.json

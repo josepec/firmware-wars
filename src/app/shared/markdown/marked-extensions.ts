@@ -143,10 +143,32 @@ const imgDirectiveExt = {
   },
 };
 
+/* ── Config variable inline: {{key}} ─────────────────────────────── */
+
+const configVarExt = {
+  name: 'configVar',
+  level: 'inline' as const,
+
+  start(src: string): number | undefined {
+    const i = src.indexOf('{{');
+    return i >= 0 ? i : undefined;
+  },
+
+  tokenizer(src: string): { type: string; raw: string; key: string } | undefined {
+    const m = /^\{\{([a-zA-Z0-9_.]+)\}\}/.exec(src);
+    if (m) return { type: 'configVar', raw: m[0], key: m[1] };
+    return undefined;
+  },
+
+  renderer(token: { type: string; raw: string; key: string }): string {
+    return `<span class="md-cfg" data-key="${safeHtml(token.key)}"></span>`;
+  },
+};
+
 /* ── Full extension object ───────────────────────────────────────── */
 
 export const markdownExtensions: MarkedExtension = {
-  extensions: [jsonTableExt, imgDirectiveExt, columnDirectiveExt],
+  extensions: [jsonTableExt, imgDirectiveExt, columnDirectiveExt, configVarExt],
 
   renderer: {
     /** BattleScript code blocks (`​`​`bs` or `​`​`battlescript) */

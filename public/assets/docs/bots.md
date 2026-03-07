@@ -14,7 +14,7 @@ Las Atributos, o Variables, estarán inicializados a los valores reflejados en l
 
 /json tables/initial-bot-variables.json
 
-Cada Bot, tiene **2 Puntos de Mejora** y **1 Punto de Desventaja** que lo especaliza. Cada uno de esos 3 puntos se ha de gastar en una Constante diferente. Los puntos solo pueden aplicarse a las Constantes listadas en la siguiente tabla:
+Cada Bot, tiene **{{improvementPoints}} Puntos de Mejora** y **{{disadvantagePoints}} Punto de Desventaja** que lo especaliza. Cada uno de esos 3 puntos se ha de gastar en una Constante diferente. Los puntos solo pueden aplicarse a las Constantes listadas en la siguiente tabla:
 
 /json tables/points.json
 
@@ -30,11 +30,11 @@ Todos los Bots tienen acceso a las siguientes Funciones Comunes que utilizarán 
 
 Antes de lanzarse a la red, todo Programador debe forjar el núcleo lógico de su unidad. No basta con metal y circuitos; la verdadera potencia de un Bot reside en su arquitectura de software.
 
-Dispones de un presupuesto limitado de hasta 120 Nibbles para cargar el arsenal de funciones en el núcleo.
+Dispones de un presupuesto limitado de hasta {{maxNibbles}} Nibbles para cargar el arsenal de funciones en el núcleo.
 Debe elegir:
-- **Dos Funciones** de **Versión 1**.
-- **Dos Funciones** de **Versión 2**.
-- **Una Función** de **Versión 3**.
+- **{{slotsPerVersion.v1}} Funciones** de **Versión 1**.
+- **{{slotsPerVersion.v2}} Funciones** de **Versión 2**.
+- **{{slotsPerVersion.v3}} Función** de **Versión 3**.
 
 /json tables/attack-functions.json
 

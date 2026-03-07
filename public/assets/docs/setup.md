@@ -1,6 +1,6 @@
 # SETUP.PRT: Preparación
 
-## 4.1 Tareas Previas
+## Tareas Previas
 
 Cada jugador se pone en la piel de un programador **Senior**. Utiliza tu **Alias** y crea un pequeño trasfondo para tu personaje:
 
@@ -14,7 +14,7 @@ Determinad el número de **Bots** de cada programador. Cada programador seleccio
 
 ---
 
-## 4.2 Entorno Digitalizado de Combate
+## Entorno Digitalizado de Combate
 
 ### Escala y Medidas
 

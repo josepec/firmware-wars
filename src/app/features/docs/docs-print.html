@@ -106,6 +106,6 @@
     <span class="section-id">{{ s.title }}</span>
     <span class="section-sub">{{ s.subtitle }}</span>
   </div>
-  <markdown [src]="'assets/docs/' + s.id + '.md'" (load)="onSectionReady()" (error)="onSectionReady()" />
+  <markdown [src]="'assets/docs/' + s.id + '.md'" [disableSanitizer]="true" (load)="onSectionReady()" (error)="onSectionReady()" />
 </div>
 }

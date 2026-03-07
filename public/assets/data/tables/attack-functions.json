@@ -1,7 +1,7 @@
 [
   { "Función": "`powerSmash()`", "V.~": "1", "Rango~": "1", "Daño~": "2", "Energía~": "2", "Coste~": "10◈", "Efectos": "Empuja al objetivo 1 Hex." },
   { "Función": "`rocketPunch()`", "V.~": "1", "Rango~": "1", "Daño~": "1d4", "Energía~": "2", "Coste~": "10◈", "Efectos": "" },
-  { "Función": "`laserBeam()`", "V.~": "1", "Rango~": "8", "Daño~": "2", "Energía~": "3", "Coste~": "20◈", "Efectos": "Ataque en línea recta." },
+  { "Función": "`laserBeam()`", "V.~": "1", "Rango~": "8 (LR)", "Daño~": "2", "Energía~": "3", "Coste~": "20◈", "Efectos": "Ataque en línea recta." },
   { "Función": "`dashStrike()`", "V.~": "1", "Rango~": "2", "Daño~": "1d4", "Energía~": "2", "Coste~": "15◈", "Efectos": "Puede mover 1 Hex después de atacar." },
   { "Función": "`pinpointBurst()`", "V.~": "1", "Rango~": "4", "Daño~": "1d4", "Energía~": "2", "Coste~": "15◈", "Efectos": "Ataque en línea recta." },
   { "Función": "`pulseShot()`", "V.~": "1", "Rango~": "2", "Daño~": "2", "Energía~": "1", "Coste~": "10◈", "Efectos": "Si objetivo está a 1 Hex → +1 daño." },
