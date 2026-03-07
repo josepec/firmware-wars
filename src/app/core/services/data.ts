@@ -56,6 +56,12 @@ export class DataService {
   getBotNames(): Observable<string[]> {
     return this.get<string[]>('assets/data/bot-names.json');
   }
+
+  getStatusEffects(): Observable<StatusEffect[]> {
+    return this.get<StatusEffectRaw[]>('assets/data/tables/status-effects.json').pipe(
+      map(rows => rows.map(parseStatusEffect))
+    );
+  }
 }
 
 export interface RulesSection {
@@ -104,12 +110,18 @@ export interface FactionsData {
 }
 
 /* ── Game Config ──────────────────────────────────────────── */
+export interface RangeTypeInfo {
+  name: string;
+  description: string;
+}
+
 export interface GameConfig {
   maxNibbles: number;
   maxBots: number;
   slotsPerVersion: { v1: number; v2: number; v3: number };
   improvementPoints: number;
   disadvantagePoints: number;
+  rangeTypes: Record<string, RangeTypeInfo>;
 }
 
 /* ── Attack Functions ─────────────────────────────────────── */
@@ -188,5 +200,23 @@ function parseBotVariable(raw: BotVariableRaw): BotVariableDefinition {
     variable: stripBackticks(raw['Variable']),
     initialValue: stripBackticks(raw['Valor Inicial~']),
     description: raw['Propósito y Uso'],
+  };
+}
+
+/* ── Status Effects ──────────────────────────────────────── */
+export interface StatusEffect {
+  name: string;
+  description: string;
+}
+
+interface StatusEffectRaw {
+  'Estado': string;
+  'Efecto en el Bot': string;
+}
+
+function parseStatusEffect(raw: StatusEffectRaw): StatusEffect {
+  return {
+    name: stripBackticks(raw['Estado']),
+    description: raw['Efecto en el Bot'],
   };
 }

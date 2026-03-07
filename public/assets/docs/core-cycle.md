@@ -357,9 +357,9 @@ Excepto si el ataque indica lo contrario, todos los ataques requieren **línea d
 
 Algunos ataques calculan su rango de otras maneras:
 
-- **Línea recta (LR):** Si el objetivo se encuentra en una **trayectoria alineada** con una de las seis caras del Hex del atacante, el ataque se propaga de forma directa. Si un obstáculo o un Bot ajeno (aliado o enemigo) ocupa un Hex en esa trayectoria, la línea de visión se interrumpe y el ataque no puede realizarse.
-- **Sin línea de visión (SLDV):** Algunas habilidades o funciones pueden ignorar la Línea de Visión. Aunque ignores la visión, el objetivo debe seguir estando dentro del rango de distancia permitido por la Función.
-- **Rango (R(n)):** El valor n determina el número de casillas donde el ataque es efectivo, se calcula desde el punto donde se efectua el ataque y afecta a toos los Bots que estén a esa distancia.
+- **{{rangeTypes.LR.name}} (LR):** {{rangeTypes.LR.description}}
+- **{{rangeTypes.SLDV.name}} (SLDV):** {{rangeTypes.SLDV.description}}
+- **{{rangeTypes.Rn.name}} (R(n)):** {{rangeTypes.Rn.description}}
 
 > Ejemplo ataque de rango: `empField()` 5 R(1) -> El ataque se produce a 5 casillas del Bot atacante, respecto a ese punto, el ataque tiene un efecto de rango 1. Por lo tanto, todos los Bots a rango 1 desde ese punto, se ven afectados por el ataque.
 

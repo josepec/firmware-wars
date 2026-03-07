@@ -7,6 +7,7 @@ import {
   PointDefinition,
   BotVariableDefinition,
   GameConfig,
+  StatusEffect,
 } from '../../core/services/data';
 import { classifyCode } from '../../shared/markdown/marked-extensions';
 
@@ -79,6 +80,7 @@ export class ArmyBuilder implements OnInit, OnDestroy {
 
   variableDescriptions: Record<string, string> = {};
   botNames: string[] = [];
+  statusEffects: StatusEffect[] = [];
 
   /* ── Dropdown state ─────────────────────────────────────── */
   activeDropdown = signal<string | null>(null);
@@ -91,7 +93,8 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       points: this.data.getPoints(),
       variables: this.data.getInitialBotVariables(),
       names: this.data.getBotNames(),
-    }).subscribe(({ config, attacks, points, variables, names }) => {
+      statuses: this.data.getStatusEffects(),
+    }).subscribe(({ config, attacks, points, variables, names, statuses }) => {
       this.gameConfig = config;
       this.allFunctions = attacks;
       this.v1Functions = attacks.filter(f => f.version === 1);
@@ -101,6 +104,7 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       this.baseStats = this.buildBaseStats(variables);
       for (const v of variables) this.variableDescriptions[v.variable] = v.description;
       this.botNames = names;
+      this.statusEffects = statuses;
       this.bots.set([this.createEmptyBot(0)]);
       this.loaded.set(true);
     });
@@ -288,6 +292,43 @@ export class ArmyBuilder implements OnInit, OnDestroy {
 
   printBotSheet() {
     window.print();
+  }
+
+  /* ── Range info ─────────────────────────────────────────── */
+
+  private rangeCache = new Map<string, { abbr: string; name: string; description: string }[]>();
+
+  getRangeInfo(range: string): { abbr: string; name: string; description: string }[] {
+    const cached = this.rangeCache.get(range);
+    if (cached) return cached;
+    const result: { abbr: string; name: string; description: string }[] = [];
+    const types = this.gameConfig.rangeTypes;
+    if (!types) { this.rangeCache.set(range, result); return result; }
+    if (/\(LR\)/.test(range) && types['LR']) {
+      result.push({ abbr: 'LR', ...types['LR'] });
+    }
+    if (/\(SLDV\)/.test(range) && types['SLDV']) {
+      result.push({ abbr: 'SLDV', ...types['SLDV'] });
+    }
+    if (/\(R\(\d+\)\)/.test(range) && types['Rn']) {
+      result.push({ abbr: 'R(n)', ...types['Rn'] });
+    }
+    this.rangeCache.set(range, result);
+    return result;
+  }
+
+  /* ── Status info ───────────────────────────────────────── */
+
+  private statusCache = new Map<string, StatusEffect[]>();
+
+  getStatusInfo(effects: string): StatusEffect[] {
+    if (!effects) return [];
+    const cached = this.statusCache.get(effects);
+    if (cached) return cached;
+    const mentioned = [...effects.matchAll(/`([A-Z_]+)`/g)].map(m => m[1]);
+    const result = this.statusEffects.filter(s => mentioned.includes(s.name));
+    this.statusCache.set(effects, result);
+    return result;
   }
 
   /* ── Effects formatting ─────────────────────────────────── */

@@ -7,5 +7,19 @@
     "v3": 1
   },
   "improvementPoints": 2,
-  "disadvantagePoints": 1
+  "disadvantagePoints": 1,
+  "rangeTypes": {
+    "LR": {
+      "name": "Línea recta",
+      "description": "Si el objetivo se encuentra en una trayectoria alineada con una de las seis caras del Hex del atacante, el ataque se propaga de forma directa. Si un obstáculo o un Bot ajeno (aliado o enemigo) ocupa un Hex en esa trayectoria, la línea de visión se interrumpe y el ataque no puede realizarse."
+    },
+    "SLDV": {
+      "name": "Sin línea de visión",
+      "description": "Algunas habilidades o funciones pueden ignorar la Línea de Visión. Aunque ignores la visión, el objetivo debe seguir estando dentro del rango de distancia permitido por la Función."
+    },
+    "Rn": {
+      "name": "Rango",
+      "description": "El valor n determina el número de casillas donde el ataque es efectivo, se calcula desde el punto donde se efectúa el ataque y afecta a todos los Bots que estén a esa distancia."
+    }
+  }
 }

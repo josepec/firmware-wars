@@ -263,6 +263,18 @@
                 <div class="text-[10px] text-green-400/75 leading-relaxed" [innerHTML]="formatEffects(inspFn.effects)">
                 </div>
                 }
+                @for (ri of getRangeInfo(inspFn.range); track ri.abbr) {
+                <div class="mt-1.5 pt-1.5 border-t border-green-500/10">
+                  <div class="text-[7px] tracking-wider text-green-400/45 mb-0.5">{{ ri.abbr }} — {{ ri.name }}</div>
+                  <div class="text-[9px] text-green-400/55 leading-relaxed">{{ ri.description }}</div>
+                </div>
+                }
+                @for (si of getStatusInfo(inspFn.effects); track si.name) {
+                <div class="mt-1.5 pt-1.5 border-t border-red-500/10">
+                  <div class="text-[7px] tracking-wider text-red-400/60 mb-0.5">{{ si.name }}</div>
+                  <div class="text-[9px] text-green-400/55 leading-relaxed" [innerHTML]="formatEffects(si.description)"></div>
+                </div>
+                }
               </div>
               }
               }
@@ -350,6 +362,18 @@
                 <div class="text-[10px] text-green-400/75 leading-relaxed" [innerHTML]="formatEffects(inspFn.effects)">
                 </div>
                 }
+                @for (ri of getRangeInfo(inspFn.range); track ri.abbr) {
+                <div class="mt-1.5 pt-1.5 border-t border-green-500/10">
+                  <div class="text-[7px] tracking-wider text-green-400/45 mb-0.5">{{ ri.abbr }} — {{ ri.name }}</div>
+                  <div class="text-[9px] text-green-400/55 leading-relaxed">{{ ri.description }}</div>
+                </div>
+                }
+                @for (si of getStatusInfo(inspFn.effects); track si.name) {
+                <div class="mt-1.5 pt-1.5 border-t border-red-500/10">
+                  <div class="text-[7px] tracking-wider text-red-400/60 mb-0.5">{{ si.name }}</div>
+                  <div class="text-[9px] text-green-400/55 leading-relaxed" [innerHTML]="formatEffects(si.description)"></div>
+                </div>
+                }
               </div>
               }
               }
@@ -433,6 +457,18 @@
                 @if (inspFn.effects) {
                 <div class="text-[7px] tracking-wider text-green-400/45 mb-0.5">EFECTOS</div>
                 <div class="text-[10px] text-green-400/75 leading-relaxed" [innerHTML]="formatEffects(inspFn.effects)">
+                </div>
+                }
+                @for (ri of getRangeInfo(inspFn.range); track ri.abbr) {
+                <div class="mt-1.5 pt-1.5 border-t border-green-500/10">
+                  <div class="text-[7px] tracking-wider text-green-400/45 mb-0.5">{{ ri.abbr }} — {{ ri.name }}</div>
+                  <div class="text-[9px] text-green-400/55 leading-relaxed">{{ ri.description }}</div>
+                </div>
+                }
+                @for (si of getStatusInfo(inspFn.effects); track si.name) {
+                <div class="mt-1.5 pt-1.5 border-t border-red-500/10">
+                  <div class="text-[7px] tracking-wider text-red-400/60 mb-0.5">{{ si.name }}</div>
+                  <div class="text-[9px] text-green-400/55 leading-relaxed" [innerHTML]="formatEffects(si.description)"></div>
                 </div>
                 }
               </div>
