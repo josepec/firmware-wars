@@ -22,6 +22,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/army-builder/army-builder').then(m => m.ArmyBuilder)
   },
   {
+    path: 'list/:id',
+    loadComponent: () => import('./features/list-viewer/list-viewer').then(m => m.ListViewer)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

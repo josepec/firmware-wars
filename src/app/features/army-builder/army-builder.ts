@@ -294,6 +294,63 @@ export class ArmyBuilder implements OnInit, OnDestroy {
     window.print();
   }
 
+  /* ── Save & Share ──────────────────────────────────────── */
+
+  private readonly API_URL = 'https://firmware-wars-api.josepec.eu';
+  readonly saving = signal(false);
+  readonly savedId = signal<string | null>(null);
+  readonly showShareModal = signal(false);
+  readonly linkCopied = signal(false);
+
+  async saveList(): Promise<void> {
+    if (this.saving() || !this.isListValid()) return;
+    this.saving.set(true);
+    try {
+      const payload = {
+        programmer: this.programmerName(),
+        bots: this.bots().map(bot => ({
+          name: bot.name,
+          points: bot.points,
+          attackFunctions: {
+            v1: bot.attackFunctions.v1.map(f => f?.name ?? null),
+            v2: bot.attackFunctions.v2.map(f => f?.name ?? null),
+            v3: bot.attackFunctions.v3?.name ?? null,
+          },
+        })),
+      };
+      const resp = await fetch(`${this.API_URL}/api/lists`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const { id } = await resp.json();
+      this.savedId.set(id);
+      this.showShareModal.set(true);
+    } catch (e) {
+      console.error('[army-builder] Save failed:', e);
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  getListUrl(): string {
+    const id = this.savedId();
+    return id ? `${window.location.origin}/list/${id}` : '';
+  }
+
+  copyLink(): void {
+    navigator.clipboard.writeText(this.getListUrl());
+    this.linkCopied.set(true);
+    setTimeout(() => this.linkCopied.set(false), 2000);
+  }
+
+  shareWhatsApp(): void {
+    const text = `${this.programmerName()} — Lista Firmware Wars`;
+    const url = this.getListUrl();
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`, '_blank');
+  }
+
   /* ── Range info ─────────────────────────────────────────── */
 
   private rangeCache = new Map<string, { abbr: string; name: string; description: string }[]>();
