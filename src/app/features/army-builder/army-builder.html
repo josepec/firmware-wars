@@ -708,16 +708,45 @@
       </div>
     </div>
 
-    <!-- Variables Init -->
+    <!-- Variables -->
     <div class="sheet-section">
-      <div class="sheet-section-title">VARIABLES INICIALES</div>
-      <div class="sheet-vars">
-        <div class="sheet-var"><span>life</span><span>{{ getStatValue(bot, 'MAX_LIFE') }}</span></div>
-        <div class="sheet-var"><span>energy</span><span>0</span></div>
-        <div class="sheet-var"><span>shield</span><span>0</span></div>
-        <div class="sheet-var"><span>version</span><span>1</span></div>
-        <div class="sheet-var"><span>bugs</span><span>0</span></div>
-        <div class="sheet-var"><span>numbers</span><span>[ ]</span></div>
+      <div class="sheet-section-title">VARIABLES</div>
+      <div class="sheet-vars-row">
+        <div class="sheet-var">
+          <span class="sheet-var-label">VIDA</span>
+          <span class="sheet-var-write"></span>
+          <span class="sheet-var-max">/ {{ getStatValue(bot, 'MAX_LIFE') }}</span>
+        </div>
+        <div class="sheet-var">
+          <span class="sheet-var-label">ENERGÍA</span>
+          <span class="sheet-var-write"></span>
+          <span class="sheet-var-max">/ {{ getStatValue(bot, 'MAX_ENERGY') }}</span>
+        </div>
+        <div class="sheet-var">
+          <span class="sheet-var-label">ESCUDO</span>
+          <span class="sheet-var-write"></span>
+          <span class="sheet-var-max">/ {{ getStatValue(bot, 'MAX_SHIELD') }}</span>
+        </div>
+        <div class="sheet-var">
+          <span class="sheet-var-label">MOV</span>
+          <span class="sheet-var-write"></span>
+          <span class="sheet-var-max">/ {{ getStatValue(bot, 'MAX_MOVEMENT') }}</span>
+        </div>
+        <div class="sheet-var">
+          <span class="sheet-var-label">VERSIÓN</span>
+          <span class="sheet-var-write"></span>
+          <span class="sheet-var-max">/ 3</span>
+        </div>
+        <div class="sheet-var">
+          <span class="sheet-var-label">BUGS</span>
+          <span class="sheet-var-write"></span>
+        </div>
+      </div>
+      <div class="sheet-vars-row" style="margin-top: 0.3cm;">
+        <div class="sheet-var">
+          <span class="sheet-var-label">ESTADOS ALTERADOS</span>
+          <span class="sheet-var-write" style="width: 3cm;"></span>
+        </div>
       </div>
     </div>
 
@@ -727,15 +756,15 @@
       <div class="sheet-fn-list sheet-fn-common">
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">move(valor)</span>
-          <span class="sheet-fn-detail">E: valor | Mueve hasta valor Hexes.</span>
+          <span class="sheet-fn-detail">Energía: valor | Mueve hasta valor Hexes.</span>
         </div>
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">attack(fn)</span>
-          <span class="sheet-fn-detail">E: fn | Ejecuta función de ataque.</span>
+          <span class="sheet-fn-detail">Energía: fn | Ejecuta una función de ataque.</span>
         </div>
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">shield()</span>
-          <span class="sheet-fn-detail">E: 2 | +1 punto de escudo.</span>
+          <span class="sheet-fn-detail">Energía: 2 | Suma 1 punto de escudo.</span>
         </div>
       </div>
     </div>
@@ -750,10 +779,17 @@
         @if (fn) {
         <div class="sheet-fn-item sheet-fn-v1">
           <span class="sheet-fn-name">{{ fn.name }}</span>
-          <span class="sheet-fn-detail">R:{{ fn.range }} D:{{ fn.damage }} E:{{ fn.energy }} ({{ fn.cost }}◈)
+          <span class="sheet-fn-detail">
+            Rango: {{ fn.range }} | Daño: {{ fn.damage }} | Energía: {{ fn.energy }} | {{ fn.cost }}◈
             @if (fn.effects) { — <span [innerHTML]="formatEffects(fn.effects)"></span> }
           </span>
         </div>
+        @for (ri of getRangeInfo(fn.range); track ri.abbr) {
+        <div class="sheet-fn-note">{{ ri.abbr }} ({{ ri.name }}): {{ ri.description }}</div>
+        }
+        @for (si of getStatusInfo(fn.effects); track si.name) {
+        <div class="sheet-fn-note sheet-fn-note-status">{{ si.name }}: {{ stripBackticks(si.description) }}</div>
+        }
         }
         }
       </div>
@@ -764,10 +800,17 @@
         @if (fn) {
         <div class="sheet-fn-item sheet-fn-v2">
           <span class="sheet-fn-name">{{ fn.name }}</span>
-          <span class="sheet-fn-detail">R:{{ fn.range }} D:{{ fn.damage }} E:{{ fn.energy }} ({{ fn.cost }}◈)
+          <span class="sheet-fn-detail">
+            Rango: {{ fn.range }} | Daño: {{ fn.damage }} | Energía: {{ fn.energy }} | {{ fn.cost }}◈
             @if (fn.effects) { — <span [innerHTML]="formatEffects(fn.effects)"></span> }
           </span>
         </div>
+        @for (ri of getRangeInfo(fn.range); track ri.abbr) {
+        <div class="sheet-fn-note">{{ ri.abbr }} ({{ ri.name }}): {{ ri.description }}</div>
+        }
+        @for (si of getStatusInfo(fn.effects); track si.name) {
+        <div class="sheet-fn-note sheet-fn-note-status">{{ si.name }}: {{ stripBackticks(si.description) }}</div>
+        }
         }
         }
       </div>
@@ -777,10 +820,17 @@
         @if (bot.attackFunctions.v3; as fn) {
         <div class="sheet-fn-item sheet-fn-v3">
           <span class="sheet-fn-name">{{ fn.name }}</span>
-          <span class="sheet-fn-detail">R:{{ fn.range }} D:{{ fn.damage }} E:{{ fn.energy }} ({{ fn.cost }}◈)
+          <span class="sheet-fn-detail">
+            Rango: {{ fn.range }} | Daño: {{ fn.damage }} | Energía: {{ fn.energy }} | {{ fn.cost }}◈
             @if (fn.effects) { — <span [innerHTML]="formatEffects(fn.effects)"></span> }
           </span>
         </div>
+        @for (ri of getRangeInfo(fn.range); track ri.abbr) {
+        <div class="sheet-fn-note">{{ ri.abbr }} ({{ ri.name }}): {{ ri.description }}</div>
+        }
+        @for (si of getStatusInfo(fn.effects); track si.name) {
+        <div class="sheet-fn-note sheet-fn-note-status">{{ si.name }}: {{ stripBackticks(si.description) }}</div>
+        }
         }
       </div>
     </div>
@@ -791,19 +841,19 @@
       <div class="sheet-fn-list sheet-fn-common">
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">debug()</span>
-          <span class="sheet-fn-detail">E: 2 | Elimina 1 Bug.</span>
+          <span class="sheet-fn-detail">Energía: 2 | Elimina 1 Bug.</span>
         </div>
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">patch()</span>
-          <span class="sheet-fn-detail">E: 5 | Elimina todos los bugs.</span>
+          <span class="sheet-fn-detail">Energía: 5 | Elimina todos los Bugs.</span>
         </div>
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">optimize(n)</span>
-          <span class="sheet-fn-detail">E: n | Quita n numbers.</span>
+          <span class="sheet-fn-detail">Energía: n | Elimina n Numbers de la RAM.</span>
         </div>
         <div class="sheet-fn-item">
           <span class="sheet-fn-name">reboot()</span>
-          <span class="sheet-fn-detail">E: 0 | Pierde turno. Reset total.</span>
+          <span class="sheet-fn-detail">Energía: 0 | Pierde el turno. Resetea todas las variables a sus valores iniciales.</span>
         </div>
       </div>
     </div>

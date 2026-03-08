@@ -456,6 +456,10 @@ export class ArmyBuilder implements OnInit, OnDestroy {
     return html;
   }
 
+  stripBackticks(text: string): string {
+    return text.replace(/`/g, '');
+  }
+
   /* ── Dropdown ───────────────────────────────────────────── */
 
   toggleDropdown(id: string) {

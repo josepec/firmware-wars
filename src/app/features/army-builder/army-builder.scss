@@ -185,28 +185,36 @@ button:disabled {
     color: #b91c1c;
   }
 
-  /* ── Variables ────────────────────────────────────────── */
-  .sheet-vars {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.15cm 0.3cm;
+  /* ── Variables (inline row) ─────────────────────────── */
+  .sheet-vars-row {
+    display: flex;
+    gap: 0.4cm;
   }
 
   .sheet-var {
     display: flex;
-    justify-content: space-between;
-    font-size: 8pt;
-    border-bottom: 1px dotted #ddd;
-    padding: 0.05cm 0;
+    align-items: baseline;
+    gap: 0.1cm;
+  }
 
-    span:first-child {
-      color: #666;
-    }
+  .sheet-var-label {
+    font-size: 6pt;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    color: #888;
+    white-space: nowrap;
+  }
 
-    span:last-child {
-      font-weight: bold;
-      color: #1a1a1a;
-    }
+  .sheet-var-write {
+    display: inline-block;
+    width: 1cm;
+    border-bottom: 1px solid #aaa;
+  }
+
+  .sheet-var-max {
+    font-family: 'Orbitron', monospace;
+    font-size: 7pt;
+    color: #aaa;
   }
 
   /* ── Function Lists ──────────────────────────────────── */
@@ -248,6 +256,19 @@ button:disabled {
   .sheet-fn-v1 .sheet-fn-name { color: #c2410c; }
   .sheet-fn-v2 .sheet-fn-name { color: #6d28d9; }
   .sheet-fn-v3 .sheet-fn-name { color: #0e7490; }
+
+  .sheet-fn-note {
+    font-size: 6pt;
+    color: #777;
+    padding-left: 3.3cm;
+    line-height: 1.4;
+    font-style: italic;
+    margin-bottom: 0.1cm;
+  }
+
+  .sheet-fn-note-status {
+    color: #b91c1c;
+  }
 
   /* ── Numbers Track ───────────────────────────────────── */
   .sheet-numbers-track {
