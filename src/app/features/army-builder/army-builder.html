@@ -583,18 +583,19 @@
     <!-- ── Action Buttons ──────────────────────────────────── -->
     @if (isListValid()) {
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-      <button (click)="saveList()" [disabled]="saving()" class="font-orbitron px-10 py-3 bg-green-500 text-black font-bold tracking-widest text-xs
+      <button (click)="printBotSheet()" class="font-orbitron px-10 py-3 bg-green-500 text-black font-bold tracking-widest text-xs
                    hover:bg-green-300 transition-all shadow-lg shadow-green-500/30
-                   hover:shadow-green-400/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                   hover:shadow-green-400/50 cursor-pointer">
+        IMPRIMIR FICHAS
+      </button>
+      <button (click)="saveList()" [disabled]="saving()" class="font-orbitron px-10 py-3 border border-green-500/40 text-green-400 font-bold tracking-widest text-xs
+                   hover:bg-green-500/10 hover:border-green-400/60 transition-all cursor-pointer
+                   disabled:opacity-50 disabled:cursor-not-allowed">
         @if (saving()) {
         GUARDANDO...
         } @else {
-        GUARDAR LISTA
+        GUARDAR Y COMPARTIR
         }
-      </button>
-      <button (click)="printBotSheet()" class="font-orbitron px-10 py-3 border border-green-500/40 text-green-400 font-bold tracking-widest text-xs
-                   hover:bg-green-500/10 hover:border-green-400/60 transition-all cursor-pointer">
-        IMPRIMIR FICHAS
       </button>
     </div>
     <div class="text-[9px] tracking-widest text-green-400/45 mt-3 text-center">
@@ -650,6 +651,7 @@
             </svg>
             COMPARTIR POR WHATSAPP
           </button>
+
         </div>
 
         <div class="text-[8px] tracking-widest text-green-400/35 mt-4 text-center">

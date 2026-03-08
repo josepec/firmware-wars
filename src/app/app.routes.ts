@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
@@ -23,7 +24,10 @@ export const routes: Routes = [
   },
   {
     path: 'list/:id',
-    loadComponent: () => import('./features/list-viewer/list-viewer').then(m => m.ListViewer)
+    canActivate: [(route: import('@angular/router').ActivatedRouteSnapshot) => {
+      return inject(Router).createUrlTree(['/army-builder'], { queryParams: { from: route.paramMap.get('id') } });
+    }],
+    children: [],
   },
   {
     path: '**',

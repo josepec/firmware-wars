@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, signal, inject, HostListener, effect } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
   DataService,
@@ -41,6 +42,7 @@ interface CompileState {
 })
 export class ArmyBuilder implements OnInit, OnDestroy {
   private readonly data = inject(DataService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly Math = Math;
   readonly loaded = signal(false);
@@ -105,9 +107,57 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       for (const v of variables) this.variableDescriptions[v.variable] = v.description;
       this.botNames = names;
       this.statusEffects = statuses;
-      this.bots.set([this.createEmptyBot(0)]);
-      this.loaded.set(true);
+
+      const fromId = this.route.snapshot.queryParamMap.get('from');
+      if (fromId) {
+        this.loadSavedList(fromId);
+      } else {
+        this.bots.set([this.createEmptyBot(0)]);
+        this.loaded.set(true);
+      }
     });
+  }
+
+  private async loadSavedList(id: string): Promise<void> {
+    try {
+      const resp = await fetch(`${this.API_URL}/api/lists/${id}`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const saved = await resp.json();
+
+      this.programmerName.set(saved.programmer ?? 'ANON_DEV');
+      const bots: BotConfig[] = (saved.bots as Array<{
+        name: string;
+        points: { constant: string; type: 'mejora' | 'desventaja' | null }[];
+        attackFunctions: { v1: (string | null)[]; v2: (string | null)[]; v3: string | null };
+      }>).map((sb, i) => {
+        const findFn = (name: string | null) =>
+          name ? this.allFunctions.find(f => f.name === name) ?? null : null;
+        return {
+          name: sb.name,
+          points: this.pointDefinitions.map(p => {
+            const saved = sb.points.find(sp => sp.constant === p.constant);
+            return { constant: p.constant, type: saved?.type ?? null };
+          }),
+          attackFunctions: {
+            v1: sb.attackFunctions.v1.map(findFn),
+            v2: sb.attackFunctions.v2.map(findFn),
+            v3: findFn(sb.attackFunctions.v3),
+          },
+          collapsed: false,
+        };
+      });
+
+      this.bots.set(bots);
+
+      if (this.route.snapshot.queryParamMap.get('print') === '1') {
+        setTimeout(() => window.print(), 300);
+      }
+    } catch (e) {
+      console.error('[army-builder] Failed to load saved list:', e);
+      this.bots.set([this.createEmptyBot(0)]);
+    } finally {
+      this.loaded.set(true);
+    }
   }
 
   private buildBaseStats(variables: BotVariableDefinition[]): Record<string, number> {
