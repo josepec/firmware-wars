@@ -5,6 +5,7 @@ import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
+const VERSION_URL = 'https://firmware-wars-api.josepec.eu/version';
 
 @Component({
   selector: 'app-docs-print',
@@ -14,6 +15,7 @@ const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 })
 export class DocsPrint implements OnDestroy {
   sections = signal<{ id: string; num: string; title: string; subtitle: string }[]>([]);
+  readonly version = signal('');
 
   readonly pdfUrl = PDF_WORKER_URL;
 
@@ -52,6 +54,7 @@ export class DocsPrint implements OnDestroy {
     window.addEventListener('afterprint', this.afterPrintFn);
 
     this.loadConfig();
+    this.loadVersion();
   }
 
   private async loadConfig(): Promise<void> {
@@ -66,6 +69,15 @@ export class DocsPrint implements OnDestroy {
       /* Signal ready so Puppeteer doesn't hang if config is missing */
       document.body.setAttribute('data-pdf-ready', 'true');
     }
+  }
+
+  private async loadVersion(): Promise<void> {
+    try {
+      const resp = await fetch(VERSION_URL);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data?.version) this.version.set(data.version);
+    } catch { /* silent */ }
   }
 
   ngOnDestroy(): void {

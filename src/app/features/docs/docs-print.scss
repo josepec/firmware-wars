@@ -173,126 +173,138 @@
    ═══════════════════════════════════════════════════════════════ */
 .cover-page {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
+  align-items: center;
 
   @media print {
-    /* En impresión el @page margin proporciona el espacio exterior.
-       Añadimos clearance del header (0.85cm) + del footer (0.85cm) */
     padding-top: 0.95cm;
     padding-bottom: 0.95cm;
   }
 }
 
-.cover-frame {
-  flex: 1;
+/* ── Top bar ─────────────────────────────────────────────────── */
+.cover-top-bar {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  border: 3px solid #1a5c28;
-  margin: 0.8cm;
-
-  @media print { margin: 0.4cm; }
-}
-
-.cover-top {
-  padding: 0.75cm 1cm 0.5cm;
-  border-bottom: 1px solid #c8e6cc;
-}
-
-.cover-badge {
+  justify-content: space-between;
+  padding: 0.5cm 0.7cm 0.35cm;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 7.5pt;
-  letter-spacing: 0.35em;
-  color: #3a6640;
+  font-size: 5.5pt;
+  color: #888;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  line-height: 1.7;
 }
 
+.cover-top-right { text-align: right; }
+
+.cover-classified {
+  color: #1a6b4a;
+  font-weight: 700;
+}
+
+.cover-access-value {
+  color: #1a6b4a;
+  font-weight: 700;
+}
+
+/* ── Center content ──────────────────────────────────────────── */
 .cover-center {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.2cm 1cm;
-  gap: 0;
+  padding: 0 0.7cm;
+  margin-top: -1cm;
 }
 
-.cover-hex {
-  font-size: 3.5rem;
-  color: #2d8a42;
-  line-height: 1;
-  margin-bottom: 0.75rem;
-  opacity: 0.3;
-}
-
-.cover-main-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 32pt;
+.cover-title-firmware {
+  font-family: 'Orbitron', sans-serif;
   font-weight: 900;
-  color: #0a1a0d;
-  letter-spacing: 0.12em;
-  line-height: 1;
-  text-transform: uppercase;
-
-  &.wars {
-    color: #1a5c28;
-    font-size: 26pt;
-    letter-spacing: 0.28em;
-    margin-top: -0.1em;
-  }
-
-  @media print {
-    font-size: 30pt;
-    &.wars { font-size: 24pt; }
-  }
-}
-
-.cover-rule {
-  width: 6cm;
-  height: 1.5pt;
-  background: #1a5c28;
-  margin: 1rem 0;
-}
-
-.cover-subtitle {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11pt;
-  color: #2d4a32;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-
-  span { color: #1a5c28; font-weight: 700; }
-}
-
-.cover-edition {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 7pt;
-  color: #6ea878;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  margin-top: 0.5rem;
-}
-
-.cover-bottom {
-  padding: 0.5cm 1cm;
-  border-top: 1px solid #c8e6cc;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cover-classified {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 6.5pt;
-  letter-spacing: 0.2em;
-  color: #6ea878;
-  text-transform: uppercase;
-}
-
-.cover-year {
-  font-family: 'Orbitron', monospace;
-  font-size: 9pt;
-  color: #3a6640;
+  font-size: 32pt;
   letter-spacing: 0.1em;
+  color: #0a0a0a;
+  line-height: 1;
+  text-align: center;
+
+  @media print { font-size: 30pt; }
+}
+
+.cover-title-wars {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 42pt;
+  letter-spacing: 0.15em;
+  color: #1a6b4a;
+  line-height: 0.95;
+  text-align: center;
+  margin-bottom: 0.1cm;
+
+  @media print { font-size: 40pt; }
+}
+
+/* ── Hex circuit icon ────────────────────────────────────────── */
+.cover-hex-icon {
+  margin-bottom: 0.05cm;
+
+  svg {
+    width: 1.6cm;
+    height: 1.6cm;
+  }
+}
+
+/* ── Bot silhouettes strip ───────────────────────────────────── */
+.cover-bot-strip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 4.5cm;
+  margin-bottom: 0;
+
+  img {
+    height: 4.2cm;
+    opacity: 0.18;
+    object-fit: contain;
+  }
+}
+
+/* ── Subtitle block ──────────────────────────────────────────── */
+.cover-subtitle-block {
+  text-align: center;
+  margin-top: 0.15cm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05cm;
+}
+
+.cover-manual {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 17pt;
+  letter-spacing: 0.12em;
+  color: #0a0a0a;
+  text-transform: uppercase;
+}
+
+.cover-system {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  font-size: 8pt;
+  letter-spacing: 0.2em;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.cover-version {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 400;
+  font-size: 7pt;
+  letter-spacing: 0.15em;
+  color: #bbb;
+  text-transform: uppercase;
 }
 
 /* ═══════════════════════════════════════════════════════════════
