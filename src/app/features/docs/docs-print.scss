@@ -8,6 +8,12 @@
   margin: 1.5cm 1.8cm 1.2cm;
 }
 
+/* ── @page portada: márgenes mínimos para llenar la hoja ─────── */
+@page cover-pg {
+  size: A5;
+  margin: 0.4cm;
+}
+
 /* ── Visibilidad print/screen ────────────────────────────────── */
 .print-only { display: none; }
 
@@ -175,15 +181,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* En pantalla: forzar que ocupe todo el A5 simulado */
   padding: 0;
 
   @media print {
-    /* Compensar los @page margins para que la portada llene la página.
-       @page tiene 1.5cm top, 1.2cm bottom — reducimos padding al mínimo
-       para clearance del header/footer fijos.                          */
-    padding-top: 0;
-    padding-bottom: 0;
+    page: cover-pg;
+    /* A5 = 210mm − 0.4cm top − 0.4cm bottom = 202mm de área disponible */
+    height: 202mm;
+    padding: 0;
   }
 }
 
