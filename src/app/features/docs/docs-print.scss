@@ -175,10 +175,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* En pantalla: forzar que ocupe todo el A5 simulado */
+  padding: 0;
 
   @media print {
-    padding-top: 0.95cm;
-    padding-bottom: 0.95cm;
+    /* Compensar los @page margins para que la portada llene la página.
+       @page tiene 1.5cm top, 1.2cm bottom — reducimos padding al mínimo
+       para clearance del header/footer fijos.                          */
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 
@@ -187,11 +192,11 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 0.5cm 0.7cm 0.35cm;
+  padding: 0.45cm 0.55cm 0;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 5.5pt;
+  font-size: 5pt;
   color: #888;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.7;
 }
@@ -215,41 +220,37 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 0.7cm;
+  padding: 0 0.55cm;
 }
 
 .cover-title-firmware {
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
-  font-size: 32pt;
-  letter-spacing: 0.1em;
+  font-size: 28pt;
+  letter-spacing: 0.08em;
   color: #0a0a0a;
   line-height: 1;
   text-align: center;
-
-  @media print { font-size: 30pt; }
 }
 
 .cover-title-wars {
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
-  font-size: 42pt;
-  letter-spacing: 0.15em;
+  font-size: 38pt;
+  letter-spacing: 0.13em;
   color: #1a6b4a;
   line-height: 0.95;
   text-align: center;
-  margin-bottom: 0.1cm;
-
-  @media print { font-size: 40pt; }
+  margin-bottom: 0.05cm;
 }
 
 /* ── Hex circuit icon ────────────────────────────────────────── */
 .cover-hex-icon {
-  margin-bottom: 0.05cm;
+  margin-bottom: 0;
 
   svg {
-    width: 1.6cm;
-    height: 1.6cm;
+    width: 1.4cm;
+    height: 1.4cm;
   }
 }
 
@@ -259,11 +260,10 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 4.5cm;
-  margin-bottom: 0;
+  height: 3.8cm;
 
   img {
-    height: 4.2cm;
+    height: 3.5cm;
     opacity: 0.18;
     object-fit: contain;
   }
@@ -272,18 +272,18 @@
 /* ── Subtitle block ──────────────────────────────────────────── */
 .cover-subtitle-block {
   text-align: center;
-  margin-top: 0.15cm;
+  margin-top: 0.1cm;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.05cm;
+  gap: 0.02cm;
 }
 
 .cover-manual {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
-  font-size: 17pt;
-  letter-spacing: 0.12em;
+  font-size: 15pt;
+  letter-spacing: 0.1em;
   color: #0a0a0a;
   text-transform: uppercase;
 }
@@ -291,8 +291,8 @@
 .cover-system {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 500;
-  font-size: 8pt;
-  letter-spacing: 0.2em;
+  font-size: 7pt;
+  letter-spacing: 0.18em;
   color: #888;
   text-transform: uppercase;
 }
@@ -300,8 +300,8 @@
 .cover-version {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 400;
-  font-size: 7pt;
-  letter-spacing: 0.15em;
+  font-size: 6.5pt;
+  letter-spacing: 0.12em;
   color: #bbb;
   text-transform: uppercase;
 }
