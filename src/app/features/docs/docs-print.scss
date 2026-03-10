@@ -8,12 +8,6 @@
   margin: 1.5cm 1.8cm 1.2cm;
 }
 
-/* ── @page portada: márgenes mínimos para llenar la hoja ─────── */
-@page cover-pg {
-  size: A5;
-  margin: 0.4cm;
-}
-
 /* ── Visibilidad print/screen ────────────────────────────────── */
 .print-only { display: none; }
 
@@ -184,9 +178,9 @@
   padding: 0;
 
   @media print {
-    page: cover-pg;
-    /* A5 = 210mm − 0.4cm top − 0.4cm bottom = 202mm de área disponible */
-    height: 202mm;
+    /* A5 210mm − @page margin-top 15mm − @page margin-bottom 12mm = 183mm.
+       Altura fija para que flex: 1 + justify-content: center funcionen. */
+    height: 183mm;
     padding: 0;
   }
 }
@@ -196,9 +190,9 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 0.45cm 0.55cm 0;
+  padding: 0.55cm 0.65cm 0;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 5pt;
+  font-size: 6.5pt;
   color: #888;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -230,7 +224,7 @@
 .cover-title-firmware {
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
-  font-size: 28pt;
+  font-size: 36pt;
   letter-spacing: 0.08em;
   color: #0a0a0a;
   line-height: 1;
@@ -240,7 +234,7 @@
 .cover-title-wars {
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
-  font-size: 38pt;
+  font-size: 48pt;
   letter-spacing: 0.13em;
   color: #1a6b4a;
   line-height: 0.95;
@@ -253,8 +247,8 @@
   margin-bottom: 0;
 
   svg {
-    width: 1.4cm;
-    height: 1.4cm;
+    width: 2.2cm;
+    height: 2.2cm;
   }
 }
 
@@ -264,10 +258,10 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 3.8cm;
+  height: 5cm;
 
   img {
-    height: 3.5cm;
+    height: 4.6cm;
     opacity: 0.18;
     object-fit: contain;
   }
@@ -286,7 +280,7 @@
 .cover-manual {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
-  font-size: 15pt;
+  font-size: 20pt;
   letter-spacing: 0.1em;
   color: #0a0a0a;
   text-transform: uppercase;
@@ -295,7 +289,7 @@
 .cover-system {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 500;
-  font-size: 7pt;
+  font-size: 9pt;
   letter-spacing: 0.18em;
   color: #888;
   text-transform: uppercase;
@@ -304,7 +298,7 @@
 .cover-version {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 400;
-  font-size: 6.5pt;
+  font-size: 8pt;
   letter-spacing: 0.12em;
   color: #bbb;
   text-transform: uppercase;
