@@ -18,16 +18,6 @@
 2. **Energía:** Lanza ...... Añade a `energy` sin superar `MAX_ENERGY`.
 3. **Números:** Si `numbers` está vacío, ejecuta `getNumbers()`.
 4. **Operaciones:** Tira 1 dado por ranura disponible (`MAX_OPERATIONS - bugs`).
-
-| Resultado | V1 | V2 | V3 |
-|---|---|---|---|
-| 1 | IF | IF | IF |
-| 2 | IF-ELSE | IF-ELSE | IF-ELSE |
-| 3 | IF | FOR | FOR |
-| 4 | IF-ELSE | WHILE | WHILE |
-| 5 | IF | FOR | TRY-CATCH |
-| 6 | IF-ELSE | WHILE | TRY-CATCH |
-
 > Solo un bucle (FOR o WHILE) por turno. Si ya ha salido uno, vuelve a tirar.
 
 5. Se puede saltar a la fase `DEBUG()` en vez de continuar con `COMPILE()`.

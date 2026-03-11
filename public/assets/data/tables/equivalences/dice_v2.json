@@ -1,0 +1,8 @@
+[
+  { "Número": "1", "Equivalencia~": "IF" },
+  { "Número": "2", "Equivalencia~": "IF-ELSE" },
+  { "Número": "3", "Equivalencia~": "FOR" },
+  { "Número": "4", "Equivalencia~": "WHILE" },
+  { "Número": "5", "Equivalencia~": "FOR" },
+  { "Número": "6", "Equivalencia~": "WHILE" }
+]

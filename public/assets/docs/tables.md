@@ -57,3 +57,5 @@
 ## Estados Alterados
 
 /json tables/status-effects.json
+
+---

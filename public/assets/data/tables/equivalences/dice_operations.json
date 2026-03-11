@@ -1,0 +1,8 @@
+[
+  { "Número": "1", "Equivalencia~": "<" },
+  { "Número": "2", "Equivalencia~": "≤" },
+  { "Número": "3", "Equivalencia~": "≥" },
+  { "Número": "4", "Equivalencia~": ">" },
+  { "Número": "5", "Equivalencia~": "!=" },
+  { "Número": "6", "Equivalencia~": "==" }
+]

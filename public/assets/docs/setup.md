@@ -41,3 +41,5 @@ Algunos escenarios pueden haber Hexes especiales, cuyo funcionamiento se detalla
 Una vez establecido el orden, cada Programador debe realizar un **Lanzamiento de Dado de Colores** para determinar su Hex de entrada. El Bot podrá ser desplegado en **cualquier Hex del tablero que coincida con el color obtenido** en el dado, siempre y cuando se respete el perímetro de seguridad táctica. Este perímetro dicta que ningún Bot puede desplegarn a una **distancia inferior a 6 Hexes** de cualquier Bot enemigo ya desplegado.
 
 En el caso de que la configuración del mapa o las tiradas de dados generen una colisión lógica que haga **imposible cumplir con la distancia mínima de seguridad**, se deberá abortar el proceso, reestructurar el diseño del tablero y reiniciar el despliegue desde el primer paso para garantizar una partida equilibrada.
+
+---

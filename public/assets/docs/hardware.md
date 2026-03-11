@@ -8,7 +8,7 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 |---|---|---|
 | Miniaturas (Bots) | Variable | Según lista acordada. Mínimo 1 por Programador. |
 | Fichas Hex (tablero) | 30–50 piezas | Una de las caras de cada Hex debe ser de color negro sólido. Esta cara representa un obstáculo físico y lógico que obstruye el movimiento y satura la Línea de Visión (LoS), impidiendo la propagación de datos y ataques. La cara activa (no opaca) de los Hexes debe estar vinculada al sistema de Dados de Energía. Los 100 Hexes se dividen en 5 subgrupos de 20 unidades; cada grupo debe estar marcado con un color distintivo (mediante un punto o indicador visual) que corresponda a una de las caras del dado. |
-| Dado Piedra-Papel-Tijera | 1 | Para determinar iniciativa. |
+| Dado Piedra-Papel-Tijera | 1 | Para determinar iniciativa. Se pueden utilizar métodos más clásicos. |
 | Dado Colores | 1 | Dado de 6 caras, con 5 colores diferentes y un símbolo para volver a lanzar (Por si no sale color). |
 | Dado Operaciones | 1 | Dado de 6 caras, con los siguientes símbolos (<, ≤, ≥, >, !=, ==) |
 | Dado V1 | 1 | Dado de 6 caras, con los siguientes textos (IF, IF-ELSE, IF, IF-ELSE, IF, IF-ELSE) |
@@ -25,7 +25,7 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 | Fichas de vida | Variable | Para llevar el registro de `life`. |
 | Terminal de programación | 1 x Bot | Hoja de turno donde anotar el BattleScript (Organizar tus Operaciones, Funciones, Números, etc.) |
 
-> Todos los dados de 6 Caras personalizados pueden ser sustituido fácilmente por tablas de equivalencias. Algunas de ellas están presentes en el manual.
+> Todos los dados de 6 Caras personalizados pueden ser sustituido fácilmente por Tablas de Equivalencias (ver sección Tablas de Equivalencias en los Recursos de la web).
 ---
 
 ## El Terminal de Programación
@@ -37,18 +37,19 @@ Cada Programador dispone de un **Terminal** por cada Bot: una hoja/tablero de tu
 **El Terminal incluye:**
 
 ### Modo Hoja
-- Variables de estado de cada Bot: `life`, `energy`, `shield`, `bugs`, `version`, `numbers`.
+- 8 Huecos donde alojar `numbers`.
 - 3 Ranuras de Operación para la fase `COMPILE()`.
 - Área de escritura del BattleScript.
 - Registro de efectos activos y estados alterados.
 
 ### Modo tablero
 En los recursos de la web encontrarás plantillas para poderte imprimir tu propios tableros. El tablero tiene un tamaño A4 con lo siguiente:
-- Variables de estado de cada Bot: `life`, `energy`, `shield`, `version`.
-- 7 Huecos para dados (d6) donde alojar `numbers`.
+- 8 Huecos para dados (d6) donde alojar `numbers`.
 - 3 Ranuras de Operación para la fase `COMPILE()`.
 - Varias tarjetas de Operaciones (IF, IF-ELSE, FOR, WHILE, TRY-CATCH) para insertar en las Ranuras de Operaciones.
 - 3 tarjetas de Bugs para insertar en las Ranuras de Operaciones.
 - Varias tarjetas de Funciones para insertar en las Ranuras de las tarjetas de Operaciones.
 
 > La integridad de tu Terminal es responsabilidad tuya y solo tuya. Un registro desfasado no es una excusa; es una sentencia de borrado inmediato.
+
+---
