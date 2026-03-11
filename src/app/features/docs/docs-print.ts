@@ -18,6 +18,9 @@ export class DocsPrint implements OnDestroy {
   readonly version = signal('');
 
   readonly pdfUrl = PDF_WORKER_URL;
+  readonly copyrightYears = new Date().getFullYear() > 2026
+    ? `2026-${new Date().getFullYear()}`
+    : '2026';
 
   /* Cuando el Worker llama a la página añade ?worker=1.
      En ese modo no llamamos a window.print() ni navegamos de vuelta. */
