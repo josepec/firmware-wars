@@ -5,8 +5,6 @@ import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
-const VERSION_URL = 'https://firmware-wars-api.josepec.eu/version';
-
 @Component({
   selector: 'app-docs-print',
   imports: [RouterLink, MarkdownComponent],
@@ -15,8 +13,6 @@ const VERSION_URL = 'https://firmware-wars-api.josepec.eu/version';
 })
 export class DocsPrint implements OnDestroy {
   sections = signal<{ id: string; num: string; title: string; subtitle: string }[]>([]);
-  readonly version = signal('');
-
   readonly pdfUrl = PDF_WORKER_URL;
   readonly copyrightYears = new Date().getFullYear() > 2026
     ? `2026-${new Date().getFullYear()}`
@@ -29,7 +25,6 @@ export class DocsPrint implements OnDestroy {
   /* ── 1 mm en px CSS (calculado una vez al montar) ────────── */
   private readonly oneMmPx: number;
 
-  private readonly versionReady: Promise<void>;
   private sectionsLoaded = 0;
   private autoPrinted = false;
 
@@ -57,7 +52,6 @@ export class DocsPrint implements OnDestroy {
     window.addEventListener('beforeprint', this.beforePrintFn);
     window.addEventListener('afterprint', this.afterPrintFn);
 
-    this.versionReady = this.loadVersion();
     this.loadConfig();
   }
 
@@ -73,15 +67,6 @@ export class DocsPrint implements OnDestroy {
       /* Signal ready so Puppeteer doesn't hang if config is missing */
       document.body.setAttribute('data-pdf-ready', 'true');
     }
-  }
-
-  private async loadVersion(): Promise<void> {
-    try {
-      const resp = await fetch(VERSION_URL);
-      if (!resp.ok) return;
-      const data = await resp.json();
-      if (data?.version) this.version.set(data.version);
-    } catch { /* silent */ }
   }
 
   ngOnDestroy(): void {
@@ -112,7 +97,7 @@ export class DocsPrint implements OnDestroy {
   }
 
   private async hydrateAndFinalize(): Promise<void> {
-    await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body), this.versionReady]);
+    await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body)]);
     /* Re-apply column heights after tables have been injected */
     this.applyColumnHeights();
     document.body.setAttribute('data-pdf-ready', 'true');
