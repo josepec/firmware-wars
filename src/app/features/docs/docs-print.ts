@@ -29,6 +29,7 @@ export class DocsPrint implements OnDestroy {
   /* ── 1 mm en px CSS (calculado una vez al montar) ────────── */
   private readonly oneMmPx: number;
 
+  private readonly versionReady: Promise<void>;
   private sectionsLoaded = 0;
   private autoPrinted = false;
 
@@ -56,8 +57,8 @@ export class DocsPrint implements OnDestroy {
     window.addEventListener('beforeprint', this.beforePrintFn);
     window.addEventListener('afterprint', this.afterPrintFn);
 
+    this.versionReady = this.loadVersion();
     this.loadConfig();
-    this.loadVersion();
   }
 
   private async loadConfig(): Promise<void> {
@@ -111,7 +112,7 @@ export class DocsPrint implements OnDestroy {
   }
 
   private async hydrateAndFinalize(): Promise<void> {
-    await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body)]);
+    await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body), this.versionReady]);
     /* Re-apply column heights after tables have been injected */
     this.applyColumnHeights();
     document.body.setAttribute('data-pdf-ready', 'true');

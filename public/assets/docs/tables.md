@@ -54,12 +54,6 @@
 
 ---
 
-## Funciones Pasivas (Background Daemon Ext.)
-
-/json tables/passive-functions.json
-
----
-
 ## Estados Alterados
 
 /json tables/status-effects.json
