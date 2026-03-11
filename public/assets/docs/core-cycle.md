@@ -16,6 +16,8 @@ Cada ronda representa un ciclo de procesamiento compartido donde los Bots compit
 
 ---
 
+/page
+
 ## INIT()
 
 Esta fase se realiza **una única vez al comienzo de cada ronda**, antes de que cualquier Bot ejecute su ciclo operativo. Representa la negociación global por el acceso al procesador central del campo de batalla y determina el orden de activación de los Programadores durante esa ronda.
