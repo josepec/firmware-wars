@@ -27,3 +27,18 @@ El objetivo vendrá determinado por el **Escenario** elegido. Si no se escoge un
 Los Bots quedan destruidos cuando su variable `life` se reduce a 0. Una unidad destruida no puede ser reparada ni reactivada.
 
 ---
+
+## Créditos y Aviso Legal
+
+**Game Design, Development & Writing** Josep Enric Esteve Colomer
+**Illustrations** AI-assisted generation & design by Josep Enric Esteve Colomer
+**Title** Firmware Wars — Core Combat System
+
+© 2026 Josep Enric Esteve Colomer. All Rights Reserved.
+Queda prohibida la reproducción total o parcial de esta obra, su almacenamiento en un sistema informático, su transmisión en cualquier forma o por cualquier medio, sea electrónico, mecánico, por fotocopia, por registro u otros métodos, sin la autorización previa y por escrito del autor.
+El texto, las reglas, la maquetación y los elementos de diseño contenidos en este manual son propiedad de su autor. Las ilustraciones han sido generadas mediante herramientas de inteligencia artificial bajo la dirección creativa del autor.
+
+https://firmware-wars.josepec.eu
+https://firmwarewars.josepec.eu
+
+---
