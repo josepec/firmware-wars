@@ -63,16 +63,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 ### 5. Carga de Operaciones del Turno
 
 - Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación.
-- Cada Operación requiere el lanzamiento de un dado. El dado utilizado depende directamente de la `version` del Bot (V1, V2 o V3). Utiliza el dado correspondiente a la `version` de tu Bot (Dado V1, Dado V2 o Dado V3). Si no dispones de los dados específicos, puedes utilizar un 1d6 consultando la Tabla de Equivalencias que figura a continuación:
-
-| Resultado | V1 | V2 | V3 |
-|---|---|---|---|
-| 1 | IF | IF | IF |
-| 2 | IF-ELSE | IF-ELSE | IF-ELSE |
-| 3 | IF | FOR | FOR |
-| 4 | IF-ELSE | WHILE | WHILE |
-| 5 | IF | FOR | TRY-CATCH |
-| 6 | IF-ELSE | WHILE | TRY-CATCH |
+- Cada Operación requiere el lanzamiento de un dado. El dado utilizado depende directamente de la `version` del Bot (V1, V2 o V3). Utiliza el dado correspondiente a la `version` de tu Bot (Dado V1, Dado V2 o Dado V3). 
 
 > Solo un bucle (FOR o WHILE) por turno. Si ya ha salido uno, vuelve a tirar.
 
