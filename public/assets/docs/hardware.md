@@ -41,7 +41,6 @@ Cada Programador dispone de un **Terminal** por cada Bot: una hoja/tablero de tu
 - Registro de efectos activos y estados alterados.
 
 /page
-
 ### Modo tablero
 En los recursos de la web encontrarás plantillas para poderte imprimir tu propios tableros. El tablero tiene un tamaño A4 con lo siguiente:
 - 8 Huecos para dados (d6) donde alojar `numbers`.

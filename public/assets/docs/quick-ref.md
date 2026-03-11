@@ -1,7 +1,5 @@
 # Guía de Referencia Rápida
 
----
-
 ## INIT() — Inicio de Ronda
 
 - **Negociación de CPU:** Todos los jugadores lanzan PPT (Piedra-Papel-Tijera).

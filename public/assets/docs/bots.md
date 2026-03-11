@@ -8,6 +8,7 @@ La configuración de un Bot es un proceso de ingeniería táctica donde se defin
 
 > Recuerda: Puedes construir tus Bots fácilmente desde el apartado Lista de la web.
 
+/page
 ## Atributos (Variables)
 
 Las Atributos, o Variables, estarán inicializados a los valores reflejados en la siguiente tabla:
