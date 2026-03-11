@@ -38,7 +38,7 @@ Los Bots quedan destruidos cuando su variable `life` se reduce a 0. Una unidad d
 Queda prohibida la reproducción total o parcial de esta obra, su almacenamiento en un sistema informático, su transmisión en cualquier forma o por cualquier medio, sea electrónico, mecánico, por fotocopia, por registro u otros métodos, sin la autorización previa y por escrito del autor.
 El texto, las reglas, la maquetación y los elementos de diseño contenidos en este manual son propiedad de su autor. Las ilustraciones han sido generadas mediante herramientas de inteligencia artificial bajo la dirección creativa del autor.
 
-https://firmware-wars.josepec.eu
+https://firmware-wars.josepec.eu<br>
 https://firmwarewars.josepec.eu
 
 ---
