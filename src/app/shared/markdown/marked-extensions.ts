@@ -137,9 +137,9 @@ const imgDirectiveExt = {
     const cls = token.variant === 'img' ? 'md-img' : token.variant === 'img-center' ? 'md-img-center' : 'md-img-small';
     if (token.print) {
       const printSrc = src.replace(/(\.[^.]+)$/, '-print$1');
-      return `<div class="${cls}"><img src="${src}" alt="" loading="lazy" class="md-screen-only" /><img src="${printSrc}" alt="" loading="lazy" class="md-print-only" /></div>`;
+      return `<div class="${cls}"><img src="${src}" alt="" class="md-screen-only" /><img src="${printSrc}" alt="" class="md-print-only" /></div>`;
     }
-    return `<div class="${cls}"><img src="${src}" alt="" loading="lazy" /></div>`;
+    return `<div class="${cls}"><img src="${src}" alt="" /></div>`;
   },
 };
 
