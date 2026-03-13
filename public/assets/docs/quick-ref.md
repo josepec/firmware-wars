@@ -17,7 +17,7 @@
 4. **Operaciones.** Dado de Versión × ranura (`MAX_OPERATIONS` − `bugs`). Solo 1 bucle/turno.
 5. Puede saltar directo a `DEBUG()`.
 
-## COMPILE() — Programación
+## COMPILE()
 
 - Ordena Operaciones en el Terminal. No es necesario usar todas.
 - Asigna Función a cada Operación.
@@ -27,7 +27,7 @@
 
 /json-sm tables/common-functions.json
 
-## Operaciones
+### Operaciones
 
 | Op. | Resolución |
 |---|---|
@@ -39,7 +39,7 @@
 
 /col
 
-## RUN() — Ejecución
+## RUN()
 
 Ejecuta línea por línea (Top-Down). No se reordenan.
 
@@ -65,13 +65,13 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 - **Movimiento.** Hexes adyacentes. No atravesar obstáculos ni Bots.
 - **Rango.** Hexes contiguos entre atacante y objetivo sin atravesar obstáculos/Bots.
 
-## DEBUG() — Mantenimiento
+## DEBUG()
 
 Sin Operación, pagando Energía.
 
 /json-sm tables/debug-functions.json
 
-## END() — Fin del Ciclo
+## END()
 
 1. Descartar Operaciones. Conservar `numbers` y `energy`.
 2. Turno al siguiente Programador → `COMPILE()`.
