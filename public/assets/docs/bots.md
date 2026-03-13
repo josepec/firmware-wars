@@ -26,7 +26,7 @@ Cada Bot, tiene **{{improvementPoints}} Puntos de Mejora** y **{{disadvantagePoi
 Todos los Bots tienen acceso a las siguientes Funciones Comunes que utilizarán en sus Operaciones.
 
 /json tables/common-functions.json
-
+/page
 ## Funciones de Ataque
 
 Antes de lanzarse a la red, todo Programador debe forjar el núcleo lógico de su unidad. No basta con metal y circuitos; la verdadera potencia de un Bot reside en su arquitectura de software.

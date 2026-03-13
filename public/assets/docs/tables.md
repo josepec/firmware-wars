@@ -42,7 +42,7 @@
 
 ---
 
-## Funciones Ataque/Especiales
+## Funciones Ataque
 
 /json tables/attack-functions.json
 
