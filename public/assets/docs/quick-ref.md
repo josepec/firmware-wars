@@ -28,11 +28,11 @@
 
 | Op. | Resolución |
 |---|---|
-| `IF` | TRUE → Ejecuta fn. FALSE → Nada. |
-| `IF-ELSE` | TRUE → fn IF. FALSE → fn ELSE. |
-| `FOR` | \|1d6 − numbers\| = reps. >3 o 0 → `BUG`. |
-| `WHILE` | Repite mientras TRUE. 0 veces → `BUG`. |
-| `TRY-CATCH` | TRY falla → CATCH. Ninguna → `BUG`. |
+| `IF` | TRUE → Ejecuta función. FALSE → Nada. |
+| `IF-ELSE` | TRUE → Ejecuta Funcion IF. FALSE → Ejecuta Funcion ELSE. |
+| `FOR` | 1d6 vs un `numbers`: la diferencia = repeticiones. Si > 3 o = 0 → `BUG`. |
+| `WHILE` | Repite mientras TRUE (nueva condición por iteración). Si 0 ejecuciones → `BUG`. |
+| `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. Ninguna se ejecuta → `BUG`. |
 
 /end-col
 
