@@ -20,7 +20,7 @@
 /col
 ## COMPILE()
 
-- Ordena Operaciones en el Terminal. No es necesario usar todas.
+- Ordenar Operaciones en Terminal. No es necesario usar todas.
 - Asigna Función a cada Operación.
 - Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
 
@@ -28,10 +28,10 @@
 
 | Op. | Resolución |
 |---|---|
-| `IF` | TRUE → Ejecuta función. FALSE → Nada. |
-| `IF-ELSE` | TRUE → Ejecuta Funcion IF. FALSE → Ejecuta Funcion ELSE. |
-| `FOR` | 1d6 vs un `numbers`: la diferencia = repeticiones. Si > 3 o = 0 → `BUG`. |
-| `WHILE` | Repite mientras TRUE (nueva condición por iteración). Si 0 ejecuciones → `BUG`. |
+| `IF` | TRUE → Ejecuta Función. FALSE → Nada. |
+| `IF-ELSE` | TRUE → Ejecuta Func. IF. FALSE → Ejecuta Func. ELSE. |
+| `FOR` | 1d6 vs un `numbers`: la diferencia = repeticiones.<br> Si > 3 o = 0 → `BUG`. |
+| `WHILE` | Repite mientras TRUE (nueva condición por iteración).<br> Si 0 ejecuciones → `BUG`. |
 | `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. Ninguna se ejecuta → `BUG`. |
 
 /end-col
