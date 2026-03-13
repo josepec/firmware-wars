@@ -23,11 +23,11 @@
 - Asigna Función a cada Operación.
 - Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
 
-**`move(valor)`** Coste: valor. Mueve hasta valor Hexes. Si > `MAX_MOVEMENT` → `BUG`.
+### COMMON.INTERFACE
 
-**`attack(fn)`** Coste: fn. Ejecuta Función de ataque del Bot.
+/json-sm tables/common-functions.json
 
-**`shield()`** Coste: 2. Añade +1 `shield` (máx. `MAX_SHIELD`).
+/col
 
 ## Operaciones
 
@@ -38,8 +38,6 @@
 | `FOR` | \|1d6 − numbers\| = reps. >3 o 0 → `BUG`. |
 | `WHILE` | Repite mientras TRUE. 0 veces → `BUG`. |
 | `TRY-CATCH` | TRY falla → CATCH. Ninguna → `BUG`. |
-
-/col
 
 ## RUN() — Ejecución
 
@@ -69,12 +67,7 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 
 Sin Operación, pagando Energía.
 
-| Función | E | Efecto |
-|---|---|---|
-| `debug()` | 2 | Elimina 1 `BUG`. |
-| `patch()` | 5 | Elimina todos los `bugs`. |
-| `optimize(n)` | n | Quita n `numbers`. |
-| `reboot()` | 0 | Pierde turno. Reset total. |
+/json-sm tables/debug-functions.json
 
 ## END() — Fin del Ciclo
 

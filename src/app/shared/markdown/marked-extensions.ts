@@ -45,19 +45,20 @@ const jsonTableExt = {
   level: 'block' as const,
 
   start(src: string): number | undefined {
-    if (src.startsWith('/json ')) return 0;
-    const i = src.indexOf('\n/json ');
+    if (src.startsWith('/json')) return 0;
+    const i = src.indexOf('\n/json');
     return i >= 0 ? i + 1 : undefined;
   },
 
-  tokenizer(src: string): { type: string; raw: string; path: string } | undefined {
-    const m = /^\/json[ \t]+(\S+)[ \t]*(?:\n|$)/.exec(src);
-    if (m) return { type: 'jsonTable', raw: m[0], path: m[1] };
+  tokenizer(src: string): { type: string; raw: string; path: string; compact: boolean } | undefined {
+    const m = /^\/json(-sm)?[ \t]+(\S+)[ \t]*(?:\n|$)/.exec(src);
+    if (m) return { type: 'jsonTable', raw: m[0], path: m[2], compact: !!m[1] };
     return undefined;
   },
 
-  renderer(token: { type: string; raw: string; path: string }): string {
-    return `<div class="md-json-table">/assets/data/${token.path}</div>`;
+  renderer(token: { type: string; raw: string; path: string; compact: boolean }): string {
+    const cls = token.compact ? 'md-json-table md-json-table-sm' : 'md-json-table';
+    return `<div class="${cls}">/assets/data/${token.path}</div>`;
   },
 };
 

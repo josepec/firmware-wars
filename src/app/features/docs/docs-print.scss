@@ -696,6 +696,22 @@
         }
       }
     }
+
+    &.table-sm {
+      font-size: 6.5pt;
+      margin: 0 0 0.5rem;
+
+      thead th {
+        font-size: 5.5pt;
+        padding: 0.2rem 0.3rem;
+        letter-spacing: 0.1em;
+      }
+
+      tbody td {
+        padding: 0.2rem 0.3rem;
+        line-height: 1.35;
+      }
+    }
   }
 
   blockquote {

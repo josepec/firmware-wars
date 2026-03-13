@@ -33,7 +33,8 @@ export async function hydrateJsonTables(container: HTMLElement): Promise<void> {
         ).join('') + '</tr>'
       ).join('');
 
-      el.outerHTML = `<table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+      const compact = el.classList.contains('md-json-table-sm');
+      el.outerHTML = `<table${compact ? ' class="table-sm"' : ''}><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
     } catch (e) {
       console.error(`[json-table] Error loading ${src}:`, e);
     }
