@@ -134,4 +134,7 @@
   </div>
   <markdown [src]="'assets/docs/' + s.id + '.md'" [disableSanitizer]="true" (load)="onSectionReady()" (error)="onSectionReady()" />
 </div>
+@if (s.blankAfter) {
+<div class="fw-page blank-page"></div>
+}
 }

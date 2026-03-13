@@ -12,7 +12,7 @@ const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
   styleUrl: './docs-print.scss',
 })
 export class DocsPrint implements OnDestroy {
-  sections = signal<{ id: string; num: string; title: string; subtitle: string }[]>([]);
+  sections = signal<{ id: string; num: string; title: string; subtitle: string; blankAfter?: boolean }[]>([]);
   readonly pdfUrl = PDF_WORKER_URL;
   readonly copyrightYears = new Date().getFullYear() > 2026
     ? `2026-${new Date().getFullYear()}`
