@@ -17,16 +17,7 @@
 4. **Operaciones.** Dado de Versión × ranura (`MAX_OPERATIONS` − `bugs`). Solo 1 bucle/turno.
 5. Puede saltar directo a `DEBUG()`.
 
-## COMPILE()
-
-- Ordena Operaciones en el Terminal. No es necesario usar todas.
-- Asigna Función a cada Operación.
-- Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
-
-### COMMON.INTERFACE
-
-/json-sm tables/common-functions.json
-
+/col
 ### Operaciones
 
 | Op. | Resolución |
@@ -37,7 +28,19 @@
 | `WHILE` | Repite mientras TRUE. 0 veces → `BUG`. |
 | `TRY-CATCH` | TRY falla → CATCH. Ninguna → `BUG`. |
 
-/col
+## COMPILE()
+
+- Ordena Operaciones en el Terminal. No es necesario usar todas.
+- Asigna Función a cada Operación.
+- Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
+
+/end-col
+
+### COMMON.INTERFACE
+
+/json-sm tables/common-functions.json
+
+/two-col
 
 ## RUN()
 
