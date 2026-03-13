@@ -132,7 +132,7 @@ IF (condición)
   THEN funcion()
 ```
 
-Se puede utilizar para realizar acciones como ataques, movimiento, escudo, etc.
+Se puede utilizar para realizar acciones como ataques, movimiento, escudo...
 
 ---
 
@@ -237,7 +237,7 @@ IF (condición)
 ```
 
 ---
-
+/page
 ### shield()
 
 - **Uso:** Añade un punto a `shield` siempre que `shield` < `MAX_SHIELD`.
