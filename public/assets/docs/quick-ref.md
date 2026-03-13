@@ -38,8 +38,9 @@
 
 ### COMMON.INTERFACE
 
-/json-sm tables/common-functions.json
+/json tables/common-functions.json
 
+/page
 /two-col
 
 ## RUN()
@@ -60,13 +61,13 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 - **`OVERLOAD`.** Sin `energy` → 1 `life` por punto faltante. Función **no se ejecuta**.
 - **Sintaxis.** Error de regla o ejecución → 1 `BUG`.
 
-/col
-
 ### Combate
 
 - **Daño.** Daño ataque − `shield` defensor. Cada punto parado consume 1 `shield`.
 - **Movimiento.** Hexes adyacentes. No atravesar obstáculos ni Bots.
 - **Rango.** Hexes contiguos entre atacante y objetivo sin atravesar obstáculos/Bots.
+
+/col
 
 ## DEBUG()
 
