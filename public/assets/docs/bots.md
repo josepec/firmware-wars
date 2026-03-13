@@ -14,7 +14,7 @@ La configuración de un Bot es un proceso de ingeniería táctica donde se defin
 Las Atributos, o Variables, estarán inicializados a los valores reflejados en la siguiente tabla:
 
 /json tables/initial-bot-variables.json
-
+/page
 Cada Bot, tiene **{{improvementPoints}} Puntos de Mejora** y **{{disadvantagePoints}} Punto de Desventaja** que lo especaliza. Cada uno de esos 3 puntos se ha de gastar en una Constante diferente. Los puntos solo pueden aplicarse a las Constantes listadas en la siguiente tabla:
 
 /json tables/points.json

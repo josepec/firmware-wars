@@ -60,6 +60,22 @@
     }
   }
 
+  /* ── H4 ──────────────────────────────────────────────────── */
+  h4 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #86efac;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 1.5rem 0 0.5rem;
+
+    &::before {
+      content: '— ';
+      color: rgba(134, 239, 172, 0.4);
+    }
+  }
+
   /* ── Párrafos ─────────────────────────────────────────────── */
   p {
     color: rgba(74, 222, 128, 0.8);

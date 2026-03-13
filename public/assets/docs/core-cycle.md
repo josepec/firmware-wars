@@ -295,7 +295,7 @@ Durante esta fase, **no se pueden alterar ni reordenar las instrucciones ya comp
 ### 2. Verificación y Errores de Sintaxis
 
 Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un `BUG` en `bugs`.
-
+/page
 ### 3. Ejecución de Operaciones
 
 La mayoría de Operaciones han de determinar el resultado de una condición para poder ejecutar Funciones o resolver Bucles. Para determinar el resultado de una condición:

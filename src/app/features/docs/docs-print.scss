@@ -527,6 +527,19 @@
     &::before { content: '> '; color: #6ea878; }
   }
 
+  h4 {
+    font-family: 'Orbitron', monospace;
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: #3d6b45;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0.8rem 0 0.3rem;
+    page-break-after: avoid;
+
+    &::before { content: '— '; color: #6ea878; }
+  }
+
   p {
     font-size: 9pt;
     color: #1a2e1e;
