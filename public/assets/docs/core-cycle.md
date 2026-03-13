@@ -320,7 +320,7 @@ Si no se puede pagar la energía `energy` de una Función, se produce `OVERLOAD`
 En Bucles, si en alguna iteración no se puede pagar el coste, esa iteración no se ejecuta, se produce `OVERLOAD` y el bucle se detiene.
 
 ---
-
+/page
 ### Ejecución de Movimiento
 
 Al ejecutar un movimiento mediante la Función `move()` el Bot puede moverse el número de Hexes declarados siempre que tenga Energía suficiente.
