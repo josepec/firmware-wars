@@ -71,7 +71,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 Si el Bot se encuentra **gravemente dañado o desestabilizado**, el programador puede omitir las fases operativas normales y dirigirlo directamente a la Fase `DEBUG()`. Esto representa una intervención manual para estabilizar el núcleo, reparar circuitos o purgar fallos críticos antes de volver al combate.
 
-Durante este modo, el Bot **no ejecuta acciones ofensivas**, pero puede **recuperar vida, energía o eliminar BUGS**, según las reglas de mantenimiento aplicables.
+Al pasar a Mantenimiento, el Bot **no ejecuta acciones ofensivas**, pero puede **eliminar BUGS, reiniciarse, etc.**.
 
 ### 7. Fin de fase
 
@@ -87,8 +87,6 @@ Una vez completada la inicialización, el robot entra en la fase de programació
 
 - El programador toma las Operaciones obtenidas en `BOOT()` y las dispone en el orden deseado en su terminal. Cada línea de código representa una instrucción que el robot ejecutará en ese orden durante `RUN()`.
 - No es necesario programar todas las operaciones. Si no se puede programar ninguna, se salta a `DEBUG()`.
-
-> Puedes utilizar las Tarjetas de Operación en vez de escribir el código con las Operaciones. 
 
 ### 2. Vinculación de Operaciones y Funciones
 
