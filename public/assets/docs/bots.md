@@ -38,7 +38,7 @@ Debe elegir:
 - **{{slotsPerVersion.v3}} Función** de **Versión 3**.
 
 /json tables/attack-functions.json
-
+/page
 ## Funciones de Mantenimiento (DEBUG.INTERFACE)
 
 Todos los Bots tienen acceso a las siguientes Funciones de Mantenimiento que pueden utilizar en la fase de `DEBUG()`.
