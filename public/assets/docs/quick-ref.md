@@ -4,7 +4,7 @@
 
 ## INIT() — Inicio de Ronda
 
-- **PPT Protocol.** Piedra-Papel-Tijera. Ganador → **Prioridad de CPU**.
+- **PPT Protocol.** Piedra-Papel-Tijera.<br> Ganador → **Prioridad de CPU**.
 - Turno rota entre Programadores (un Bot cada uno).
 - **Ronda 3** → `upgrade()` → `version` 2.
 - **Ronda 5** → `upgrade()` → `version` 3.
@@ -12,7 +12,7 @@
 ## BOOT() — Simultáneo
 
 1. **Estado.** `life` ≤ 0 → Destruido. Limpiar efectos temporales.
-2. **Energía.** `getEnergy(n)` — nd6 (n=1–3), suma a `energy`. Si > `MAX_ENERGY` → `BUG`.
+2. **Energía.** `getEnergy(n)` — nd6 (n=1–3), suma a `energy`.<br> Si > `MAX_ENERGY` → `BUG`.
 3. **Números.** `getNumbers()` — Rellena `numbers` con d6 hasta `MAX_NUMBERS`.
 4. **Operaciones.** Dado de Versión × ranura (`MAX_OPERATIONS` − `bugs`). Solo 1 bucle/turno.
 5. Puede saltar directo a `DEBUG()`.
@@ -32,7 +32,7 @@
 | `IF-ELSE` | TRUE → Ejecuta Func. IF. FALSE → Ejecuta Func. ELSE. |
 | `FOR` | 1d6 vs un `numbers`: la diferencia = repeticiones.<br> Si > 3 o = 0 → `BUG`. |
 | `WHILE` | Repite mientras TRUE (nueva condición por iteración).<br> Si 0 ejecuciones → `BUG`. |
-| `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. Ninguna se ejecuta → `BUG`. |
+| `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. <br> Si ninguna se ejecuta → `BUG`. |
 
 /end-col
 
