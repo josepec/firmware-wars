@@ -173,6 +173,12 @@
       page-break-before: always;
       page-break-after: auto;
     }
+
+    /* Página en blanco intencionada (blankAfter en config) */
+    &.blank-page {
+      page-break-before: always;
+      height: 100vh;
+    }
   }
 }
 
