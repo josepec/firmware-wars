@@ -59,3 +59,4 @@
 /json tables/status-effects.json
 
 ---
+/blank-page
