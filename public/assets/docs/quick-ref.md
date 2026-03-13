@@ -27,8 +27,6 @@
 
 /json-sm tables/common-functions.json
 
-/col
-
 ## Operaciones
 
 | Op. | Resolución |
@@ -38,6 +36,8 @@
 | `FOR` | \|1d6 − numbers\| = reps. >3 o 0 → `BUG`. |
 | `WHILE` | Repite mientras TRUE. 0 veces → `BUG`. |
 | `TRY-CATCH` | TRY falla → CATCH. Ninguna → `BUG`. |
+
+/col
 
 ## RUN() — Ejecución
 
@@ -56,6 +56,8 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 
 - **`OVERLOAD`.** Sin `energy` → 1 `life` por punto faltante. Función **no se ejecuta**.
 - **Sintaxis.** Error de regla o ejecución → 1 `BUG`.
+
+/col
 
 ### Combate
 
