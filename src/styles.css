@@ -117,8 +117,10 @@ body {
 .md-col-3 { column-count: 3; column-gap: 1rem;   }
 
 .md-col-break  { break-after: column; height: 0; }
-.md-page-break { height: 0; }
-.md-space      { height: 1rem; }
+.md-page-break  { height: 0; }
+.md-blank-page  { display: none; }
+.md-blank-marker { font-size: 1px; color: transparent; }
+.md-space       { height: 1rem; }
 
 .md-keep { break-inside: avoid; }
 
@@ -197,4 +199,5 @@ body {
   .md-col-2 { column-gap: 0.6cm; }
   .md-col-3 { column-gap: 0.4cm; }
   .md-page-break { break-after: page; }
+  .md-blank-page { display: block; break-after: page; height: 100vh; }
 }
