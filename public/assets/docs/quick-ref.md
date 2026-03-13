@@ -1,3 +1,4 @@
+/blank-page
 # Guía de Referencia Rápida
 
 /two-col
