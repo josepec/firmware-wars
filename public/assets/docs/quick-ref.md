@@ -18,6 +18,12 @@
 5. Puede saltar directo a `DEBUG()`.
 
 /col
+## COMPILE()
+
+- Ordena Operaciones en el Terminal. No es necesario usar todas.
+- Asigna Función a cada Operación.
+- Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
+
 ### Operaciones
 
 | Op. | Resolución |
@@ -27,12 +33,6 @@
 | `FOR` | \|1d6 − numbers\| = reps. >3 o 0 → `BUG`. |
 | `WHILE` | Repite mientras TRUE. 0 veces → `BUG`. |
 | `TRY-CATCH` | TRY falla → CATCH. Ninguna → `BUG`. |
-
-## COMPILE()
-
-- Ordena Operaciones en el Terminal. No es necesario usar todas.
-- Asigna Función a cada Operación.
-- Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
 
 /end-col
 
