@@ -165,6 +165,14 @@
     page-break-after: always;
 
     &:last-child { page-break-after: avoid; }
+
+    /* Secciones de contenido: usan page-break-before en vez de after
+       para evitar páginas en blanco espurias cuando el contenido
+       de una sección termina justo en el borde de página.           */
+    &.content-page {
+      page-break-before: always;
+      page-break-after: auto;
+    }
   }
 }
 
