@@ -6,7 +6,7 @@
 
 El objetivo es claro: superar a los Bots rivales mediante la combinación de estrategia, programación táctica y adaptación a la aleatoriedad del sistema. El campo de batalla es un entorno digitalizado de combate formado por unas casillas hexagonales llamadas **Hexes**. Las decisiones se toman turno a turno siguiendo un ciclo de fases inspirado en el ciclo de vida del software **Core Combat System**.
 
-> La victoria se define por la superioridad algorítmica, la eficiencia de tu Firmware y la habilidad de tu código para adaptarse a los fallos del sistema.
+> La victoria se define por la superioridad algorítmica, la eficiencia de tu Firmware y tu habilidad para adaptar el código a los fallos del sistema.
 
 ---
 

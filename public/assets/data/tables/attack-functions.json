@@ -5,7 +5,7 @@
   { "Función": "`dashStrike()`", "V.~": "1", "Rango~": "1-2", "Daño~": "1d4", "Energía~": "2", "Coste~": "15◈", "Efectos": "Puede mover 1 Hex después de atacar." },
   { "Función": "`pinpointBurst()`", "V.~": "1", "Rango~": "2-4 (LR)", "Daño~": "1d4", "Energía~": "2", "Coste~": "15◈", "Efectos": "" },
   { "Función": "`pulseShot()`", "V.~": "1", "Rango~": "1-2", "Daño~": "2", "Energía~": "1", "Coste~": "10◈", "Efectos": "Si objetivo está a 1 Hex → +1 daño." },
-  { "Función": "`stabilizerHit()`", "V.~": "1", "Rango~": "1", "Daño~": "1", "Energía~": "2", "Coste~": "10◈", "Efectos": "El objetivo debe superar 1d6 (>3) o recibe estado `LAG`." },
+  { "Función": "`stabilizerHit()`", "V.~": "1", "Rango~": "1", "Daño~": "1", "Energía~": "2", "Coste~": "10◈", "Efectos": "El objetivo debe superar 1d6 (≥4) o recibe estado `LAG`." },
   { "Función": "`nanoRepair()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "4", "Coste~": "20◈", "Efectos": "El Bot recupera 1d4 puntos de Vida." },
   { "Función": "`traceShot()`", "V.~": "2", "Rango~": "2-6 (SLDV)", "Daño~": "1d4", "Energía~": "5", "Coste~": "30◈", "Efectos": "" },
   { "Función": "`ghostProtocol()`", "V.~": "2", "Rango~": "1-2", "Daño~": "—", "Energía~": "3", "Coste~": "15◈", "Efectos": "El objetivo pierde un `numbers` elegido por él mismo." },
@@ -28,5 +28,5 @@
   { "Función": "`syncBlast()`", "V.~": "3", "Rango~": "2-4", "Daño~": "4", "Energía~": "6", "Coste~": "50◈", "Efectos": "Si tenía `energy` > 10 al declararlo Daño +1." },
   { "Función": "`relayNode()`", "V.~": "3", "Rango~": "2", "Daño~": "—", "Energía~": "6", "Coste~": "50◈", "Efectos": "Nodo (`life`=2). Máximo 2 Nodos. Daño 2 a quien entre o salga de Hex adyacente." },
   { "Función": "`novaBlast()`", "V.~": "3", "Rango~": "2-5", "Daño~": "1d10", "Energía~": "6", "Coste~": "50◈", "Efectos": "Genera 1 `BUG` al Bot atacante por el retroceso masivo." },
-  { "Función": "`empField()`", "V.~": "3", "Rango~": "2-5 (R(1))", "Daño~": "1d6", "Energía~": "6", "Coste~": "50◈", "Efectos": "Los Bots deben superar 1d6 (> 3) o reciben estado `DMZ`." }
+  { "Función": "`empField()`", "V.~": "3", "Rango~": "2-5 (R(1))", "Daño~": "1d6", "Energía~": "6", "Coste~": "50◈", "Efectos": "Los Bots deben superar 1d6 (≥4) o reciben estado `DMZ`." }
 ]

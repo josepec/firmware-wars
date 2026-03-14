@@ -7,8 +7,8 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 | Componente | Cantidad | Notas |
 |---|---|---|
 | Miniaturas (Bots) | Variable | Según lista acordada. Mínimo 1 por Programador. |
-| Fichas Hex (tablero) | 30–50 piezas | Una de las caras de cada Hex debe ser de color negro sólido. Esta cara representa un obstáculo físico y lógico que obstruye el movimiento y satura la Línea de Visión (LoS), impidiendo la propagación de datos y ataques. La cara activa (no opaca) de los Hexes debe estar vinculada al sistema de Dados de Energía. Los 100 Hexes se dividen en 5 subgrupos de 20 unidades; cada grupo debe estar marcado con un color distintivo (mediante un punto o indicador visual) que corresponda a una de las caras del dado. |
-| Dado Piedra-Papel-Tijera | 1 | Para determinar iniciativa. Se pueden utilizar métodos más clásicos. |
+| Fichas Hex (tablero) | 100 piezas | Una de las caras de cada Hex debe ser de color negro sólido. Esta cara representa un obstáculo físico y lógico que obstruye el movimiento y satura la Línea de Visión (LoS), impidiendo la propagación de datos y ataques. La cara activa (no opaca) de los Hexes debe estar vinculada al sistema de Dados de Energía. Los 100 Hexes se dividen en 5 subgrupos de 20 unidades; cada grupo debe estar marcado con un color distintivo (mediante un punto o indicador visual) que corresponda a una de las caras del dado. |
+| Dado Piedra-Papel-Tijera | 1 | Para determinar iniciativa. |
 | Dado Colores | 1 | Dado de 6 caras, con 5 colores diferentes y un símbolo para volver a lanzar (Por si no sale color). |
 | Dado Operaciones | 1 | Dado de 6 caras, con los siguientes símbolos (<, ≤, ≥, >, !=, ==) |
 | Dado V1 | 1 | Dado de 6 caras, con los siguientes textos (IF, IF-ELSE, IF, IF-ELSE, IF, IF-ELSE) |
@@ -23,7 +23,7 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 | Marcadores de estado | Variable | LAG, DMZ, SAFE_MODE, REBOOTING… |
 | Fichas de energía | Variable | Para llevar el registro de `energy`. |
 | Fichas de vida | Variable | Para llevar el registro de `life`. |
-| Terminal de programación | 1 x Bot | Hoja de turno donde anotar el BattleScript (Organizar tus Operaciones, Funciones, Números, etc.) |
+| Terminal de programación | 1 x Bot | Hoja de turno donde anotar el BattleScript (organizar tus Operaciones, Funciones, Números, etc.) |
 
 > Todos los dados de 6 Caras personalizados pueden ser sustituido fácilmente por Tablas de Equivalencias (ver sección Tablas de Equivalencias en los Recursos de la web).
 ---

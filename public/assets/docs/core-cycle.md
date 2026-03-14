@@ -52,7 +52,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 ### 3. Recuperación de Energía
 
-- El Bot ejecuta `getEnergy(n)`: Lanza nd6, siendo n del 1 al 3, y almacena la Energía obtenida en `numbers`. Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
+- El Bot ejecuta `getEnergy(n)`: Lanza nd6, siendo n del 1 al 3, y almacena la Energía obtenida en `energy`. Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
 
 ### 4. Carga de números en RAM
 
@@ -258,9 +258,9 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 
 ### getEnergy(n)
 
-- **Uso:** Tira nd6, siendo n del 1 al 3, y almacena la Energía en `numbers`, hasta llenar `MAX_ENERGY`.
+- **Uso:** Tira nd6, siendo n del 1 al 3, y almacena la Energía en `energy`, hasta llenar `MAX_ENERGY`.
 - **Cuando:** En la fase de `BOOT()`.
-- **Detalles:** La cantidad de energía no puede superar `MAX_NUMBERS`, descarta toda la energía que lo supere. Si con el resultado de la tirada se sobrepasaba `MAX_ENERGY` se genera un `BUG`.
+- **Detalles:** Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
 
 ---
 
@@ -306,7 +306,7 @@ La mayoría de Operaciones han de determinar el resultado de una condición para
 
 1. Lanza el **Dado de operaciones** → define el comparador (<, ≤, ≥, >, !=, ==).
 2. Lanza **1d6** → define el dado.
-3. Elige uno de los números guardados (`numbers`) → define el numero.
+3. Elige uno de los números guardados (`numbers`) → define el número.
 4. Evalúa la condición: `TRUE` o `FALSE`.
 5. Resuelve la Operación y ejecuta la Función si procede.
 
@@ -341,7 +341,7 @@ El ataque se ejecutará siempre que tenga Energía suficiente y cumpla cualquier
 
 #### 1. Selección del Objetivo
 
-El Programador elige un Bot dentro del **rango del rango del ataque** especificado por su Función de ataque.
+El Programador elige un Bot dentro **del rango del ataque** especificado por su Función de ataque.
 
 #### Rango de los ataques
 Excepto si el ataque indica lo contrario, todos los ataques requieren **línea de visión del objetivo**. La distancia, o rango, será el número mínimo de casillas hexagonales contiguas entre el Bot atacante y el Bot defensor, **sin atravesar obstáculos u otros Bots**. Esta distancia debe estar dentro del rango del ataque.
@@ -384,11 +384,11 @@ Esta fase ocurre cuando se completa el ciclo operativo del Bot activo. Aquí se 
 
 1. **Descartar Operaciones Ejecutadas.** Todas las Operaciones utilizadas se eliminan del terminal. El Bot limpia su pila de instrucciones para evitar residuos lógicos.
 2. **Conservar Números Guardados.** Los números `numbers` almacenados en la RAM se mantienen activos para futuros turnos, salvo que algún efecto indique lo contrario.
-3. **Conservar Números Guardados.** La energía `energy` restante se mantiene para el siguiente turno.
+3. **Conservar Energía.** La energía `energy` restante se mantiene para el siguiente turno.
 4. **Transferencia del Turno.** El control pasa al siguiente Programador del orden de iniciativa, que activa el siguiente Bot sin activar, comenzando su ciclo desde `COMPILE()`. Si todos los Bots han completado su activación, la ronda concluye.
 5. **Fin de Ronda.** Si se han activado todos los Bots de todos los Programadores, termina la ronda. Se vuelve a la fase `INIT()`.
 6. **Fin de Partida**<br>
-**Escenarios:** En los escenarios se seguirán las instrucciones definadas en el propio escenario para dar por finalizada la partida.<br>
+**Escenarios:** En los escenarios se seguirán las instrucciones definidas en el propio escenario para dar por finalizada la partida.<br>
 **Eliminación total:** Si solo un Programador tiene Bots sin destruir, finaliza la partida y es el vencedor.
 
 ---

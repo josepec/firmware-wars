@@ -6,7 +6,7 @@ Han transcurrido 28 ciclos desde el **Gran Reinicio**.
 
 La era dorada de la **Inteligencia Artificial** y la tecnología desenfrenada culminó en el colapso. El mundo se destrozó bajo el peso de una tecnología que nadie entendía ni controlaba.
 
-Las **Cinco Grandes Tecnológicas** supervivientes aprendieron de este error: la tecnología debe ser **simple legible y sin atisbos de inteligencia** más allá de la lógica pura. Y ahora, dominan el mundo.
+Las **Cinco Grandes Tecnológicas** supervivientes aprendieron de este error: la tecnología debe ser **simple legible, y sin atisbos de inteligencia** más allá de la lógica pura. Y ahora, dominan el mundo.
 
 Una vez al año, la ciudad se paraliza cuando llega el torneo **FIRMWARE WARS**, el mecanismo definitivo de resolución de conflictos entre las Grandes Tecnológicas. Los Programadores de cada tecnológica, que han alcanzado el estado Senior, peregrinan a las Arenas Digitales.
 
@@ -28,7 +28,7 @@ Tú no estás en el campo de batalla. Al menos, no físicamente.
 
 Eres el **Arquitecto tras el Silicio**, eres el cerebro en la sombra: el que compila la victoria línea a línea. Mientras los Bots saturan el espectro con ráfagas de plasma y metralla de tungsteno, tú te enfrentas al verdadero enemigo: la escasez de energía, el desbordamiento del buffer y ese Bug crítico que siempre aparece en el peor momento posible.
 
-Como **Programador**, tu identidad es tu activo más valioso. Tu identidad es el único sector de memoria que no pueden formatear. No eres un empleado; eres una firma digital en un ecosistema que devora a los que sufren de latencia. Tu presencia en la red se define por tres constantes:
+Como **Programador**, tu identidad es tu activo más valioso. Tu identidad es el único sector de memoria que no pueden formatear. No eres un empleado; eres una firma digital en un ecosistema que devora a los que sufren latencia. Tu presencia en la red se define por tres constantes:
 
 - **El Alias:** No es un nombre, es una marca de autor. Es lo que aparece en los logs de errores de tus rivales justo antes de que su sistema colapse. Si haces bien tu trabajo, tu alias será lo último que lea su unidad de procesamiento antes del fundido a negro.
 
