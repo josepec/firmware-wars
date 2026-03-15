@@ -109,8 +109,11 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       this.statusEffects = statuses;
 
       const fromId = this.route.snapshot.queryParamMap.get('from');
+      const presetId = this.route.snapshot.queryParamMap.get('preset');
       if (fromId) {
         this.loadSavedList(fromId);
+      } else if (presetId) {
+        this.loadPreset(presetId);
       } else {
         this.bots.set([this.createEmptyBot(0)]);
         this.loaded.set(true);
@@ -537,6 +540,98 @@ export class ArmyBuilder implements OnInit, OnDestroy {
       `> DIAGNOSTICS... PASSED`,
       `> BUILD SUCCESSFUL`,
     ];
+  }
+
+  /* ── Presets ────────────────────────────────────────────── */
+
+  private static readonly PRESETS: Record<string, {
+    name: string;
+    points: { constant: string; type: 'mejora' | 'desventaja' }[];
+    functions: { v1: string[]; v2: string[]; v3: string };
+  }> = {
+    brutebot: {
+      name: 'BRUTEBOT',
+      points: [
+        { constant: 'MAX_LIFE', type: 'mejora' },
+        { constant: 'MAX_SHIELD', type: 'mejora' },
+        { constant: 'MAX_MOVEMENT', type: 'desventaja' },
+      ],
+      functions: {
+        v1: ['powerSmash()', 'pulseShot()'],
+        v2: ['overclockStrike()', 'berserkProtocol()'],
+        v3: 'overdriveStrike()',
+      },
+    },
+    hackbot: {
+      name: 'HACKBOT',
+      points: [
+        { constant: 'MAX_ENERGY', type: 'mejora' },
+        { constant: 'MAX_SHIELD', type: 'mejora' },
+        { constant: 'MAX_LIFE', type: 'desventaja' },
+      ],
+      functions: {
+        v1: ['stabilizerHit()', 'laserBeam()'],
+        v2: ['ghostProtocol()', 'peekMemory()'],
+        v3: 'dataSpike()',
+      },
+    },
+    scoutbot: {
+      name: 'SCOUTBOT',
+      points: [
+        { constant: 'MAX_MOVEMENT', type: 'mejora' },
+        { constant: 'MAX_ENERGY', type: 'mejora' },
+        { constant: 'MAX_LIFE', type: 'desventaja' },
+      ],
+      functions: {
+        v1: ['dashStrike()', 'pulseShot()'],
+        v2: ['traceShot()', 'ghostProtocol()'],
+        v3: 'railgun()',
+      },
+    },
+    corebot: {
+      name: 'COREBOT',
+      points: [
+        { constant: 'MAX_LIFE', type: 'mejora' },
+        { constant: 'MAX_ENERGY', type: 'mejora' },
+        { constant: 'MAX_SHIELD', type: 'desventaja' },
+      ],
+      functions: {
+        v1: ['rocketPunch()', 'laserBeam()'],
+        v2: ['plasmaBolt()', 'firewall()'],
+        v3: 'syncBlast()',
+      },
+    },
+  };
+
+  private loadPreset(presetId: string): void {
+    const preset = ArmyBuilder.PRESETS[presetId];
+    if (!preset) {
+      this.bots.set([this.createEmptyBot(0)]);
+      this.loaded.set(true);
+      return;
+    }
+
+    const findFn = (name: string) =>
+      this.allFunctions.find(f => f.name === name) ?? null;
+
+    const points = this.pointDefinitions.map(p => {
+      const match = preset.points.find(pp => pp.constant === p.constant);
+      return { constant: p.constant, type: match?.type ?? null } as PointAllocation;
+    });
+
+    const bot: BotConfig = {
+      name: preset.name,
+      points,
+      attackFunctions: {
+        v1: preset.functions.v1.map(findFn),
+        v2: preset.functions.v2.map(findFn),
+        v3: findFn(preset.functions.v3),
+      },
+      collapsed: false,
+    };
+
+    this.bots.set([bot]);
+    this.loaded.set(true);
   }
 
   ngOnDestroy() {
