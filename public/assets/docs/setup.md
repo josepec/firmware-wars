@@ -41,3 +41,5 @@ Una vez establecido el orden, cada Programador debe realizar un **Lanzamiento de
 En el caso de que la configuración del mapa o las tiradas de dados generen una colisión lógica que haga **imposible cumplir con la distancia mínima de seguridad**, se deberá abortar el proceso, reestructurar el diseño del tablero y reiniciar el despliegue desde el primer paso para garantizar una partida equilibrada.
 
 ---
+
+/img-center /assets/img/hexes.png print-only
