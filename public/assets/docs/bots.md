@@ -8,6 +8,8 @@ La configuración de un Bot es un proceso de ingeniería táctica donde se defin
 
 > Recuerda: Puedes construir tus Bots fácilmente desde el apartado Lista de la web.
 
+/img-center /assets/img/bot-construction.png print
+
 /page
 ## Atributos (Variables)
 
