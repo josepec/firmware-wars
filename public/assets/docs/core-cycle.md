@@ -392,3 +392,5 @@ Esta fase ocurre cuando se completa el ciclo operativo del Bot activo. Aquí se 
 **Eliminación total:** Si solo un Programador tiene Bots sin destruir, finaliza la partida y es el vencedor.
 
 ---
+
+/img-center /assets/img/spider-bot.png print-only
