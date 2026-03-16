@@ -42,4 +42,4 @@ En el caso de que la configuración del mapa o las tiradas de dados generen una 
 
 ---
 
-/img-center /assets/img/hexes.png print-only
+/img-center /assets/img/hexes-small.png print-only
