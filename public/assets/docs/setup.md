@@ -20,6 +20,8 @@ Determinad el número de **Bots** de cada programador. Cada programador seleccio
 
 Las distancias se miden en **Hexes** (casillas hexagonales del tablero). Tanto al mover como al determinar el rango de un ataque o habilidad, se cuenta el número mínimo de casillas hexagonales contiguas entre dos puntos del tablero, sin atravesar obstáculos o Bots. El desplazamiento puede realizarse en cualquiera de las seis direcciones adyacentes al Hex actual.
 
+No se usan reglas ni cintas métricas: el sistema hexagonal garantiza la equidad táctica de las distancias.
+
 En algunos escenarios puede haber Hexes especiales, cuyo funcionamiento se detallará en el escenario correspondiente.
 
 ### Construcción del tablero 

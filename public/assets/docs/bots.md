@@ -28,6 +28,8 @@ Cada Bot, tiene **{{improvementPoints}} Puntos de Mejora** y **{{disadvantagePoi
 Todos los Bots tienen acceso a las siguientes Funciones Comunes que utilizarán en sus Operaciones.
 
 /json tables/common-functions.json
+
+/img-center /assets/img/hexes.png print-only h:200px
 /page
 ## Funciones de Ataque
 
