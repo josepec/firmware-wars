@@ -29,7 +29,7 @@ Todos los Bots tienen acceso a las siguientes Funciones Comunes que utilizarán 
 
 /json tables/common-functions.json
 
-/img-center /assets/img/hexes.png print-only h:200px
+/img-center /assets/img/robot-explosion.png print-only h:200px
 /page
 ## Funciones de Ataque
 
