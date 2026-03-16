@@ -127,16 +127,19 @@ const imgDirectiveExt = {
     return i >= 0 ? i + 1 : undefined;
   },
 
-  tokenizer(src: string): { type: string; raw: string; variant: string; path: string; print: boolean } | undefined {
-    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)(?:[ \t]+(print))?[ \t]*(?:\n|$)/.exec(src);
-    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2], print: !!m[3] };
+  tokenizer(src: string): { type: string; raw: string; variant: string; path: string; modifier: string } | undefined {
+    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)(?:[ \t]+(print|print-only))?[ \t]*(?:\n|$)/.exec(src);
+    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2], modifier: m[3] ?? '' };
     return undefined;
   },
 
-  renderer(token: { type: string; raw: string; variant: string; path: string; print: boolean }): string {
+  renderer(token: { type: string; raw: string; variant: string; path: string; modifier: string }): string {
     const src = token.path.startsWith('http') || token.path.startsWith('/') ? token.path : `/assets/docs/img/${token.path}`;
     const cls = token.variant === 'img' ? 'md-img' : token.variant === 'img-center' ? 'md-img-center' : 'md-img-small';
-    if (token.print) {
+    if (token.modifier === 'print-only') {
+      return `<div class="${cls}"><img src="${src}" alt="" class="md-print-only" /></div>`;
+    }
+    if (token.modifier === 'print') {
       const printSrc = src.replace(/(\.[^.]+)$/, '-print$1');
       return `<div class="${cls}"><img src="${src}" alt="" class="md-screen-only" /><img src="${printSrc}" alt="" class="md-print-only" /></div>`;
     }
