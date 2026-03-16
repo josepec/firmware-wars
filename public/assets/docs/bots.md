@@ -46,3 +46,6 @@ Debe elegir:
 Todos los Bots tienen acceso a las siguientes Funciones de Mantenimiento que pueden utilizar en la fase de `DEBUG()`.
 
 /json tables/debug-functions.json
+
+
+/img-center /assets/img/robot-battle.png print-only
