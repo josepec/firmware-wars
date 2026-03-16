@@ -82,4 +82,6 @@ Sin Operación, pagando Energía.
 3. Todos activados → Nueva ronda → `INIT()`.
 4. **Victoria.** Último con Bots operativos, o condición del escenario.
 
+/img-center /assets/img/t-rex-robot.png print-only
+
 /end-col
