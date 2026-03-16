@@ -127,23 +127,24 @@ const imgDirectiveExt = {
     return i >= 0 ? i + 1 : undefined;
   },
 
-  tokenizer(src: string): { type: string; raw: string; variant: string; path: string; modifier: string } | undefined {
-    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)(?:[ \t]+(print|print-only))?[ \t]*(?:\n|$)/.exec(src);
-    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2], modifier: m[3] ?? '' };
+  tokenizer(src: string): { type: string; raw: string; variant: string; path: string; modifier: string; height: string } | undefined {
+    const m = /^\/(img-center|img-small|img)[ \t]+(\S+)(?:[ \t]+(print|print-only))?(?:[ \t]+h:(\S+))?[ \t]*(?:\n|$)/.exec(src);
+    if (m) return { type: 'imgDirective', raw: m[0], variant: m[1], path: m[2], modifier: m[3] ?? '', height: m[4] ?? '' };
     return undefined;
   },
 
-  renderer(token: { type: string; raw: string; variant: string; path: string; modifier: string }): string {
+  renderer(token: { type: string; raw: string; variant: string; path: string; modifier: string; height: string }): string {
     const src = token.path.startsWith('http') || token.path.startsWith('/') ? token.path : `/assets/docs/img/${token.path}`;
     const cls = token.variant === 'img' ? 'md-img' : token.variant === 'img-center' ? 'md-img-center' : 'md-img-small';
+    const hStyle = token.height ? ` style="max-height:${token.height};width:auto"` : '';
     if (token.modifier === 'print-only') {
-      return `<div class="${cls}"><img src="${src}" alt="" class="md-print-only" /></div>`;
+      return `<div class="${cls}"><img src="${src}" alt="" class="md-print-only"${hStyle} /></div>`;
     }
     if (token.modifier === 'print') {
       const printSrc = src.replace(/(\.[^.]+)$/, '-print$1');
-      return `<div class="${cls}"><img src="${src}" alt="" class="md-screen-only" /><img src="${printSrc}" alt="" class="md-print-only" /></div>`;
+      return `<div class="${cls}"><img src="${src}" alt="" class="md-screen-only"${hStyle} /><img src="${printSrc}" alt="" class="md-print-only"${hStyle} /></div>`;
     }
-    return `<div class="${cls}"><img src="${src}" alt="" /></div>`;
+    return `<div class="${cls}"><img src="${src}" alt=""${hStyle} /></div>`;
   },
 };
 
