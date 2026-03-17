@@ -1,0 +1,145 @@
+<div class="border border-green-500/15 bg-black/40">
+
+  <!-- Toolbar ──────────────────────────────────────────── -->
+  <div class="border-b border-green-500/15 p-4 flex flex-wrap gap-4 items-start">
+
+    <!-- Grid generator -->
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-[0.2em] text-green-500/40 uppercase">Generar Grid</span>
+      <div class="flex items-center gap-2">
+        <label class="text-[9px] text-green-500/50">F:</label>
+        <input type="number" [ngModel]="gridRows()" (ngModelChange)="gridRows.set($event)"
+               min="1" max="15" class="editor-input w-12" />
+        <label class="text-[9px] text-green-500/50">C:</label>
+        <input type="number" [ngModel]="gridCols()" (ngModelChange)="gridCols.set($event)"
+               min="1" max="15" class="editor-input w-12" />
+        <button (click)="generateGrid()" type="button" class="editor-btn">Generar</button>
+      </div>
+    </div>
+
+    <div class="w-px h-10 bg-green-500/15"></div>
+
+    <!-- Tool selector -->
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-[0.2em] text-green-500/40 uppercase">Herramienta</span>
+      <div class="flex gap-1">
+        @for (t of tools; track t.id) {
+          <button (click)="tool.set(t.id)" type="button"
+            class="px-2.5 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+            [class]="tool() === t.id
+              ? 'bg-green-500/20 border-green-400/50 text-green-300'
+              : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+            {{ t.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="w-px h-10 bg-green-500/15"></div>
+
+    <!-- Tool options -->
+    @if (tool() === 'hex') {
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-[0.2em] text-green-500/40 uppercase">Tipo Hex</span>
+      <div class="flex items-center gap-1 flex-wrap">
+        @for (t of hexTypes(); track t.id) {
+          <button (click)="selectedHexType.set(t.id)" type="button"
+            class="flex items-center gap-1.5 px-2 py-1 text-[9px] border transition-all cursor-pointer"
+            [class]="selectedHexType() === t.id
+              ? 'border-green-400/50 bg-green-500/10'
+              : 'border-green-500/15 hover:border-green-500/30'">
+            <span class="w-3 h-3 border border-black/30 inline-block"
+                  [style.background]="t.color"></span>
+            <span class="text-green-400/70">{{ t.name }}</span>
+            @if (!t.builtIn) {
+              <span (click)="$event.stopPropagation(); removeHexType(t.id)"
+                    class="text-red-500/40 hover:text-red-400 ml-0.5 cursor-pointer">x</span>
+            }
+          </button>
+        }
+        <button (click)="showTypeForm.set(!showTypeForm())" type="button"
+          class="px-2 py-1 text-[9px] border border-dashed border-green-500/20
+                 text-green-500/40 hover:text-green-400 transition-all cursor-pointer">
+          +
+        </button>
+      </div>
+
+      @if (showTypeForm()) {
+      <div class="flex items-center gap-2 mt-1">
+        <input type="text" placeholder="Nombre" [ngModel]="newTypeName()" (ngModelChange)="newTypeName.set($event)"
+               class="editor-input w-24" />
+        <input type="color" [ngModel]="newTypeColor()" (ngModelChange)="newTypeColor.set($event)"
+               class="w-6 h-6 cursor-pointer bg-transparent border-0" />
+        <input type="color" [ngModel]="newTypeBorder()" (ngModelChange)="newTypeBorder.set($event)"
+               class="w-6 h-6 cursor-pointer bg-transparent border-0" />
+        <button (click)="addHexType()" type="button" class="editor-btn">OK</button>
+      </div>
+      }
+    </div>
+    }
+
+    @if (tool() === 'dot') {
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-[0.2em] text-green-500/40 uppercase">Color Dot</span>
+      <div class="flex items-center gap-1">
+        @for (c of dotColors; track c.id) {
+          <button (click)="selectedDotColor.set(c.id)" type="button"
+            class="w-6 h-6 rounded-full border-2 transition-all cursor-pointer"
+            [style.background]="c.hex"
+            [class]="selectedDotColor() === c.id ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100'">
+          </button>
+        }
+      </div>
+      <div class="text-[8px] text-green-500/30 mt-0.5">
+        @for (c of dotColors; track c.id) {
+          <span class="mr-2">{{ c.id }}: {{ dotCounts()[c.id] }}/20</span>
+        }
+      </div>
+    </div>
+    }
+
+    @if (tool() === 'deploy') {
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-[0.2em] text-green-500/40 uppercase">Equipo</span>
+      <div class="flex items-center gap-1">
+        @for (t of [1, 2, 3, 4]; track t) {
+          <button (click)="selectedTeam.set(t)" type="button"
+            class="w-7 h-7 text-[9px] border transition-all cursor-pointer"
+            [class]="selectedTeam() === t
+              ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300'
+              : 'bg-green-500/5 border-green-500/15 text-green-500/50'">
+            P{{ t }}
+          </button>
+        }
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Stats bar -->
+  <div class="border-b border-green-500/10 px-4 py-2 flex items-center gap-4">
+    <span class="text-[9px] tracking-wider text-green-500/40">
+      HEXES: <span class="text-green-400">{{ totalHexes() }}</span>/100
+    </span>
+    <button (click)="addSingleHex()" type="button"
+      class="text-[9px] tracking-wider text-green-500/40 hover:text-green-400
+             border border-green-500/15 px-2 py-0.5 transition-all cursor-pointer"
+      [class.opacity-30]="totalHexes() >= 100"
+      [disabled]="totalHexes() >= 100">
+      + Hex
+    </button>
+  </div>
+
+  <!-- Map canvas -->
+  <div class="p-4 overflow-auto flex justify-center min-h-[300px] bg-[#0a0f0c]">
+    @if (totalHexes() > 0) {
+      <app-hex-map [mapData]="mapData()" [size]="30" [interactive]="true"
+                   (hexClicked)="onHexClick($event)" />
+    } @else {
+      <div class="flex items-center justify-center text-[10px] text-green-500/30 tracking-wider">
+        > Genera un grid o añade hexes para empezar.
+      </div>
+    }
+  </div>
+
+</div>

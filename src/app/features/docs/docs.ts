@@ -5,8 +5,10 @@ import { Subscription, filter } from 'rxjs';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 import { DocsSearchIndex, SearchResult } from './docs-search';
+import { ScenarioViewer } from './scenario-viewer';
 
-const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
+const API_URL = 'https://firmware-wars-api.josepec.eu';
+const PDF_WORKER_URL = `${API_URL}/pdf`;
 
 interface DocsCategory {
   id: string;
@@ -19,11 +21,12 @@ interface DocsCategory {
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO', configUrl: '/assets/config/docs.config.json', docsPath: 'assets/docs', searchable: true },
   { id: 'recursos', label: 'RECURSOS', configUrl: '/assets/config/recursos.config.json', docsPath: 'assets/recursos', searchable: false },
+  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false },
 ];
 
 @Component({
   selector: 'app-docs',
-  imports: [RouterLink, RouterLinkActive, MarkdownComponent],
+  imports: [RouterLink, RouterLinkActive, MarkdownComponent, ScenarioViewer],
   templateUrl: './docs.html',
   styleUrl: './docs.scss',
 })
@@ -158,7 +161,7 @@ export class Docs implements OnInit, OnDestroy {
     const cat = CATEGORIES.find(c => c.id === categoryId) ?? CATEGORIES[0];
     this.currentCategory.set(cat);
     this.currentSectionId.set(section);
-    this.markdownSrc.set(section ? `${cat.docsPath}/${section}.md` : null);
+    this.markdownSrc.set(cat.id !== 'escenarios' && section ? `${cat.docsPath}/${section}.md` : null);
     this.mobileMenuOpen.set(false);
 
     if (this.loadedCategory !== cat.id) {
@@ -168,6 +171,24 @@ export class Docs implements OnInit, OnDestroy {
   }
 
   private async loadConfig(url: string): Promise<void> {
+    const cat = this.currentCategory();
+
+    if (cat.id === 'escenarios') {
+      try {
+        const resp = await fetch(`${API_URL}/api/scenarios`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const scenarios: { id: string; title: string }[] = await resp.json();
+        this.sections.set(scenarios.map((s, i) => ({
+          id: s.id, num: String(i + 1).padStart(2, '0'),
+          title: s.title, subtitle: s.title,
+        })));
+      } catch {
+        this.sections.set([]);
+      }
+      this.cdr.markForCheck();
+      return;
+    }
+
     try {
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);

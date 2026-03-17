@@ -26,6 +26,14 @@ export const routes: Routes = [
     children: [],
   },
   {
+    path: 'admin',
+    children: [
+      { path: '', loadComponent: () => import('./features/admin/admin').then(m => m.Admin) },
+      { path: 'scenarios/new', loadComponent: () => import('./features/admin/scenario-editor').then(m => m.ScenarioEditor) },
+      { path: 'scenarios/:id', loadComponent: () => import('./features/admin/scenario-editor').then(m => m.ScenarioEditor) },
+    ],
+  },
+  {
     path: '**',
     redirectTo: ''
   }

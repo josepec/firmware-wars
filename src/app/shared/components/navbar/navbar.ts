@@ -10,6 +10,7 @@ interface DocsCategory {
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO' },
   { id: 'recursos', label: 'RECURSOS' },
+  { id: 'escenarios', label: 'ESCENARIOS' },
 ];
 
 @Component({
