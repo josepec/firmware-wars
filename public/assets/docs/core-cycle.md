@@ -15,7 +15,7 @@ Cada ronda representa un ciclo de procesamiento compartido donde los Bots compit
 4. **`END()`** — Se descartan Operaciones, se conserva la memoria y la energía. El turno pasa al siguiente Bot o termina la ronda. Si se cumplen las condiciones de victoria, termina la partida.
 
 ---
-/img-center /assets/img/cycle.png print-only h:250px
+/img-center /assets/img/cycle.png print-only h:300px
 /page
 
 ## INIT()
