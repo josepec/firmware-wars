@@ -103,8 +103,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         @for (bot of bots; track bot.name) {
-        <a [routerLink]="['/army-builder']" [queryParams]="{ preset: bot.preset }"
-           class="card-hover bg-black/60 border rounded-sm p-4 sm:p-5
+        <a [routerLink]="['/army-builder']" [queryParams]="{ preset: bot.preset }" class="card-hover bg-black/60 border rounded-sm p-4 sm:p-5
                         cursor-pointer hover:bg-black/80 shadow-lg block no-underline" [ngClass]="bot.cardClass">
 
           <div class="text-[9px] tracking-widest text-green-500/55 mb-1">UNIT_TYPE</div>
@@ -157,10 +156,10 @@
         <div class="hidden sm:block flex-1 h-px bg-green-500/10"></div>
       </div>
       <pre class="text-[11px] sm:text-sm leading-6 sm:leading-8 overflow-x-auto"><span class="bs-phase">START</span>
-  <span class="bs-kw">IF</span> <span class="bs-type">(</span><span class="bs-var">condition</span> <span class="bs-op">==</span> <span class="bs-num">1</span><span class="bs-type">)</span>
+  <span class="bs-kw">IF</span> <span class="bs-type">(</span><span class="bs-num">1</span> <span class="bs-op">==</span> <span class="bs-num">1</span><span class="bs-type">)</span>
     <span class="bs-kw">THEN</span> <span class="bs-fn">attack</span><span class="bs-type">(</span><span class="bs-fn">rocketPunch</span><span class="bs-type">(</span><span class="bs-type">)</span><span class="bs-type">)</span>
 
-  <span class="bs-kw">IF-ELSE</span> <span class="bs-type">(</span><span class="bs-var">condition</span> <span class="bs-op">&gt;=</span> <span class="bs-num">8</span><span class="bs-type">)</span>
+  <span class="bs-kw">IF-ELSE</span> <span class="bs-type">(</span><span class="bs-num">5</span> <span class="bs-op">&gt;=</span> <span class="bs-num">3</span><span class="bs-type">)</span>
     <span class="bs-kw">THEN</span> <span class="bs-fn">move</span><span class="bs-type">(</span><span class="bs-num">2</span><span class="bs-type">)</span>
     <span class="bs-kw">ELSE</span> <span class="bs-fn">attack</span><span class="bs-type">(</span><span class="bs-fn">powerSmash</span><span class="bs-type">(</span><span class="bs-type">)</span><span class="bs-type">)</span>
 

@@ -1,0 +1,6 @@
+{
+  "sections": [
+    { "id": "tables-equivalences", "num": "01", "title": "DICE.EQ", "subtitle": "Tablas de Dados" },
+    { "id": "terminal", "num": "02", "title": "TERMINAL.PRT", "subtitle": "Terminal" }
+  ]
+}

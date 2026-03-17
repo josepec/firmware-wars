@@ -1,4 +1,4 @@
-<header class="relative z-20">
+<header class="relative z-50">
 
   <!-- Barra principal ─────────────────────────────────────── -->
   <div class="border-b border-green-500/20 px-4 sm:px-8 py-3 flex justify-between items-center
@@ -9,16 +9,46 @@
       </span>
       <!-- Nav links — sólo desktop -->
       <div class="hidden md:flex items-center gap-6 border-l border-green-500/15 ml-2 pl-6">
-        <a routerLink="/" routerLinkActive="text-green-400" [routerLinkActiveOptions]="{exact: true}"
-          class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+        <a routerLink="/"
+          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          [class.text-green-400]="isHomeActive()"
+          [class.text-green-400/70]="!isHomeActive()">
           Inicio
         </a>
-        <a routerLink="/docs" routerLinkActive="text-green-400"
-          class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
-          Docs
-        </a>
-        <a routerLink="/army-builder" routerLinkActive="text-green-400"
-          class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+
+        <!-- Docs dropdown (click) -->
+        <div class="docs-dropdown relative">
+          <button (click)="toggleDocsMenu()" type="button"
+            class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]
+                   flex items-center gap-1 cursor-pointer"
+            [class.text-green-400]="isDocsActive()"
+            [class.text-green-400/70]="!isDocsActive()">
+            Docs
+            <span class="text-[7px] text-green-500/40 transition-transform duration-200"
+              [class.rotate-180]="docsMenuOpen()">▼</span>
+          </button>
+          @if (docsMenuOpen()) {
+          <div class="absolute top-full left-0 pt-1 min-w-[160px]">
+            <ul class="border border-green-500/25 bg-[#060e0a] shadow-xl shadow-black/70">
+              @for (cat of categories; track cat.id) {
+              <li>
+                <a [routerLink]="'/docs/' + cat.id"
+                  class="block px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase
+                         text-green-400/55 hover:text-green-300 hover:bg-green-500/8 transition-colors
+                         border-b border-green-500/10 last:border-b-0">
+                  {{ cat.label }}
+                </a>
+              </li>
+              }
+            </ul>
+          </div>
+          }
+        </div>
+
+        <a routerLink="/army-builder"
+          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          [class.text-green-400]="isListActive()"
+          [class.text-green-400/70]="!isListActive()">
           Lista
         </a>
       </div>
@@ -32,16 +62,45 @@
   <!-- Nav links — sólo mobile/tablet ──────────────────────── -->
   <div class="md:hidden flex items-center justify-center gap-8 px-4 py-2
               border-b border-green-500/10 bg-black/30 backdrop-blur-sm">
-    <a routerLink="/" routerLinkActive="text-green-400" [routerLinkActiveOptions]="{exact: true}"
-      class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+    <a routerLink="/"
+      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+      [class.text-green-400]="isHomeActive()"
+      [class.text-green-400/70]="!isHomeActive()">
       Inicio
     </a>
-    <a routerLink="/docs" routerLinkActive="text-green-400"
-      class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
-      Docs
-    </a>
-    <a routerLink="/army-builder" routerLinkActive="text-green-400"
-      class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+
+    <!-- Docs dropdown (mobile) -->
+    <div class="docs-dropdown relative">
+      <button (click)="toggleDocsMenu()" type="button"
+        class="uppercase text-[10px] tracking-[0.3em] flex items-center gap-1 transition-colors cursor-pointer"
+        [class.text-green-400]="isDocsActive()"
+        [class.text-green-400/70]="!isDocsActive()">
+        Docs
+        <span class="text-[7px] text-green-500/40 transition-transform duration-200"
+          [class.rotate-180]="docsMenuOpen()">▼</span>
+      </button>
+      @if (docsMenuOpen()) {
+      <div class="absolute top-full left-1/2 -translate-x-1/2 pt-1 min-w-[160px]">
+        <ul class="border border-green-500/25 bg-[#060e0a] shadow-xl shadow-black/70">
+          @for (cat of categories; track cat.id) {
+          <li>
+            <a [routerLink]="'/docs/' + cat.id"
+              class="block px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase
+                     text-green-400/55 hover:text-green-300 hover:bg-green-500/8 transition-colors
+                     border-b border-green-500/10 last:border-b-0">
+              {{ cat.label }}
+            </a>
+          </li>
+          }
+        </ul>
+      </div>
+      }
+    </div>
+
+    <a routerLink="/army-builder"
+      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+      [class.text-green-400]="isListActive()"
+      [class.text-green-400/70]="!isListActive()">
       Lista
     </a>
   </div>

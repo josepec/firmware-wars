@@ -8,15 +8,11 @@ export const routes: Routes = [
   },
   {
     path: 'docs',
-    loadComponent: () => import('./features/docs/docs').then(m => m.Docs)
-  },
-  {
-    path: 'docs/print',
-    loadComponent: () => import('./features/docs/docs-print').then(m => m.DocsPrint)
-  },
-  {
-    path: 'docs/:section',
-    loadComponent: () => import('./features/docs/docs').then(m => m.Docs)
+    children: [
+      { path: '', redirectTo: 'reglamento', pathMatch: 'full' },
+      { path: 'print', loadComponent: () => import('./features/docs/docs-print').then(m => m.DocsPrint) },
+      { path: '**', loadComponent: () => import('./features/docs/docs').then(m => m.Docs) },
+    ],
   },
   {
     path: 'army-builder',
