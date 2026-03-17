@@ -3,6 +3,34 @@
    ============================================================ */
 
 
+/* ── Search results scrollbar ───────────────────────────── */
+.search-results {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 136, 0.15) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 136, 0.2);
+    border-radius: 2px;
+  }
+}
+
+/* ── Search highlight flash ──────────────────────────────── */
+:host ::ng-deep .search-highlight-flash {
+  animation: searchFlash 2.5s ease-out;
+}
+
+@keyframes searchFlash {
+  0%   { background-color: rgba(0, 255, 136, 0.15); }
+  70%  { background-color: rgba(0, 255, 136, 0.08); }
+  100% { background-color: transparent; }
+}
+
 :host ::ng-deep markdown {
   display: block;
   animation: fadeIn 0.4s ease-out forwards;
