@@ -1,0 +1,36 @@
+.flowchart-svg {
+  display: block;
+  min-height: 400px;
+}
+
+.node-group {
+  .delete-btn {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .connect-handle {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover {
+    .delete-btn,
+    .connect-handle {
+      opacity: 1;
+    }
+  }
+
+  &.selected path,
+  &.connecting path {
+    stroke-width: 2.5;
+  }
+
+  &.connecting path {
+    stroke-dasharray: 4 2;
+  }
+}
+
+.connection-group:hover path {
+  stroke: rgb(34 197 94 / 0.6);
+}

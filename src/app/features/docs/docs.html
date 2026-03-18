@@ -162,7 +162,9 @@
   </aside>
 
   <!-- Content ───────────────────────────────────────────────── -->
-  <main class="flex-1 min-w-0 p-6 md:p-10 max-w-4xl relative z-20 overflow-x-hidden">
+  <main class="flex-1 min-w-0 p-6 md:p-10 relative z-20 overflow-x-hidden"
+        [class.max-w-4xl]="currentCategory().id !== 'escenarios'"
+        [class.max-w-7xl]="currentCategory().id === 'escenarios'">
     @if (currentCategory().id === 'escenarios' && currentSectionId()) {
     <app-scenario-viewer [scenarioId]="currentSectionId()!" />
     } @else if (markdownSrc(); as src) {

@@ -8,7 +8,7 @@
         {{ editId() ? 'Editar' : 'Nuevo' }} Escenario
       </h1>
     </div>
-    <a routerLink="/admin"
+    <a routerLink="/admin/scenarios"
       class="px-4 py-2 text-[10px] tracking-[0.15em] uppercase
              border border-green-500/15 text-green-500/40
              hover:text-green-400 hover:border-green-500/30 transition-all">
@@ -37,9 +37,41 @@
              class="field-input" placeholder="Nombre del escenario" />
     </div>
 
-    <!-- Ambientacion -->
+    <!-- Programadores + Bots -->
+    <div class="flex flex-wrap gap-8 items-end">
+      <div>
+        <label class="field-label">Programadores</label>
+        <div class="flex gap-2 mt-2">
+          @for (n of playerNums; track n) {
+            <button (click)="numeroJugadores.set(n)" type="button"
+              class="w-10 h-10 text-sm border transition-all cursor-pointer"
+              [class]="numeroJugadores() === n
+                ? 'bg-green-500/20 border-green-400/50 text-green-300'
+                : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+              {{ n }}
+            </button>
+          }
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Bots por Programador</label>
+        <div class="flex gap-2 mt-2">
+          @for (n of botNums; track n) {
+            <button (click)="numeroBots.set(n)" type="button"
+              class="w-10 h-10 text-sm border transition-all cursor-pointer"
+              [class]="numeroBots() === n
+                ? 'bg-green-500/20 border-green-400/50 text-green-300'
+                : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+              {{ n }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Ambientación -->
     <div class="scenario-field">
-      <label class="field-label">Ambientacion</label>
+      <label class="field-label">Ambientación</label>
       <textarea [ngModel]="ambientacion()" (ngModelChange)="ambientacion.set($event)"
                 class="field-textarea" rows="4" placeholder="Texto narrativo..."></textarea>
     </div>
@@ -58,17 +90,89 @@
                 class="field-textarea" rows="2" placeholder="Recompensas especiales..."></textarea>
     </div>
 
+    <!-- Penalización (optional) -->
+    <div class="scenario-field">
+      <label class="field-label">Penalización <span class="text-green-500/25">(opcional)</span></label>
+      <textarea [ngModel]="penalizacion()" (ngModelChange)="penalizacion.set($event)"
+                class="field-textarea" rows="2" placeholder="Penalizaciónes..."></textarea>
+    </div>
+
     <!-- Amenazas -->
     <div class="scenario-field">
       <label class="field-label">Amenazas</label>
-      <textarea [ngModel]="amenazas()" (ngModelChange)="amenazas.set($event)"
-                class="field-textarea" rows="3" placeholder="Enemigos, trampas, peligros..."></textarea>
+      @if (availableThreats().length === 0) {
+      <div class="text-[9px] text-green-500/30 tracking-wider">
+        > No hay amenazas creadas. Crea amenazas en la sección "Amenazas".
+      </div>
+      } @else {
+      <div class="flex flex-wrap gap-2">
+        @for (t of availableThreats(); track t.id) {
+          <button (click)="toggleThreat(t.id)" type="button"
+            class="flex items-center gap-2 px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
+            [class]="amenazaIds().includes(t.id)
+              ? 'bg-green-500/15 border-green-400/50 text-green-300'
+              : 'border-green-500/15 text-green-500/40 hover:text-green-400'">
+            @if (t.imageUrl) {
+            <img [src]="t.imageUrl" class="w-5 h-5 object-contain" />
+            }
+            {{ t.name }}
+          </button>
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Despliegue -->
+    <div class="scenario-field">
+      <label class="field-label">Despliegue</label>
+      <div class="flex gap-2 mb-3">
+        <button (click)="despliegueMode.set('map')" type="button"
+          class="px-3 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+          [class]="despliegueMode() === 'map'
+            ? 'bg-green-500/20 border-green-400/50 text-green-300'
+            : 'border-green-500/15 text-green-500/50'">
+          En Mapa
+        </button>
+        <button (click)="despliegueMode.set('dots')" type="button"
+          class="px-3 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+          [class]="despliegueMode() === 'dots'
+            ? 'bg-green-500/20 border-green-400/50 text-green-300'
+            : 'border-green-500/15 text-green-500/50'">
+          Por Color
+        </button>
+      </div>
+
+      @if (despliegueMode() === 'dots') {
+      <div class="flex flex-col gap-2">
+        @for (p of playerNums; track p) {
+          @if (p <= numeroJugadores()) {
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] text-green-500/50 w-24 shrink-0">Programador {{ p }}:</span>
+            <div class="flex gap-1">
+              @for (c of dotColors; track c.id) {
+                <button (click)="setDespliegueColor(p, c.id)" type="button"
+                  class="w-5 h-5 rounded-full border-2 transition-all cursor-pointer"
+                  [style.background]="c.hex"
+                  [class]="despliegueDots()[p] === c.id ? 'border-white scale-110' : 'border-transparent opacity-50 hover:opacity-100'">
+                </button>
+              }
+            </div>
+          </div>
+          }
+        }
+      </div>
+      } @else {
+      <div class="text-[9px] text-green-500/30 tracking-wider">
+        > Usa marcadores de despliegue (P1, P2, P3) en el mapa de abajo.
+      </div>
+      }
     </div>
 
     <!-- Entorno Digitalizado de Combate -->
     <div>
       <label class="field-label mb-3 block">Entorno Digitalizado de Combate</label>
-      <app-hex-map-editor [(mapData)]="hexMap" />
+      <app-hex-map-editor [(mapData)]="hexMap" [maxPlayers]="numeroJugadores()"
+        [availableThreats]="selectedThreats()" [(amenazaCounts)]="amenazaCounts" />
     </div>
 
     <!-- Actions -->
@@ -80,7 +184,7 @@
                disabled:opacity-50 cursor-pointer">
         @if (saving()) { GUARDANDO... } @else { Guardar }
       </button>
-      <a routerLink="/admin"
+      <a routerLink="/admin/scenarios"
         class="px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase
                border border-green-500/15 text-green-500/40
                hover:text-green-400 transition-all">

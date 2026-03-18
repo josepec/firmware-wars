@@ -1,0 +1,152 @@
+<div class="border border-green-500/15 bg-black/40">
+
+  <!-- Toolbar -->
+  <div class="border-b border-green-500/15 p-4 flex flex-wrap gap-4 items-end">
+
+    <!-- Add node -->
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-wider uppercase text-green-500/40">Nuevo Nodo</span>
+      <div class="flex items-center gap-2">
+        <select [ngModel]="newNodeType()" (ngModelChange)="newNodeType.set($event)"
+          class="px-2 py-1.5 text-[10px] bg-green-500/5 border border-green-500/20
+                 text-green-300 focus:outline-none cursor-pointer">
+          @for (t of nodeTypes; track t.id) {
+            <option [value]="t.id">{{ t.label }}</option>
+          }
+        </select>
+        <input type="text" placeholder="Etiqueta" [ngModel]="newNodeLabel()" (ngModelChange)="newNodeLabel.set($event)"
+               (keydown.enter)="addNode()"
+               class="px-2 py-1.5 text-[10px] bg-green-500/5 border border-green-500/20
+                      text-green-300 focus:outline-none w-32" />
+        <button (click)="addNode()" type="button"
+          class="px-3 py-1.5 text-[9px] tracking-wider uppercase
+                 bg-green-500/10 border border-green-500/30 text-green-400
+                 hover:bg-green-500/20 transition-all cursor-pointer">
+          Añadir
+        </button>
+      </div>
+    </div>
+
+    <div class="h-8 border-l border-green-500/15"></div>
+
+    <!-- Instructions -->
+    <div class="flex flex-col gap-0.5 text-[8px] text-green-500/30 tracking-wider">
+      <span>Drag: Mover nodo</span>
+      <span>Doble-click: Editar etiqueta</span>
+      <span>
+        @if (connectingFrom()) {
+          <span class="text-yellow-400/60">Selecciona nodo destino...</span>
+          <button (click)="connectingFrom.set(null)" type="button"
+            class="text-red-400/50 hover:text-red-400 cursor-pointer ml-1">cancelar</button>
+        } @else {
+          Click derecho: Conectar / Borrar
+        }
+      </span>
+    </div>
+  </div>
+
+  <!-- SVG canvas -->
+  <div class="overflow-auto bg-[#0a0f0c] min-h-[400px]">
+    <svg #svgCanvas
+      [attr.width]="svgWidth()" [attr.height]="svgHeight()"
+      class="flowchart-svg"
+      (mousemove)="onMouseMove($event)"
+      (mouseup)="onMouseUp()">
+
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="rgb(34 197 94 / 0.5)" />
+        </marker>
+      </defs>
+
+      <!-- Connections -->
+      @for (c of data().connections; track connKey(c)) {
+        <g class="connection-group">
+          <path [attr.d]="connPath(c)"
+                fill="none" stroke="rgb(34 197 94 / 0.3)" stroke-width="2"
+                marker-end="url(#arrowhead)" />
+          <!-- Click area (wider invisible path) -->
+          <path [attr.d]="connPath(c)"
+                fill="none" stroke="transparent" stroke-width="14"
+                class="cursor-pointer"
+                (contextmenu)="$event.preventDefault(); deleteConnection(c.from, c.to)"
+                (dblclick)="startEditConn(c)" />
+          <!-- Connection label -->
+          @if (editingConn() === connKey(c)) {
+            <foreignObject [attr.x]="connMid(c).x - 40" [attr.y]="connMid(c).y - 12" width="80" height="24">
+              <input type="text" [ngModel]="editConnLabel()" (ngModelChange)="editConnLabel.set($event)"
+                     (blur)="saveConnLabel(c)" (keydown.enter)="saveConnLabel(c)"
+                     class="w-full h-full px-1 text-[9px] bg-black/80 border border-green-500/30
+                            text-green-300 focus:outline-none text-center" />
+            </foreignObject>
+          } @else if (c.label) {
+            <text [attr.x]="connMid(c).x" [attr.y]="connMid(c).y"
+                  text-anchor="middle" dominant-baseline="middle"
+                  fill="rgb(34 197 94 / 0.5)" font-size="9"
+                  class="cursor-pointer select-none"
+                  (dblclick)="startEditConn(c)">
+              {{ c.label }}
+            </text>
+          }
+        </g>
+      }
+
+      <!-- Nodes -->
+      @for (node of data().nodes; track node.id) {
+        <g [attr.transform]="'translate(' + node.x + ',' + node.y + ')'"
+           class="node-group"
+           [class.selected]="selectedNode() === node.id"
+           [class.connecting]="connectingFrom() === node.id"
+           (mousedown)="onMouseDown($event, node.id)"
+           (dblclick)="startEdit(node)"
+           (contextmenu)="$event.preventDefault(); connectingFrom() ? startConnect(node.id) : startConnect(node.id)">
+
+          <!-- Node shape -->
+          <path [attr.d]="nodePath(node)"
+                [attr.fill]="nodeColor(node.type) + '15'"
+                [attr.stroke]="nodeColor(node.type) + '60'"
+                stroke-width="1.5"
+                class="cursor-grab" />
+
+          <!-- Label -->
+          @if (editingNode() === node.id) {
+            <foreignObject [attr.x]="node.type === 'condition' ? 20 : 5"
+                           [attr.y]="node.type === 'condition' ? 12 : 10"
+                           [attr.width]="NODE_W - (node.type === 'condition' ? 40 : 10)"
+                           [attr.height]="NODE_H - 20">
+              <input type="text" [ngModel]="editLabel()" (ngModelChange)="editLabel.set($event)"
+                     (blur)="saveEdit()" (keydown.enter)="saveEdit()"
+                     class="w-full h-full px-1 text-[10px] bg-black/80 border border-green-500/30
+                            text-green-300 focus:outline-none text-center" />
+            </foreignObject>
+          } @else {
+            <text [attr.x]="NODE_W / 2" [attr.y]="NODE_H / 2"
+                  text-anchor="middle" dominant-baseline="middle"
+                  [attr.fill]="nodeColor(node.type) + 'cc'"
+                  font-size="11" class="select-none pointer-events-none"
+                  style="font-family: monospace; letter-spacing: 0.05em;">
+              {{ node.label }}
+            </text>
+          }
+
+          <!-- Delete button (top-right) -->
+          <g [attr.transform]="'translate(' + (NODE_W - 6) + ',-6)'"
+             class="delete-btn cursor-pointer"
+             (click)="$event.stopPropagation(); deleteNode(node.id)">
+            <circle r="7" fill="#0a0f0c" stroke="rgb(239 68 68 / 0.3)" stroke-width="1" />
+            <line x1="-3" y1="-3" x2="3" y2="3" stroke="rgb(239 68 68 / 0.5)" stroke-width="1.5" />
+            <line x1="3" y1="-3" x2="-3" y2="3" stroke="rgb(239 68 68 / 0.5)" stroke-width="1.5" />
+          </g>
+
+          <!-- Connect handle (bottom-center) -->
+          <circle [attr.cx]="NODE_W / 2" [attr.cy]="NODE_H + 6" r="5"
+                  fill="rgb(34 197 94 / 0.15)" stroke="rgb(34 197 94 / 0.3)" stroke-width="1"
+                  class="connect-handle cursor-crosshair"
+                  (mousedown)="$event.stopPropagation(); startConnect(node.id)" />
+        </g>
+      }
+
+    </svg>
+  </div>
+
+</div>

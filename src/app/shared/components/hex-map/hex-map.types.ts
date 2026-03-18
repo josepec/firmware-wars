@@ -14,7 +14,7 @@ export interface HexCell {
   dot?: DotColor;
 }
 
-export type DotColor = 'green' | 'blue' | 'yellow' | 'orange' | 'red' | 'white';
+export type DotColor = 'green' | 'blue' | 'yellow' | 'orange' | 'red';
 
 export const DOT_COLORS: { id: DotColor; hex: string }[] = [
   { id: 'green', hex: '#22c55e' },
@@ -22,14 +22,26 @@ export const DOT_COLORS: { id: DotColor; hex: string }[] = [
   { id: 'yellow', hex: '#eab308' },
   { id: 'orange', hex: '#f97316' },
   { id: 'red', hex: '#ef4444' },
-  { id: 'white', hex: '#ffffff' },
+];
+
+export type MarkerType = 'player' | 'treasure' | 'flag' | 'plaque' | 'threat';
+
+export const MARKER_TYPES: { id: MarkerType; label: string; prefix: string }[] = [
+  { id: 'player', label: 'Programador', prefix: 'P' },
+  { id: 'threat', label: 'Amenaza', prefix: 'A' },
+  { id: 'treasure', label: 'Tesoro', prefix: 'T' },
+  { id: 'flag', label: 'Bandera', prefix: 'B' },
+  { id: 'plaque', label: 'Placa', prefix: 'X' },
 ];
 
 export interface DeploymentMarker {
   q: number;
   r: number;
-  team: number;
-  label?: string;
+  type: MarkerType;
+  team?: number;
+  label: string;
+  threatId?: string;
+  imageUrl?: string;
 }
 
 export interface HexMapData {
@@ -66,4 +78,13 @@ export function hexPoints(cx: number, cy: number, size: number): string {
     pts.push(`${cx + size * Math.cos(angle)},${cy + size * Math.sin(angle)}`);
   }
   return pts.join(' ');
+}
+
+/** Get the 6 axial neighbor coordinates */
+export function hexNeighbors(q: number, r: number): { q: number; r: number }[] {
+  return [
+    { q: q + 1, r }, { q: q - 1, r },
+    { q, r: r + 1 }, { q, r: r - 1 },
+    { q: q + 1, r: r - 1 }, { q: q - 1, r: r + 1 },
+  ];
 }

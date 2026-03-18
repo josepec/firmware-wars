@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AdminAuth } from '../../core/services/admin-auth';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
@@ -18,40 +18,14 @@ interface ScenarioSummary {
   styleUrl: './admin.scss',
 })
 export class Admin implements OnInit {
-  readonly auth = inject(AdminAuth);
-  private readonly router = inject(Router);
+  private readonly auth = inject(AdminAuth);
 
-  /* Login */
-  password = signal('');
-  loginError = signal(false);
-  loginLoading = signal(false);
-
-  /* Dashboard */
   scenarios = signal<ScenarioSummary[]>([]);
   loading = signal(false);
   deleteConfirm = signal<string | null>(null);
 
   ngOnInit() {
-    if (this.auth.isAuthenticated()) {
-      this.loadScenarios();
-    }
-  }
-
-  async onLogin(): Promise<void> {
-    this.loginLoading.set(true);
-    this.loginError.set(false);
-    const ok = await this.auth.login(this.password());
-    this.loginLoading.set(false);
-    if (ok) {
-      this.loadScenarios();
-    } else {
-      this.loginError.set(true);
-    }
-  }
-
-  logout(): void {
-    this.auth.logout();
-    this.password.set('');
+    this.loadScenarios();
   }
 
   async loadScenarios(): Promise<void> {
