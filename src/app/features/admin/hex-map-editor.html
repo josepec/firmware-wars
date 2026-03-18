@@ -1,7 +1,7 @@
 <div class="border border-green-500/15 bg-black/40">
 
   <!-- Toolbar ──────────────────────────────────────────── -->
-  <div class="border-b border-green-500/15 p-4 flex flex-wrap gap-4 items-end">
+  <div class="border-b border-green-500/15 p-4 flex flex-wrap gap-4 items-start">
 
     <!-- Grid generator -->
     <div class="flex flex-col gap-1.5">
@@ -127,9 +127,9 @@
         </div>
         } @else {
         <div class="flex flex-col gap-2 mt-1">
-          <span class="text-[8px] text-green-500/30">Amenaza y cantidad:</span>
-          @for (t of availableThreats(); track t.id) {
-            <div class="flex items-center gap-2">
+          <span class="text-[8px] text-green-500/30">Selecciona amenaza:</span>
+          <div class="flex items-center gap-1 flex-wrap">
+            @for (t of availableThreats(); track t.id) {
               <button (click)="selectedThreatId.set(t.id)" type="button"
                 class="flex items-center gap-1.5 px-2 py-1 text-[9px] border transition-all cursor-pointer"
                 [class]="selectedThreatId() === t.id
@@ -139,21 +139,10 @@
                 <img [src]="t.imageUrl" class="w-4 h-4 object-contain" />
                 }
                 {{ t.name }}
+                <span class="text-[8px] text-green-500/25">{{ getThreatDeployCount(t.id) }}/{{ getAmenazaCount(t.id) }}</span>
               </button>
-              <div class="flex items-center gap-1">
-                <button (click)="setAmenazaCount(t.id, getAmenazaCount(t.id) - 1)" type="button"
-                  class="w-5 h-5 text-[9px] border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer"
-                  data-tooltip="- Unidades">−</button>
-                <span class="text-[9px] text-green-400 w-4 text-center">{{ getAmenazaCount(t.id) }}</span>
-                <button (click)="setAmenazaCount(t.id, getAmenazaCount(t.id) + 1)" type="button"
-                  class="w-5 h-5 text-[9px] border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer"
-                  data-tooltip="+ Unidades">+</button>
-              </div>
-              <span class="text-[8px] text-green-500/25">
-                {{ getThreatDeployCount(t.id) }}/{{ getAmenazaCount(t.id) }}
-              </span>
-            </div>
-          }
+            }
+          </div>
         </div>
         }
       }

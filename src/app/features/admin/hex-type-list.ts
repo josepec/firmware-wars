@@ -30,7 +30,7 @@ function autoBorder(hex: string): string {
         <div>
           <div class="text-[10px] tracking-[0.3em] text-green-500/50 mb-1">// ADMIN</div>
           <h1 class="text-lg tracking-[0.15em] text-green-400 font-bold uppercase"
-              style="font-family: 'Orbitron', monospace;">Tipos de Hex</h1>
+              style="font-family: 'Orbitron', monospace;">Hexes</h1>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
-import { Component, input, OnChanges, signal } from '@angular/core';
+import { Component, computed, input, OnChanges, signal, ViewEncapsulation } from '@angular/core';
 import { HexMap } from '../../shared/components/hex-map/hex-map';
 import { HexMapData, HexTypeDefinition } from '../../shared/components/hex-map/hex-map.types';
+import { classifyCode } from '../../shared/markdown/marked-extensions';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
@@ -17,6 +18,7 @@ interface ThreatInfo {
   description: string;
   imageUrl: string;
   count: number;
+  turnos: number[];
 }
 
 interface ScenarioData {
@@ -28,14 +30,17 @@ interface ScenarioData {
   penalizacion: string;
   amenazaIds: string[];
   amenazaCounts: Record<string, number>;
+  amenazaTurnos: Record<string, number[]>;
   despliegueMode: 'dots' | 'map';
   despliegueDots: Record<string, string>;
+  linkedFunctions: string[];
   hexMap: HexMapData;
 }
 
 @Component({
   selector: 'app-scenario-viewer',
   imports: [HexMap],
+  encapsulation: ViewEncapsulation.None,
   template: `
     @if (loading()) {
       <p class="text-green-500/40 text-[10px] tracking-widest animate-pulse">> LOADING...</p>
@@ -71,28 +76,83 @@ interface ScenarioData {
           @if (data()!.ambientacion) {
           <section class="mb-8">
             <h2 class="section-title">Ambientación</h2>
-            <p class="section-text">{{ data()!.ambientacion }}</p>
+            <p class="section-text" [innerHTML]="renderInlineCode(data()!.ambientacion)"></p>
           </section>
           }
 
           @if (data()!.objetivo) {
           <section class="mb-8">
             <h2 class="section-title">Objetivo</h2>
-            <p class="section-text">{{ data()!.objetivo }}</p>
+            <p class="section-text" [innerHTML]="renderInlineCode(data()!.objetivo)"></p>
           </section>
           }
 
           @if (data()!.recompensa) {
           <section class="mb-8">
             <h2 class="section-title">Recompensa</h2>
-            <p class="section-text">{{ data()!.recompensa }}</p>
+            <p class="section-text" [innerHTML]="renderInlineCode(data()!.recompensa)"></p>
           </section>
           }
 
           @if (data()!.penalizacion) {
           <section class="mb-8">
             <h2 class="section-title">Penalización</h2>
-            <p class="section-text">{{ data()!.penalizacion }}</p>
+            <p class="section-text" [innerHTML]="renderInlineCode(data()!.penalizacion)"></p>
+          </section>
+          }
+
+          @if (scenarioFunctions().length > 0) {
+          <section class="mb-8">
+            <h2 class="section-title">Funciones de Escenario</h2>
+            <p class="section-text mb-4">Las siguientes Funciones están disponibles exclusivamente durante este Escenario. Pueden asignarse a cualquier ranura de Función de los Bots.<br>Al finalizar el Escenario, se pierden.</p>
+            <div class="overflow-x-auto">
+              <table class="fn-table">
+                <thead>
+                  <tr>
+                    <th>Función</th>
+                    <th>V.</th>
+                    <th class="text-center">Rango</th>
+                    <th class="text-center">Daño</th>
+                    <th class="text-center">Energía</th>
+                    <th class="text-center">Coste</th>
+                    <th>Efectos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (fn of attackScenarioFunctions(); track fn.name) {
+                  <tr>
+                    <td><code [class]="codeClass(fn.name)">{{ fn.name }}</code></td>
+                    <td class="text-center">{{ fn.version }}</td>
+                    <td class="text-center">{{ fn.range }}</td>
+                    <td class="text-center">{{ fn.damage }}</td>
+                    <td class="text-center">{{ fn.energy }}</td>
+                    <td class="text-center">{{ fn.cost }}◈</td>
+                    <td [innerHTML]="renderInlineCode(fn.effects)"></td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (passiveScenarioFunctions().length > 0) {
+            <div class="overflow-x-auto mt-4">
+              <table class="fn-table">
+                <thead>
+                  <tr>
+                    <th>Función (Pasiva)</th>
+                    <th>Efectos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (fn of passiveScenarioFunctions(); track fn.name) {
+                  <tr>
+                    <td><code [class]="codeClass(fn.name)">{{ fn.name }}</code></td>
+                    <td [innerHTML]="renderInlineCode(fn.effects)"></td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            }
           </section>
           }
 
@@ -109,9 +169,9 @@ interface ScenarioData {
                 }
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
-                    <span class="text-green-300 text-sm tracking-wider font-bold">{{ t.name }}</span>
+                    <span class="text-sm tracking-wider" style="color: #f0fdf4; font-weight: 600;">{{ t.name }}</span>
                     @if (t.count > 0) {
-                    <span class="text-green-300 text-sm tracking-wider font-bold">×{{ t.count }}</span>
+                    <span class="text-sm tracking-wider" style="color: #f0fdf4; font-weight: 600;">×{{ t.count }}</span>
                     }
                   </div>
                   @if (t.description) {
@@ -153,7 +213,7 @@ interface ScenarioData {
                     stroke-width="2" />
                 </svg>
                 <div>
-                  <span class="text-green-300 text-sm tracking-wider font-bold">{{ ht.name }}</span>
+                  <span class="text-sm tracking-wider" style="color: #f0fdf4; font-weight: 600;">{{ ht.name }}</span>
                   @if (ht.properties) {
                   <p class="section-text text-[0.8rem] mt-0.5 !leading-relaxed">{{ ht.properties }}</p>
                   }
@@ -167,22 +227,23 @@ interface ScenarioData {
           <!-- Despliegue -->
           <section>
             <h2 class="section-title">Despliegue</h2>
-            @if (data()!.despliegueMode === 'dots' && data()!.despliegueDots) {
-              <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-1">
+              @if (data()!.despliegueMode === 'dots' && data()!.despliegueDots) {
                 @for (entry of deployEntries(); track entry.player) {
                 <div class="flex items-center gap-3">
                   <span class="w-3 h-3 rounded-full inline-block" [style.background]="dotHex(entry.color)"></span>
-                  <span class="section-text">El Programador {{ entry.player }} desplegará sus Bots en los Hexes marcados con un punto {{ dotName(entry.color) }}.</span>
+                  <span class="section-text"><span style="color: #f0fdf4; font-weight: 600;">Programador {{ entry.player }}</span>: Bots en Hexes con punto {{ dotName(entry.color) }}.</span>
                 </div>
                 }
-              </div>
-            } @else {
-              <div class="flex flex-col gap-1">
+              } @else {
                 @for (i of playerIndexes(); track i) {
-                <p class="section-text">El Programador {{ i }} desplegará sus Bots en los marcadores P{{ i }} del Entorno Digitalizado de Combate.</p>
+                <p class="section-text"><span style="color: #f0fdf4; font-weight: 600;">Programador {{ i }}</span>: Bots en marcadores P{{ i }}.</p>
                 }
-              </div>
-            }
+              }
+              @for (u of threatUnitList(); track u.label) {
+                <p class="section-text"><span style="color: #f0fdf4; font-weight: 600;">{{ u.label }}</span>: {{ u.turno === 0 ? 'Al inicio de la partida' : 'Al inicio del turno ' + u.turno }}, en marcador {{ u.marker }}.</p>
+              }
+            </div>
           </section>
 
         </div>
@@ -191,7 +252,7 @@ interface ScenarioData {
     }
   `,
   styles: [`
-    .section-title {
+    app-scenario-viewer .section-title {
       font-family: 'Orbitron', monospace;
       font-size: clamp(0.9rem, 2.5vw, 1.15rem);
       font-weight: 700;
@@ -202,13 +263,13 @@ interface ScenarioData {
       padding-left: 0.875rem;
       border-left: 2px solid #00ff88;
     }
-    .section-text {
+    app-scenario-viewer .section-text {
       color: rgba(74, 222, 128, 0.8);
       line-height: 1.85;
       font-size: 0.9rem;
       white-space: pre-line;
     }
-    .stat-card {
+    app-scenario-viewer .stat-card {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -218,14 +279,82 @@ interface ScenarioData {
       background: rgba(0, 255, 136, 0.03);
       min-width: 5rem;
     }
-    .stat-value {
+    app-scenario-viewer .stat-value {
       font-family: 'Orbitron', monospace;
       font-size: 1.4rem;
       font-weight: 700;
       color: #00ff88;
       text-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
     }
-    .stat-label {
+    app-scenario-viewer .fn-table {
+      width: max-content;
+      max-width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      border: 1px solid rgba(0, 255, 136, 0.12);
+    }
+    app-scenario-viewer .fn-table thead {
+      background: rgba(0, 255, 136, 0.04);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.25);
+    }
+    app-scenario-viewer .fn-table th {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(0, 255, 136, 0.65);
+      padding: 0.65rem 1rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    app-scenario-viewer .fn-table tbody tr {
+      border-bottom: 1px solid rgba(0, 255, 136, 0.07);
+      transition: background 0.15s;
+    }
+    app-scenario-viewer .fn-table tbody tr:last-child { border-bottom: none; }
+    app-scenario-viewer .fn-table tbody tr:hover { background: rgba(0, 255, 136, 0.03); }
+    app-scenario-viewer .fn-table td {
+      color: rgba(74, 222, 128, 0.75);
+      padding: 0.6rem 1rem;
+      vertical-align: top;
+      line-height: 1.6;
+      white-space: nowrap;
+    }
+    app-scenario-viewer .fn-table code {
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 0.85em;
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.07);
+      border: 1px solid rgba(0, 255, 136, 0.22);
+      padding: 0.1em 0.45em;
+      border-radius: 2px;
+    }
+    app-scenario-viewer .fn-table code.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    7%, transparent); border-color: color-mix(in srgb, var(--bs-kw)    22%, transparent); }
+    app-scenario-viewer .fn-table code.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    7%, transparent); border-color: color-mix(in srgb, var(--bs-fn)    22%, transparent); }
+    app-scenario-viewer .fn-table code.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   7%, transparent); border-color: color-mix(in srgb, var(--bs-var)   22%, transparent); }
+    app-scenario-viewer .fn-table code.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  7%, transparent); border-color: color-mix(in srgb, var(--bs-const)  22%, transparent); }
+    app-scenario-viewer .fn-table code.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 7%, transparent); border-color: color-mix(in srgb, var(--bs-status) 22%, transparent); }
+    app-scenario-viewer .fn-table code.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   7%, transparent); border-color: color-mix(in srgb, var(--bs-type)   22%, transparent); }
+    app-scenario-viewer .section-text code {
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 0.85em;
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.07);
+      border: 1px solid rgba(0, 255, 136, 0.22);
+      padding: 0.1em 0.45em;
+      border-radius: 2px;
+    }
+    app-scenario-viewer .section-text code.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    7%, transparent); border-color: color-mix(in srgb, var(--bs-kw)    22%, transparent); }
+    app-scenario-viewer .section-text code.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    7%, transparent); border-color: color-mix(in srgb, var(--bs-fn)    22%, transparent); }
+    app-scenario-viewer .section-text code.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   7%, transparent); border-color: color-mix(in srgb, var(--bs-var)   22%, transparent); }
+    app-scenario-viewer .section-text code.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  7%, transparent); border-color: color-mix(in srgb, var(--bs-const)  22%, transparent); }
+    app-scenario-viewer .section-text code.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 7%, transparent); border-color: color-mix(in srgb, var(--bs-status) 22%, transparent); }
+    app-scenario-viewer .section-text code.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   7%, transparent); border-color: color-mix(in srgb, var(--bs-type)   22%, transparent); }
+    app-scenario-viewer .section-text strong {
+      color: #f0fdf4;
+      font-weight: 600;
+    }
+    app-scenario-viewer .stat-label {
       font-size: 0.6rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -240,9 +369,23 @@ export class ScenarioViewer implements OnChanges {
   error = signal('');
   data = signal<ScenarioData | null>(null);
   threats = signal<ThreatInfo[]>([]);
+  scenarioFunctions = signal<{ name: string; type: string; version: string; range: string; damage: string; energy: string; cost: string; effects: string }[]>([]);
 
   private loadedId: string | null = null;
 
+  attackScenarioFunctions = computed(() => this.scenarioFunctions().filter(f => f.type !== 'passive'));
+  passiveScenarioFunctions = computed(() => this.scenarioFunctions().filter(f => f.type === 'passive'));
+
+  codeClass(text: string): string { return classifyCode(text) || ''; }
+  renderInlineCode(text: string): string {
+    const safe = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return safe(text)
+      .replace(/`([^`]+)`/g, (_, code) => {
+        const cls = classifyCode(code);
+        return `<code${cls ? ` class="${cls}"` : ''}>${code}</code>`;
+      })
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  }
   dotName(color: string): string { return DOT_COLOR_NAMES[color] ?? color; }
   dotHex(color: string): string { return DOT_COLOR_HEX[color] ?? color; }
 
@@ -260,6 +403,17 @@ export class ScenarioViewer implements OnChanges {
       pts.push(`${s * Math.cos(a)},${s * Math.sin(a)}`);
     }
     return pts.join(' ');
+  }
+
+  threatUnitList(): { label: string; marker: string; turno: number }[] {
+    const units: { label: string; marker: string; turno: number }[] = [];
+    for (const t of this.threats()) {
+      const prefix = t.name.substring(0, 3).toUpperCase();
+      for (let i = 1; i <= t.count; i++) {
+        units.push({ label: `${t.name} ${i}`, marker: `${prefix}${i}`, turno: t.turnos[i - 1] ?? 0 });
+      }
+    }
+    return units;
   }
 
   playerIndexes(): number[] {
@@ -288,10 +442,11 @@ export class ScenarioViewer implements OnChanges {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [scenarioResp, typesResp, threatsResp] = await Promise.all([
+      const [scenarioResp, typesResp, threatsResp, functionsResp] = await Promise.all([
         fetch(`${API_URL}/api/scenarios/${id}`),
         fetch(`${API_URL}/api/hex-types`),
         fetch(`${API_URL}/api/threats`),
+        fetch(`${API_URL}/api/functions/admin`),
       ]);
       if (!scenarioResp.ok) throw new Error('Not found');
       const json = await scenarioResp.json();
@@ -317,9 +472,30 @@ export class ScenarioViewer implements OnChanges {
             description: t.description ?? '',
             imageUrl: t.data?.imageUrl ?? '',
             count: d.amenazaCounts?.[t.id] || 0,
+            turnos: d.amenazaTurnos?.[t.id] || [],
           })));
       } else {
         this.threats.set([]);
+      }
+
+      // Resolve linked functions by ID
+      if (d?.linkedFunctions?.length && functionsResp.ok) {
+        const allFns: any[] = await functionsResp.json();
+        const fnIds = new Set(d.linkedFunctions);
+        this.scenarioFunctions.set(allFns
+          .filter((f: any) => fnIds.has(f.id))
+          .map((f: any) => ({
+            name: f.func_name,
+            type: f.func_type ?? 'attack',
+            version: f.version ?? '',
+            range: f.range ?? '',
+            damage: f.damage ?? '',
+            energy: f.energy ?? '',
+            cost: f.cost ?? '',
+            effects: f.effects ?? '',
+          })));
+      } else {
+        this.scenarioFunctions.set([]);
       }
 
       this.data.set(d);

@@ -265,24 +265,6 @@ export class HexMapEditor implements OnInit {
     return counts;
   });
 
-  setAmenazaCount(threatId: string, count: number): void {
-    const c = Math.max(0, Math.min(10, count));
-    this.amenazaCounts.update(m => ({ ...m, [threatId]: c }));
-    // Remove excess deployments if count was reduced
-    const data = this.mapData();
-    const placed = data.deployments.filter(d => d.type === 'threat' && d.threatId === threatId);
-    if (placed.length > c) {
-      const keep = placed.slice(0, c);
-      const keepSet = new Set(keep.map(d => `${d.q},${d.r}`));
-      this.mapData.set({
-        ...data,
-        deployments: data.deployments.filter(d =>
-          !(d.type === 'threat' && d.threatId === threatId) || keepSet.has(`${d.q},${d.r}`)
-        ),
-      });
-    }
-  }
-
   private eraseHex(q: number, r: number, data: HexMapData): void {
     this.mapData.set({
       ...data,

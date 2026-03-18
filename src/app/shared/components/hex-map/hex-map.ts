@@ -39,7 +39,7 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
       <!-- Dots -->
       @for (h of renderedHexes(); track h.key) {
         @if (h.dotColor) {
-          <circle [attr.cx]="h.cx" [attr.cy]="h.cy" [attr.r]="dotRadius()"
+          <circle [attr.cx]="h.dotCx" [attr.cy]="h.dotCy" [attr.r]="dotRadius()"
                   [attr.fill]="h.dotColor"
                   class="pointer-events-none" />
         }
@@ -198,17 +198,21 @@ export class HexMap {
     const s = this.size();
     const data = this.mapData();
     const typeMap = new Map(data.hexTypes.map(t => [t.id, t]));
+    const deployedSet = new Set(data.deployments.map(d => `${d.q},${d.r}`));
 
     return data.hexes.map(h => {
       const { x, y } = hexToPixel(h.q, h.r, s);
       const type = typeMap.get(h.typeId) ?? data.hexTypes[0];
       const dotDef = h.dot ? DOT_COLORS.find(d => d.id === h.dot) : null;
+      const hasDeployment = deployedSet.has(`${h.q},${h.r}`);
       return {
         key: `${h.q},${h.r}`,
         q: h.q,
         r: h.r,
         cx: x,
         cy: y,
+        dotCx: x,
+        dotCy: hasDeployment ? y - s * 0.65 : y,
         points: hexPoints(x, y, s),
         depthPoints: hexPoints(x, y + this.depthOffset, s),
         fill: type.color,

@@ -51,7 +51,7 @@ import { AdminAuth } from '../../core/services/admin-auth';
               class="text-[10px] tracking-[0.2em] uppercase text-green-500/50
                      hover:text-green-300 transition-colors py-2 border-b border-transparent"
               [routerLinkActiveOptions]="{ exact: false }">
-              Tipos Hex
+              Hexes
             </a>
             <a routerLink="/admin/functions" routerLinkActive="text-green-400"
               class="text-[10px] tracking-[0.2em] uppercase text-green-500/50

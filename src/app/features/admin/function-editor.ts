@@ -41,17 +41,37 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
 
       <div class="flex flex-col gap-5">
 
+        <!-- Tipo de función (tabs) -->
+        <div class="flex gap-2">
+          <button (click)="funcType.set('attack')" type="button"
+            class="px-4 py-2 text-[10px] tracking-[0.15em] uppercase border transition-all cursor-pointer"
+            [class]="funcType() === 'attack'
+              ? 'bg-green-500/20 border-green-400/50 text-green-300'
+              : 'border-green-500/15 text-green-500/50 hover:text-green-400'">
+            Ataque
+          </button>
+          <button (click)="funcType.set('passive')" type="button"
+            class="px-4 py-2 text-[10px] tracking-[0.15em] uppercase border transition-all cursor-pointer"
+            [class]="funcType() === 'passive'
+              ? 'bg-green-500/20 border-green-400/50 text-green-300'
+              : 'border-green-500/15 text-green-500/50 hover:text-green-400'">
+            Pasiva
+          </button>
+        </div>
+
         <!-- Función (nombre) -->
         <div class="fn-field">
           <label class="fn-label">Función</label>
           <input type="text" [ngModel]="funcName()" (ngModelChange)="funcName.set($event)"
-                 class="fn-input font-mono" placeholder="powerSmash()" />
+                 class="fn-input font-mono"
+                 [placeholder]="funcType() === 'attack' ? 'powerSmash()' : 'reinforcedChassis()'" />
         </div>
 
+        @if (funcType() === 'attack') {
         <!-- Row: V. / Energía / Coste -->
         <div class="grid grid-cols-3 gap-4">
           <div class="fn-field">
-            <label class="fn-label">V. (Version)</label>
+            <label class="fn-label">V. (Versión)</label>
             <input type="text" [ngModel]="version()" (ngModelChange)="version.set($event)"
                    class="fn-input" placeholder="1" />
           </div>
@@ -80,13 +100,14 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
                    class="fn-input" placeholder="1d4" />
           </div>
         </div>
+        }
 
         <!-- Efectos -->
         <div class="fn-field">
           <label class="fn-label">Efectos</label>
           <textarea [ngModel]="effects()" (ngModelChange)="effects.set($event)"
                     class="fn-input resize-y" rows="3"
-                    placeholder="Empuja al objetivo 1 Hex."></textarea>
+                    [placeholder]="funcType() === 'attack' ? 'Empuja al objetivo 1 Hex.' : 'El Bot aumenta su shield en +1 de forma permanente.'"></textarea>
         </div>
 
         <!-- Actions -->
@@ -147,6 +168,7 @@ export class FunctionEditor implements OnInit {
   saving = signal(false);
   error = signal('');
 
+  funcType = signal<'attack' | 'passive'>('attack');
   funcName = signal('');
   version = signal('');
   range = signal('');
@@ -173,6 +195,7 @@ export class FunctionEditor implements OnInit {
       const resp = await fetch(`${API_URL}/api/functions/${id}`);
       if (!resp.ok) throw new Error('Not found');
       const fn = await resp.json();
+      this.funcType.set(fn.func_type ?? 'attack');
       this.funcName.set(fn.func_name ?? '');
       this.version.set(fn.version ?? '');
       this.range.set(fn.range ?? '');
@@ -197,11 +220,12 @@ export class FunctionEditor implements OnInit {
 
     const payload = {
       func_name: this.funcName().trim(),
-      version: this.version().trim(),
-      range: this.range().trim(),
-      damage: this.damage().trim(),
-      energy: this.energy().trim(),
-      cost: this.cost().trim(),
+      func_type: this.funcType(),
+      version: this.funcType() === 'attack' ? this.version().trim() : '',
+      range: this.funcType() === 'attack' ? this.range().trim() : '',
+      damage: this.funcType() === 'attack' ? this.damage().trim() : '',
+      energy: this.funcType() === 'attack' ? this.energy().trim() : '',
+      cost: this.funcType() === 'attack' ? this.cost().trim() : '',
       effects: this.effects().trim(),
     };
 

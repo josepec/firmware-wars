@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../core/services/admin-auth';
 import { HexMapEditor } from './hex-map-editor';
 import { HexMapData, emptyMapData, DOT_COLORS, DotColor } from '../../shared/components/hex-map/hex-map.types';
+import { classifyCode } from '../../shared/markdown/marked-extensions';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
@@ -31,18 +32,43 @@ export class ScenarioEditor implements OnInit {
   recompensa = signal('');
   penalizacion = signal('');
   amenazaIds = signal<string[]>([]);
+  linkedFunctions = signal<string[]>([]);
+  availableFunctions = signal<{ id: string; name: string; type: string }[]>([]);
   amenazaCounts = signal<Record<string, number>>({});
+  amenazaTurnos = signal<Record<string, number[]>>({});
   availableThreats = signal<{ id: string; name: string; imageUrl: string }[]>([]);
   despliegueMode = signal<'dots' | 'map'>('map');
   despliegueDots = signal<Record<number, DotColor>>({});
   hexMap = signal<HexMapData>(emptyMapData());
 
   readonly Math = Math;
+  attackFunctions = computed(() => this.availableFunctions().filter(f => f.type !== 'passive'));
+  passiveFunctions = computed(() => this.availableFunctions().filter(f => f.type === 'passive'));
   /** Threats selected for this scenario, to pass to hex-map-editor */
   selectedThreats = computed(() => {
     const ids = new Set(this.amenazaIds());
     return this.availableThreats().filter(t => ids.has(t.id));
   });
+  /** Per-unit list for deployment config: "Sentry 1", "Sentry 2", etc. */
+  threatUnits = computed(() => {
+    const units: { threatId: string; name: string; index: number; label: string }[] = [];
+    for (const t of this.selectedThreats()) {
+      const count = this.amenazaCounts()[t.id] || 0;
+      for (let i = 1; i <= count; i++) {
+        units.push({ threatId: t.id, name: t.name, index: i, label: `${t.name} ${i}` });
+      }
+    }
+    return units;
+  });
+  fnColor(name: string): string {
+    const cls = classifyCode(name);
+    const map: Record<string, string> = {
+      'bs-fn': 'var(--bs-fn)', 'bs-kw': 'var(--bs-kw)', 'bs-var': 'var(--bs-var)',
+      'bs-const': 'var(--bs-const)', 'bs-status': 'var(--bs-status)',
+      'bs-phase': 'var(--bs-type)', 'bs-bug': 'var(--bs-status)',
+    };
+    return map[cls] || '';
+  }
   readonly dotColors = DOT_COLORS;
   readonly playerNums = [1, 2, 3];
   readonly botNums = [1, 2];
@@ -54,6 +80,7 @@ export class ScenarioEditor implements OnInit {
     }
 
     this.loadThreats();
+    this.loadFunctions();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.editId.set(id);
@@ -76,7 +103,9 @@ export class ScenarioEditor implements OnInit {
       this.recompensa.set(d.recompensa ?? '');
       this.penalizacion.set(d.penalizacion ?? '');
       this.amenazaIds.set(d.amenazaIds ?? []);
+      this.linkedFunctions.set(d.linkedFunctions ?? []);
       this.amenazaCounts.set(d.amenazaCounts ?? {});
+      this.amenazaTurnos.set(d.amenazaTurnos ?? {});
       this.despliegueMode.set(d.despliegueMode ?? 'map');
       this.despliegueDots.set(d.despliegueDots ?? {});
       if (d.hexMap) this.hexMap.set(d.hexMap);
@@ -98,14 +127,104 @@ export class ScenarioEditor implements OnInit {
     } catch { /* ignore */ }
   }
 
-  toggleThreat(id: string): void {
-    this.amenazaIds.update(list =>
-      list.includes(id) ? list.filter(x => x !== id) : [...list, id]
+  private async loadFunctions(): Promise<void> {
+    try {
+      const resp = await fetch(`${API_URL}/api/functions/admin`);
+      if (resp.ok) {
+        const fns = await resp.json();
+        this.availableFunctions.set(fns.map((f: any) => ({
+          id: f.id, name: f.func_name, type: f.func_type ?? 'attack',
+        })));
+      }
+    } catch { /* ignore */ }
+  }
+
+  toggleFunction(fnId: string): void {
+    this.linkedFunctions.update(list =>
+      list.includes(fnId) ? list.filter(id => id !== fnId) : [...list, fnId]
     );
+  }
+
+  toggleThreat(id: string): void {
+    const selected = this.amenazaIds().includes(id);
+    this.amenazaIds.update(list =>
+      selected ? list.filter(x => x !== id) : [...list, id]
+    );
+    if (selected) {
+      // Remove deployments from map
+      this.hexMap.update(d => ({
+        ...d,
+        deployments: d.deployments.filter(m => !(m.type === 'threat' && m.threatId === id)),
+      }));
+    } else {
+      if (!this.amenazaCounts()[id]) {
+        this.amenazaCounts.update(m => ({ ...m, [id]: 1 }));
+      }
+    }
+  }
+
+  setNumeroJugadores(n: number): void {
+    const prev = this.numeroJugadores();
+    this.numeroJugadores.set(n);
+    if (n < prev) {
+      this.hexMap.update(d => ({
+        ...d,
+        deployments: d.deployments.filter(m => !(m.type === 'player' && m.team && m.team > n)),
+      }));
+    }
+  }
+
+  setNumeroBots(n: number): void {
+    const prev = this.numeroBots();
+    this.numeroBots.set(n);
+    if (n < prev) {
+      // Keep only n markers per team
+      this.hexMap.update(d => {
+        const kept: Record<number, number> = {};
+        const deployments = d.deployments.filter(m => {
+          if (m.type !== 'player' || !m.team) return true;
+          kept[m.team] = (kept[m.team] || 0) + 1;
+          return kept[m.team] <= n;
+        });
+        return { ...d, deployments };
+      });
+    }
   }
 
   setDespliegueColor(player: number, color: DotColor): void {
     this.despliegueDots.update(d => ({ ...d, [player]: color }));
+  }
+
+  countRange(n: number): number[] { return Array.from({ length: n }, (_, i) => i + 1); }
+  getAmenazaCount(id: string): number { return this.amenazaCounts()[id] || 0; }
+  getUnitTurno(threatId: string, index: number): number {
+    return this.amenazaTurnos()[threatId]?.[index - 1] ?? 0;
+  }
+
+  setAmenazaCount(id: string, count: number): void {
+    const c = Math.max(0, Math.min(10, count));
+    this.amenazaCounts.update(m => ({ ...m, [id]: c }));
+    // Remove excess deployments if count was reduced
+    const data = this.hexMap();
+    const placed = data.deployments.filter(d => d.type === 'threat' && d.threatId === id);
+    if (placed.length > c) {
+      const keep = placed.slice(0, c);
+      const keepSet = new Set(keep.map(d => `${d.q},${d.r}`));
+      this.hexMap.set({
+        ...data,
+        deployments: data.deployments.filter(d =>
+          !(d.type === 'threat' && d.threatId === id) || keepSet.has(`${d.q},${d.r}`)
+        ),
+      });
+    }
+  }
+
+  setUnitTurno(threatId: string, index: number, turno: number): void {
+    this.amenazaTurnos.update(m => {
+      const arr = [...(m[threatId] || [])];
+      arr[index - 1] = Math.max(0, turno);
+      return { ...m, [threatId]: arr };
+    });
   }
 
   async save(): Promise<void> {
@@ -127,7 +246,9 @@ export class ScenarioEditor implements OnInit {
         recompensa: this.recompensa(),
         penalizacion: this.penalizacion(),
         amenazaIds: this.amenazaIds(),
+        linkedFunctions: this.linkedFunctions(),
         amenazaCounts: this.amenazaCounts(),
+        amenazaTurnos: this.amenazaTurnos(),
         despliegueMode: this.despliegueMode(),
         despliegueDots: this.despliegueDots(),
         hexMap: this.hexMap(),
