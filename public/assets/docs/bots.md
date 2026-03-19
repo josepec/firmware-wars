@@ -42,6 +42,8 @@ Debe elegir:
 - **{{slotsPerVersion.v3}} Función** de **Versión 3**.
 
 /json tables/attack-functions.json
+
+/img-center /assets/img/lady.png print-only h:200px
 /page
 ## Funciones de Mantenimiento (DEBUG.INTERFACE)
 

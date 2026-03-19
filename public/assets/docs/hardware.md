@@ -52,3 +52,5 @@ En los recursos de la web encontrarás plantillas para poderte imprimir tu propi
 > La integridad de tu Terminal es responsabilidad tuya y solo tuya. Un registro desfasado no es una excusa; es una sentencia de borrado inmediato.
 
 ---
+
+/img-center /assets/img/prgrammer.png print-only
