@@ -53,4 +53,4 @@ En los recursos de la web encontrarás plantillas para poderte imprimir tu propi
 
 ---
 
-/img-center /assets/img/prgrammer.png print-only
+/img-center /assets/img/programmer.png print-only
