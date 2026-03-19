@@ -101,61 +101,6 @@ interface ScenarioData {
           </section>
           }
 
-          @if (scenarioFunctions().length > 0) {
-          <section class="mb-8">
-            <h2 class="section-title">Funciones de Escenario</h2>
-            <p class="section-text mb-4">Las siguientes Funciones están disponibles exclusivamente durante este Escenario. Pueden asignarse a cualquier ranura de Función de los Bots.<br>Al finalizar el Escenario, se pierden.</p>
-            <div class="overflow-x-auto">
-              <table class="fn-table">
-                <thead>
-                  <tr>
-                    <th>Función</th>
-                    <th>V.</th>
-                    <th class="text-center">Rango</th>
-                    <th class="text-center">Daño</th>
-                    <th class="text-center">Energía</th>
-                    <th class="text-center">Coste</th>
-                    <th>Efectos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (fn of attackScenarioFunctions(); track fn.name) {
-                  <tr>
-                    <td><code [class]="codeClass(fn.name)">{{ fn.name }}</code></td>
-                    <td class="text-center">{{ fn.version }}</td>
-                    <td class="text-center">{{ fn.range }}</td>
-                    <td class="text-center">{{ fn.damage }}</td>
-                    <td class="text-center">{{ fn.energy }}</td>
-                    <td class="text-center">{{ fn.cost }}◈</td>
-                    <td [innerHTML]="renderInlineCode(fn.effects)"></td>
-                  </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-            @if (passiveScenarioFunctions().length > 0) {
-            <div class="overflow-x-auto mt-4">
-              <table class="fn-table">
-                <thead>
-                  <tr>
-                    <th>Función (Pasiva)</th>
-                    <th>Efectos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (fn of passiveScenarioFunctions(); track fn.name) {
-                  <tr>
-                    <td><code [class]="codeClass(fn.name)">{{ fn.name }}</code></td>
-                    <td [innerHTML]="renderInlineCode(fn.effects)"></td>
-                  </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-            }
-          </section>
-          }
-
           @if (threats().length > 0) {
           <section class="mb-8">
             <h2 class="section-title">Amenazas</h2>
@@ -213,7 +158,7 @@ interface ScenarioData {
                     stroke-width="2" />
                 </svg>
                 <div>
-                  <span class="text-sm tracking-wider" style="color: #f0fdf4; font-weight: 600;">{{ ht.name }}</span>
+                  <span class="text-sm tracking-wider" style="color: #f0fdf4; font-weight: 600;">{{ ht.name }} ×{{ hexTypeCount(ht.id) }}</span>
                   @if (ht.properties) {
                   <p class="section-text text-[0.8rem] mt-0.5 !leading-relaxed">{{ ht.properties }}</p>
                   }
@@ -249,6 +194,62 @@ interface ScenarioData {
         </div>
 
       </div>
+
+      @if (scenarioFunctions().length > 0) {
+      <section class="mt-8">
+        <h2 class="section-title">Funciones de Escenario</h2>
+        <p class="section-text mb-4">Las siguientes Funciones están disponibles exclusivamente durante este Escenario. Pueden asignarse a cualquier ranura de Función de los Bots.<br>Al finalizar el Escenario, se pierden.</p>
+        <div>
+          <table class="fn-table">
+            <thead>
+              <tr>
+                <th>Función</th>
+                <th>V.</th>
+                <th class="text-center">Rango</th>
+                <th class="text-center">Daño</th>
+                <th class="text-center">Energía</th>
+                <th class="text-center">Coste</th>
+                <th>Efectos</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fn of attackScenarioFunctions(); track fn.name) {
+              <tr>
+                <td><code [class]="codeClass(fn.name)">{{ fn.name }}</code></td>
+                <td class="text-center">{{ fn.version }}</td>
+                <td class="text-center">{{ fn.range }}</td>
+                <td class="text-center">{{ fn.damage }}</td>
+                <td class="text-center">{{ fn.energy }}</td>
+                <td class="text-center">{{ fn.cost }}◈</td>
+                <td [innerHTML]="renderInlineCode(fn.effects)"></td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (passiveScenarioFunctions().length > 0) {
+        <div class="mt-4">
+          <table class="fn-table">
+            <thead>
+              <tr>
+                <th style="width: 1%; white-space: nowrap;">Función (Pasiva)</th>
+                <th style="text-align: left;">Efectos</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fn of passiveScenarioFunctions(); track fn.name) {
+              <tr>
+                <td><code [class]="codeClass(fn.name)">{{ fn.name }}</code></td>
+                <td [innerHTML]="renderInlineCode(fn.effects)"></td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </section>
+      }
+
     }
   `,
   styles: [`
@@ -287,8 +288,7 @@ interface ScenarioData {
       text-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
     }
     app-scenario-viewer .fn-table {
-      width: max-content;
-      max-width: 100%;
+      width: 100%;
       border-collapse: collapse;
       font-size: 0.875rem;
       border: 1px solid rgba(0, 255, 136, 0.12);
@@ -318,6 +318,8 @@ interface ScenarioData {
       padding: 0.6rem 1rem;
       vertical-align: top;
       line-height: 1.6;
+    }
+    app-scenario-viewer .fn-table td:not(:last-child) {
       white-space: nowrap;
     }
     app-scenario-viewer .fn-table code {
@@ -377,6 +379,9 @@ export class ScenarioViewer implements OnChanges {
   passiveScenarioFunctions = computed(() => this.scenarioFunctions().filter(f => f.type === 'passive'));
 
   codeClass(text: string): string { return classifyCode(text) || ''; }
+  hexTypeCount(typeId: string): number {
+    return this.data()?.hexMap?.hexes?.filter(h => h.typeId === typeId).length ?? 0;
+  }
   renderInlineCode(text: string): string {
     const safe = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return safe(text)

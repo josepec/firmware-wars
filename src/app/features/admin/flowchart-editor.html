@@ -7,13 +7,18 @@
     <div class="flex flex-col gap-1">
       <span class="text-[9px] tracking-wider uppercase text-green-500/40">Nuevo Nodo</span>
       <div class="flex items-center gap-2">
-        <select [ngModel]="newNodeType()" (ngModelChange)="newNodeType.set($event)"
-          class="px-2 py-1.5 text-[10px] bg-green-500/5 border border-green-500/20
-                 text-green-300 focus:outline-none cursor-pointer">
+        <div class="flex gap-0.5">
           @for (t of nodeTypes; track t.id) {
-            <option [value]="t.id">{{ t.label }}</option>
+            <button (click)="newNodeType.set(t.id)" type="button"
+              class="px-2.5 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+              [class]="newNodeType() === t.id
+                ? 'border-green-400/50 bg-green-500/15'
+                : 'border-green-500/15 opacity-50 hover:opacity-100'"
+              [style.color]="t.color">
+              {{ t.label }}
+            </button>
           }
-        </select>
+        </div>
         <input type="text" placeholder="Etiqueta" [ngModel]="newNodeLabel()" (ngModelChange)="newNodeLabel.set($event)"
                (keydown.enter)="addNode()"
                class="px-2 py-1.5 text-[10px] bg-green-500/5 border border-green-500/20
@@ -35,13 +40,14 @@
       <span>Doble-click: Editar etiqueta</span>
       <span>
         @if (connectingFrom()) {
-          <span class="text-yellow-400/60">Selecciona nodo destino...</span>
-          <button (click)="connectingFrom.set(null)" type="button"
+          <span class="text-yellow-400/60">Selecciona punto de anclaje destino...</span>
+          <button (click)="connectingFrom.set(null); connectingAnchor.set(null)" type="button"
             class="text-red-400/50 hover:text-red-400 cursor-pointer ml-1">cancelar</button>
         } @else {
-          Click derecho: Conectar / Borrar
+          Puntos de anclaje: Conectar nodos
         }
       </span>
+      <span>Esquina inferior-derecha: Redimensionar</span>
     </div>
   </div>
 
@@ -65,7 +71,7 @@
           <path [attr.d]="connPath(c)"
                 fill="none" stroke="rgb(34 197 94 / 0.3)" stroke-width="2"
                 marker-end="url(#arrowhead)" />
-          <!-- Click area (wider invisible path) -->
+          <!-- Click area -->
           <path [attr.d]="connPath(c)"
                 fill="none" stroke="transparent" stroke-width="14"
                 class="cursor-pointer"
@@ -98,8 +104,7 @@
            [class.selected]="selectedNode() === node.id"
            [class.connecting]="connectingFrom() === node.id"
            (mousedown)="onMouseDown($event, node.id)"
-           (dblclick)="startEdit(node)"
-           (contextmenu)="$event.preventDefault(); connectingFrom() ? startConnect(node.id) : startConnect(node.id)">
+           (dblclick)="startEdit(node)">
 
           <!-- Node shape -->
           <path [attr.d]="nodePath(node)"
@@ -110,27 +115,31 @@
 
           <!-- Label -->
           @if (editingNode() === node.id) {
-            <foreignObject [attr.x]="node.type === 'condition' ? 20 : 5"
-                           [attr.y]="node.type === 'condition' ? 12 : 10"
-                           [attr.width]="NODE_W - (node.type === 'condition' ? 40 : 10)"
-                           [attr.height]="NODE_H - 20">
+            <foreignObject x="4" y="4"
+                           [attr.width]="nodeW(node) - 8"
+                           [attr.height]="nodeH(node) - 8">
               <input type="text" [ngModel]="editLabel()" (ngModelChange)="editLabel.set($event)"
                      (blur)="saveEdit()" (keydown.enter)="saveEdit()"
                      class="w-full h-full px-1 text-[10px] bg-black/80 border border-green-500/30
                             text-green-300 focus:outline-none text-center" />
             </foreignObject>
           } @else {
-            <text [attr.x]="NODE_W / 2" [attr.y]="NODE_H / 2"
-                  text-anchor="middle" dominant-baseline="middle"
-                  [attr.fill]="nodeColor(node.type) + 'cc'"
-                  font-size="11" class="select-none pointer-events-none"
-                  style="font-family: monospace; letter-spacing: 0.05em;">
-              {{ node.label }}
-            </text>
+            <foreignObject [attr.x]="node.type === 'condition' ? nodeW(node) * 0.2 : 6"
+                           y="0"
+                           [attr.width]="node.type === 'condition' ? nodeW(node) * 0.6 : nodeW(node) - 12"
+                           [attr.height]="nodeH(node)">
+              <div class="select-none pointer-events-none"
+                   style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+                          font-family: monospace; font-size: 11px; letter-spacing: 0.05em;
+                          text-align: center; line-height: 1.3; word-break: break-word; overflow: hidden;"
+                   [style.color]="nodeColor(node.type) + 'cc'">
+                {{ node.label }}
+              </div>
+            </foreignObject>
           }
 
           <!-- Delete button (top-right) -->
-          <g [attr.transform]="'translate(' + (NODE_W - 6) + ',-6)'"
+          <g [attr.transform]="'translate(' + (nodeW(node) - 6) + ',-6)'"
              class="delete-btn cursor-pointer"
              (click)="$event.stopPropagation(); deleteNode(node.id)">
             <circle r="7" fill="#0a0f0c" stroke="rgb(239 68 68 / 0.3)" stroke-width="1" />
@@ -138,11 +147,32 @@
             <line x1="3" y1="-3" x2="-3" y2="3" stroke="rgb(239 68 68 / 0.5)" stroke-width="1.5" />
           </g>
 
-          <!-- Connect handle (bottom-center) -->
-          <circle [attr.cx]="NODE_W / 2" [attr.cy]="NODE_H + 6" r="5"
-                  fill="rgb(34 197 94 / 0.15)" stroke="rgb(34 197 94 / 0.3)" stroke-width="1"
-                  class="connect-handle cursor-crosshair"
-                  (mousedown)="$event.stopPropagation(); startConnect(node.id)" />
+          <!-- Anchor points (4 sides) -->
+          @for (anchor of anchorList; track anchor) {
+            <circle [attr.cx]="anchorRelative(node, anchor).cx"
+                    [attr.cy]="anchorRelative(node, anchor).cy"
+                    r="5"
+                    [attr.fill]="connectingFrom() && connectingFrom() !== node.id
+                      ? 'rgb(34 197 94 / 0.3)' : 'rgb(34 197 94 / 0.1)'"
+                    [attr.stroke]="connectingFrom() && connectingFrom() !== node.id
+                      ? 'rgb(34 197 94 / 0.6)' : 'rgb(34 197 94 / 0.25)'"
+                    stroke-width="1"
+                    class="anchor-handle cursor-crosshair"
+                    [class.anchor-target]="connectingFrom() && connectingFrom() !== node.id"
+                    (mousedown)="$event.stopPropagation(); startConnect(node.id, anchor)" />
+          }
+
+          <!-- Resize handle (bottom-right corner) -->
+          <rect [attr.x]="nodeW(node) - 10" [attr.y]="nodeH(node) - 10"
+                width="10" height="10" fill="transparent"
+                class="resize-handle cursor-nwse-resize"
+                (mousedown)="startResize($event, node.id)" />
+          <!-- Resize visual indicator -->
+          <g [attr.transform]="'translate(' + (nodeW(node) - 9) + ',' + (nodeH(node) - 9) + ')'"
+             class="resize-indicator pointer-events-none">
+            <line x1="7" y1="1" x2="1" y2="7" stroke="rgb(34 197 94 / 0.2)" stroke-width="1" />
+            <line x1="7" y1="4" x2="4" y2="7" stroke="rgb(34 197 94 / 0.2)" stroke-width="1" />
+          </g>
         </g>
       }
 

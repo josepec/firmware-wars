@@ -79,16 +79,37 @@
         > No hay funciones creadas. Crea funciones en la sección "Funciones".
       </div>
       } @else {
-      <div class="flex flex-wrap gap-2">
-        @for (fn of availableFunctions(); track fn.id) {
-          <button (click)="toggleFunction(fn.id)" type="button"
-            class="px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
-            [class]="linkedFunctions().includes(fn.id)
-              ? 'bg-green-500/15 border-green-400/50 text-green-300'
-              : 'border-green-500/15 text-green-500/40 hover:text-green-400'">
-            {{ fn.name }}
-          </button>
-        }
+      <div class="flex flex-col gap-3">
+        <div>
+          <span class="text-[8px] text-green-500/30 tracking-wider uppercase block mb-1.5">Ataque</span>
+          <div class="flex flex-wrap gap-2">
+            @for (fn of attackFunctions(); track fn.id) {
+              <button (click)="toggleFunction(fn.id)" type="button"
+                class="px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
+                [class]="linkedFunctions().includes(fn.id)
+                  ? 'bg-green-500/15 border-green-400/50'
+                  : 'border-green-500/15 opacity-50 hover:opacity-100'"
+                [style.color]="fnColor(fn.name) || null">
+                {{ fn.name }}
+              </button>
+            }
+          </div>
+        </div>
+        <div>
+          <span class="text-[8px] text-green-500/30 tracking-wider uppercase block mb-1.5">Pasivas</span>
+          <div class="flex flex-wrap gap-2">
+            @for (fn of passiveFunctions(); track fn.id) {
+              <button (click)="toggleFunction(fn.id)" type="button"
+                class="px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
+                [class]="linkedFunctions().includes(fn.id)
+                  ? 'bg-green-500/15 border-green-400/50'
+                  : 'border-green-500/15 opacity-50 hover:opacity-100'"
+                [style.color]="fnColor(fn.name) || null">
+                {{ fn.name }}
+              </button>
+            }
+          </div>
+        </div>
       </div>
       }
     </div>

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../core/services/admin-auth';
 import { FlowchartEditor } from './flowchart-editor';
+import { classifyCode } from '../../shared/markdown/marked-extensions';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
@@ -29,7 +30,9 @@ export class ThreatEditor implements OnInit {
   linkedFunctions = signal<string[]>([]);
 
   /** Available functions for linking */
-  availableFunctions = signal<{ id: string; name: string }[]>([]);
+  availableFunctions = signal<{ id: string; name: string; type: string }[]>([]);
+  attackFunctions = computed(() => this.availableFunctions().filter(f => f.type !== 'passive'));
+  passiveFunctions = computed(() => this.availableFunctions().filter(f => f.type === 'passive'));
 
   /** Flowchart data */
   flowchart = signal<{ nodes: FlowNode[]; connections: FlowConnection[] }>({
@@ -55,7 +58,9 @@ export class ThreatEditor implements OnInit {
       const resp = await fetch(`${API_URL}/api/functions/admin`);
       if (resp.ok) {
         const fns = await resp.json();
-        this.availableFunctions.set(fns.map((f: any) => ({ id: f.id, name: f.func_name })));
+        this.availableFunctions.set(fns.map((f: any) => ({
+          id: f.id, name: f.func_name, type: f.func_type ?? 'attack',
+        })));
       }
     } catch { /* ignore */ }
   }
@@ -82,6 +87,16 @@ export class ThreatEditor implements OnInit {
     this.linkedFunctions.update(list =>
       list.includes(fnId) ? list.filter(id => id !== fnId) : [...list, fnId]
     );
+  }
+
+  fnColor(name: string): string {
+    const cls = classifyCode(name);
+    const map: Record<string, string> = {
+      'bs-fn': 'var(--bs-fn)', 'bs-kw': 'var(--bs-kw)', 'bs-var': 'var(--bs-var)',
+      'bs-const': 'var(--bs-const)', 'bs-status': 'var(--bs-status)',
+      'bs-type': 'var(--bs-type)', 'bs-str': 'var(--bs-str)',
+    };
+    return map[cls] ?? '';
   }
 
   async uploadFile(event: Event): Promise<void> {
@@ -161,6 +176,8 @@ export interface FlowNode {
   label: string;
   x: number;
   y: number;
+  w?: number;
+  h?: number;
 }
 
 export interface FlowConnection {

@@ -9,16 +9,28 @@
     transition: opacity 0.15s;
   }
 
-  .connect-handle {
+  .anchor-handle {
+    opacity: 0;
+    transition: opacity 0.15s, r 0.15s;
+  }
+
+  .resize-indicator {
     opacity: 0;
     transition: opacity 0.15s;
   }
 
   &:hover {
     .delete-btn,
-    .connect-handle {
+    .anchor-handle,
+    .resize-indicator {
       opacity: 1;
     }
+  }
+
+  // Always show anchors when in connection mode
+  .anchor-target {
+    opacity: 1 !important;
+    r: 7;
   }
 
   &.selected path,
@@ -28,6 +40,10 @@
 
   &.connecting path {
     stroke-dasharray: 4 2;
+  }
+
+  &.connecting .anchor-handle {
+    opacity: 1;
   }
 }
 
