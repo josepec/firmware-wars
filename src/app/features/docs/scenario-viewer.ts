@@ -22,12 +22,13 @@ interface ThreatInfo {
 }
 
 interface ScenarioData {
+  numeroEscenario: number;
+  numeroTurnos: number;
   numeroJugadores: number;
   numeroBots: number;
   ambientacion: string;
   objetivo: string;
-  recompensa: string;
-  penalizacion: string;
+  condicionDerrota: string;
   amenazaIds: string[];
   amenazaCounts: Record<string, number>;
   amenazaTurnos: Record<string, number[]>;
@@ -47,6 +48,8 @@ interface ScenarioData {
     } @else if (error()) {
       <p class="text-red-400/60 text-[10px] tracking-widest">> {{ error() }}</p>
     } @else if (data()) {
+      <h1 class="scenario-main-title">{{ data()!.numeroEscenario < 10 ? '0' + data()!.numeroEscenario : data()!.numeroEscenario }} — {{ title() }}</h1>
+
       <div class="scenario-view lg:flex lg:gap-8 lg:items-start">
 
         <!-- Info (izquierda en desktop) -->
@@ -64,6 +67,10 @@ interface ScenarioData {
               <div class="stat-card">
                 <span class="stat-value">{{ data()!.numeroBots || 3 }}</span>
                 <span class="stat-label">{{ (data()!.numeroBots || 3) === 1 ? 'Bot' : 'Bots' }} / Programador</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-value">{{ data()!.numeroTurnos === 0 ? '∞' : data()!.numeroTurnos }}</span>
+                <span class="stat-label">Turnos</span>
               </div>
               <div class="stat-card">
                 <span class="stat-value">{{ data()!.hexMap.hexes.length || 0 }}</span>
@@ -87,17 +94,10 @@ interface ScenarioData {
           </section>
           }
 
-          @if (data()!.recompensa) {
+          @if (data()!.condicionDerrota) {
           <section class="mb-8">
-            <h2 class="section-title">Recompensa</h2>
-            <p class="section-text" [innerHTML]="renderInlineCode(data()!.recompensa)"></p>
-          </section>
-          }
-
-          @if (data()!.penalizacion) {
-          <section class="mb-8">
-            <h2 class="section-title">Penalización</h2>
-            <p class="section-text" [innerHTML]="renderInlineCode(data()!.penalizacion)"></p>
+            <h2 class="section-title">Condición de Derrota</h2>
+            <p class="section-text" [innerHTML]="renderInlineCode(data()!.condicionDerrota)"></p>
           </section>
           }
 
@@ -253,6 +253,18 @@ interface ScenarioData {
     }
   `,
   styles: [`
+    app-scenario-viewer .scenario-main-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 900;
+      color: #00ff88;
+      text-shadow: 0 0 30px rgba(0, 255, 136, 0.45);
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      margin: 0 0 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+    }
     app-scenario-viewer .section-title {
       font-family: 'Orbitron', monospace;
       font-size: clamp(0.9rem, 2.5vw, 1.15rem);
@@ -369,6 +381,7 @@ export class ScenarioViewer implements OnChanges {
 
   loading = signal(false);
   error = signal('');
+  title = signal('');
   data = signal<ScenarioData | null>(null);
   threats = signal<ThreatInfo[]>([]);
   scenarioFunctions = signal<{ name: string; type: string; version: string; range: string; damage: string; energy: string; cost: string; effects: string }[]>([]);
@@ -455,6 +468,7 @@ export class ScenarioViewer implements OnChanges {
       ]);
       if (!scenarioResp.ok) throw new Error('Not found');
       const json = await scenarioResp.json();
+      this.title.set(json.title ?? '');
       const d: ScenarioData = json.data ?? null;
 
       // Merge fresh shared hex types into the map data

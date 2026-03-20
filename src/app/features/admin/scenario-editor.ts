@@ -25,12 +25,13 @@ export class ScenarioEditor implements OnInit {
   error = signal('');
 
   title = signal('');
+  numeroEscenario = signal(1);
+  numeroTurnos = signal(0);
   numeroJugadores = signal(2);
   numeroBots = signal(3);
   ambientacion = signal('');
   objetivo = signal('');
-  recompensa = signal('');
-  penalizacion = signal('');
+  condicionDerrota = signal('');
   amenazaIds = signal<string[]>([]);
   linkedFunctions = signal<string[]>([]);
   availableFunctions = signal<{ id: string; name: string; type: string }[]>([]);
@@ -85,6 +86,8 @@ export class ScenarioEditor implements OnInit {
     if (id) {
       this.editId.set(id);
       this.loadScenario(id);
+    } else {
+      this.autoAssignNumero();
     }
   }
 
@@ -96,12 +99,13 @@ export class ScenarioEditor implements OnInit {
       const scenario = await resp.json();
       this.title.set(scenario.title ?? '');
       const d = scenario.data ?? {};
+      this.numeroEscenario.set(d.numeroEscenario ?? 1);
+      this.numeroTurnos.set(d.numeroTurnos ?? 0);
       this.numeroJugadores.set(d.numeroJugadores ?? 2);
       this.numeroBots.set(d.numeroBots ?? 3);
       this.ambientacion.set(d.ambientacion ?? '');
       this.objetivo.set(d.objetivo ?? '');
-      this.recompensa.set(d.recompensa ?? '');
-      this.penalizacion.set(d.penalizacion ?? '');
+      this.condicionDerrota.set(d.condicionDerrota ?? '');
       this.amenazaIds.set(d.amenazaIds ?? []);
       this.linkedFunctions.set(d.linkedFunctions ?? []);
       this.amenazaCounts.set(d.amenazaCounts ?? {});
@@ -113,6 +117,27 @@ export class ScenarioEditor implements OnInit {
       this.error.set('Error al cargar el escenario.');
     }
     this.loading.set(false);
+  }
+
+  private async autoAssignNumero(): Promise<void> {
+    try {
+      const resp = await fetch(`${API_URL}/api/scenarios`);
+      if (!resp.ok) return;
+      const scenarios: { id: string }[] = await resp.json();
+      // Load each scenario's data to find used numbers
+      const usedNums = new Set<number>();
+      await Promise.all(scenarios.map(async (s) => {
+        const r = await fetch(`${API_URL}/api/scenarios/${s.id}`);
+        if (r.ok) {
+          const json = await r.json();
+          const num = json.data?.numeroEscenario;
+          if (num != null) usedNums.add(num);
+        }
+      }));
+      let next = 1;
+      while (usedNums.has(next)) next++;
+      this.numeroEscenario.set(next);
+    } catch { /* ignore */ }
   }
 
   private async loadThreats(): Promise<void> {
@@ -239,12 +264,13 @@ export class ScenarioEditor implements OnInit {
     const payload = {
       title: this.title().trim(),
       data: {
+        numeroEscenario: this.numeroEscenario(),
+        numeroTurnos: this.numeroTurnos(),
         numeroJugadores: this.numeroJugadores(),
         numeroBots: this.numeroBots(),
         ambientacion: this.ambientacion(),
         objetivo: this.objetivo(),
-        recompensa: this.recompensa(),
-        penalizacion: this.penalizacion(),
+        condicionDerrota: this.condicionDerrota(),
         amenazaIds: this.amenazaIds(),
         linkedFunctions: this.linkedFunctions(),
         amenazaCounts: this.amenazaCounts(),
@@ -266,10 +292,13 @@ export class ScenarioEditor implements OnInit {
         body: JSON.stringify(payload),
       });
 
-      if (!resp.ok) throw new Error('Save failed');
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => null);
+        throw new Error(err?.error || 'Save failed');
+      }
       this.router.navigate(['/admin/scenarios']);
-    } catch {
-      this.error.set('Error al guardar.');
+    } catch (e: any) {
+      this.error.set(e?.message || 'Error al guardar.');
     }
     this.saving.set(false);
   }
