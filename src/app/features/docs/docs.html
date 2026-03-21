@@ -109,6 +109,12 @@
                  max-h-[60vh] overflow-y-auto">
         @for (s of sections(); track s.id) {
         <li>
+          @if (s.type === 'header') {
+          <span class="block px-4 py-3 text-[10px] tracking-[0.3em] uppercase text-green-500/40
+                       border-b border-green-500/8 border-t border-green-500/15 mt-1">
+            {{ s.subtitle }}
+          </span>
+          } @else {
           <a [routerLink]="'/docs/' + currentCategory().id + '/' + s.id" routerLinkActive="!text-green-300 !bg-green-500/10"
             class="block px-4 py-2.5 text-[10px] tracking-[0.12em] uppercase
                    text-green-400/55 hover:text-green-300 hover:bg-green-500/5 transition-colors
@@ -116,6 +122,7 @@
             <span class="text-green-500/25 mr-2">{{ s.num }}</span>
             {{ s.subtitle }}
           </a>
+          }
         </li>
         }
       </ul>
@@ -128,10 +135,17 @@
       <ul class="flex flex-col gap-0.5">
         @for (s of sections(); track s.id) {
         <li>
+          @if (s.type === 'header') {
+          <span class="block py-2 mt-3 mb-1 text-[10px] tracking-[0.3em] text-green-500/40
+                       border-t border-green-500/15">
+            {{ s.subtitle }}
+          </span>
+          } @else {
           <a [routerLink]="'/docs/' + currentCategory().id + '/' + s.id" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
                    py-1 pl-0 text-xs tracking-widest uppercase">
             {{ s.subtitle }}
           </a>
+          }
         </li>
         }
       </ul>
@@ -165,7 +179,9 @@
   <main class="flex-1 min-w-0 p-6 md:p-10 relative z-20 overflow-x-hidden"
         [class.max-w-4xl]="currentCategory().id !== 'escenarios'"
         [class.max-w-7xl]="currentCategory().id === 'escenarios'">
-    @if (currentCategory().id === 'escenarios' && currentSectionId()) {
+    @if (isThreatSection() && currentSectionId()) {
+    <app-threat-viewer [threatId]="currentSectionId()!" />
+    } @else if (currentCategory().id === 'escenarios' && currentSectionId()) {
     <app-scenario-viewer [scenarioId]="currentSectionId()!" />
     } @else if (markdownSrc(); as src) {
     <markdown [src]="src" [disableSanitizer]="true" (load)="onMarkdownReady()" />

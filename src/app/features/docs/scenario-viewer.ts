@@ -1,4 +1,5 @@
 import { Component, computed, input, OnChanges, signal, ViewEncapsulation } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HexMap } from '../../shared/components/hex-map/hex-map';
 import { HexMapData, HexTypeDefinition } from '../../shared/components/hex-map/hex-map.types';
 import { classifyCode } from '../../shared/markdown/marked-extensions';
@@ -40,7 +41,7 @@ interface ScenarioData {
 
 @Component({
   selector: 'app-scenario-viewer',
-  imports: [HexMap],
+  imports: [HexMap, RouterLink],
   encapsulation: ViewEncapsulation.None,
   template: `
     @if (loading()) {
@@ -106,7 +107,9 @@ interface ScenarioData {
             <h2 class="section-title">Amenazas</h2>
             <div class="flex flex-col gap-5">
               @for (t of threats(); track t.id) {
-              <div class="flex items-start gap-4 p-4 border border-green-500/10 bg-green-500/[0.02]">
+              <a [routerLink]="'/docs/escenarios/' + t.id"
+                 class="flex items-start gap-4 p-4 border border-green-500/10 bg-green-500/[0.02]
+                        hover:border-green-400/30 hover:bg-green-500/[0.05] transition-all cursor-pointer no-underline">
                 @if (t.imageUrl) {
                 <div class="w-16 h-16 flex-shrink-0 border border-green-500/15 bg-black/40 flex items-center justify-center overflow-hidden">
                   <img [src]="t.imageUrl" [alt]="t.name" class="max-w-full max-h-full object-contain" />
@@ -123,7 +126,7 @@ interface ScenarioData {
                   <p class="section-text text-[0.8rem] mt-1 !leading-relaxed">{{ t.description }}</p>
                   }
                 </div>
-              </div>
+              </a>
               }
             </div>
           </section>
