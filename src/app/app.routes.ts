@@ -11,6 +11,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'reglamento', pathMatch: 'full' },
       { path: 'print', loadComponent: () => import('./features/docs/docs-print').then(m => m.DocsPrint) },
+      { path: 'scenarios-print', loadComponent: () => import('./features/docs/scenarios-print').then(m => m.ScenariosPrint) },
       { path: '**', loadComponent: () => import('./features/docs/docs').then(m => m.Docs) },
     ],
   },
