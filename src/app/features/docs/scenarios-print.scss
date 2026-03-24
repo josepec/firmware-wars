@@ -356,10 +356,10 @@
 
 .scenario-title {
   font-family: 'Orbitron', monospace;
-  font-size: 12pt;
+  font-size: 14pt;
   font-weight: 700;
   color: #0a1a0d;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
@@ -601,10 +601,10 @@
 
 .threat-title {
   font-family: 'Orbitron', monospace;
-  font-size: 13pt;
+  font-size: 14pt;
   font-weight: 700;
   color: #0a1a0d;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
@@ -724,7 +724,7 @@
 :host ::ng-deep .fn-table {
   code {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.9em;
+    font-size: 0.85em;
     color: #1a5c28;
     background: #f0f8f1;
     border: 0.5pt solid #a3d8aa;
