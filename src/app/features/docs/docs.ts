@@ -24,7 +24,7 @@ interface DocsCategory {
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO', configUrl: '/assets/config/docs.config.json', docsPath: 'assets/docs', searchable: true },
   { id: 'recursos', label: 'RECURSOS', configUrl: '/assets/config/recursos.config.json', docsPath: 'assets/recursos', searchable: false },
-  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false, hidden: true },
+  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false, hidden: false },
 ];
 
 @Component({

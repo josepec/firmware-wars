@@ -94,6 +94,7 @@ export class ThreatEditor implements OnInit {
     const map: Record<string, string> = {
       'bs-fn': 'var(--bs-fn)', 'bs-kw': 'var(--bs-kw)', 'bs-var': 'var(--bs-var)',
       'bs-const': 'var(--bs-const)', 'bs-status': 'var(--bs-status)',
+      'bs-bug': 'var(--bs-status)',
       'bs-type': 'var(--bs-type)', 'bs-str': 'var(--bs-str)',
     };
     return map[cls] ?? '';

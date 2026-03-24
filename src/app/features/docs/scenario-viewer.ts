@@ -351,6 +351,7 @@ interface ScenarioData {
     app-scenario-viewer .fn-table code.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   7%, transparent); border-color: color-mix(in srgb, var(--bs-var)   22%, transparent); }
     app-scenario-viewer .fn-table code.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  7%, transparent); border-color: color-mix(in srgb, var(--bs-const)  22%, transparent); }
     app-scenario-viewer .fn-table code.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 7%, transparent); border-color: color-mix(in srgb, var(--bs-status) 22%, transparent); }
+    app-scenario-viewer .fn-table code.bs-bug    { color: var(--bs-status); background: transparent; border: none; padding: 0; }
     app-scenario-viewer .fn-table code.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   7%, transparent); border-color: color-mix(in srgb, var(--bs-type)   22%, transparent); }
     app-scenario-viewer .section-text code {
       font-family: 'Share Tech Mono', 'Courier New', monospace;
@@ -366,6 +367,7 @@ interface ScenarioData {
     app-scenario-viewer .section-text code.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   7%, transparent); border-color: color-mix(in srgb, var(--bs-var)   22%, transparent); }
     app-scenario-viewer .section-text code.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  7%, transparent); border-color: color-mix(in srgb, var(--bs-const)  22%, transparent); }
     app-scenario-viewer .section-text code.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 7%, transparent); border-color: color-mix(in srgb, var(--bs-status) 22%, transparent); }
+    app-scenario-viewer .section-text code.bs-bug    { color: var(--bs-status); background: transparent; border: none; padding: 0; }
     app-scenario-viewer .section-text code.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   7%, transparent); border-color: color-mix(in srgb, var(--bs-type)   22%, transparent); }
     app-scenario-viewer .section-text strong {
       color: #f0fdf4;

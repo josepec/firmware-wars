@@ -356,10 +356,10 @@
 
 .scenario-title {
   font-family: 'Orbitron', monospace;
-  font-size: 14pt;
+  font-size: 12pt;
   font-weight: 700;
   color: #0a1a0d;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -399,22 +399,24 @@
 
 .info-label {
   font-family: 'Orbitron', monospace;
-  font-size: 7pt;
+  font-size: 10pt;
   font-weight: 700;
-  color: #1a6b4a;
-  letter-spacing: 0.15em;
+  color: #0d2e14;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 0.15rem;
-  padding-bottom: 0.1rem;
-  border-bottom: 0.5pt solid #b8deba;
+  border-left: 3pt solid #1a5c28;
+  padding-left: 0.5rem;
+  margin: 1.2rem 0 0.5rem;
+  line-height: 1.4;
+  page-break-after: avoid;
 }
 
 .info-text {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 7.5pt;
+  font-size: 9pt;
   color: #1a2e1e;
-  line-height: 1.6;
-  margin: 0.1rem 0 0.15rem;
+  line-height: 1.75;
+  margin: 0 0 0.6rem;
 
   strong {
     color: #0a1a0d;
@@ -449,14 +451,13 @@
   gap: 0.3rem;
   flex-wrap: wrap;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 7.5pt;
+  font-size: 9pt;
   color: #1a2e1e;
-  line-height: 1.6;
+  line-height: 1.75;
 
   strong {
-    color: #1a6b4a;
+    color: #0a1a0d;
     font-weight: 700;
-    font-size: 9pt;
   }
 }
 
@@ -472,7 +473,7 @@
   gap: 0.4rem;
   margin-bottom: 0.2rem;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 7.5pt;
+  font-size: 9pt;
   color: #1a2e1e;
 
   strong { color: #0a1a0d; }
@@ -491,7 +492,7 @@
   gap: 0.4rem;
   margin-bottom: 0.25rem;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 7.5pt;
+  font-size: 9pt;
   color: #1a2e1e;
 }
 
@@ -600,10 +601,10 @@
 
 .threat-title {
   font-family: 'Orbitron', monospace;
-  font-size: 14pt;
+  font-size: 13pt;
   font-weight: 700;
   color: #0a1a0d;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 

@@ -64,40 +64,29 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
       @for (d of renderedDeployments(); track d.key) {
         <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ')'" class="pointer-events-none">
           @if (d.type === 'player') {
-            <!-- Robot silhouette -->
-            <g [attr.transform]="'scale(' + robotScale() + ')'">
-              <rect x="-6" y="-4" width="12" height="10" rx="1.5" fill="#6b7280" stroke="#374151" stroke-width="0.8"/>
-              <rect x="-4" y="-9" width="8" height="6" rx="1" fill="#9ca3af" stroke="#374151" stroke-width="0.8"/>
-              <circle cx="-1.5" cy="-6.5" r="1" fill="#22d3ee"/>
-              <circle cx="1.5" cy="-6.5" r="1" fill="#22d3ee"/>
-              <line x1="0" y1="-9" x2="0" y2="-12" stroke="#9ca3af" stroke-width="0.8"/>
-              <circle cx="0" cy="-12.5" r="1" fill="#f87171"/>
-              <rect x="-5" y="6" width="3" height="4" rx="0.5" fill="#6b7280" stroke="#374151" stroke-width="0.5"/>
-              <rect x="2" y="6" width="3" height="4" rx="0.5" fill="#6b7280" stroke="#374151" stroke-width="0.5"/>
-            </g>
+            <!-- Robot image -->
+            <image href="/assets/img/bot.png"
+                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
+                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'treasure') {
-            <!-- Treasure chest icon -->
-            <g [attr.transform]="'scale(' + robotScale() + ')'">
-              <rect x="-7" y="-3" width="14" height="9" rx="1" fill="#eab308" stroke="#a16207" stroke-width="0.8"/>
-              <path d="M-7,-3 Q0,-8 7,-3" fill="#fbbf24" stroke="#a16207" stroke-width="0.8"/>
-              <rect x="-2" y="0" width="4" height="3" rx="0.5" fill="#a16207"/>
-            </g>
+            <!-- Treasure image -->
+            <image href="/assets/img/money.png"
+                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
+                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'flag') {
-            <!-- Flag icon -->
-            <g [attr.transform]="'scale(' + robotScale() + ')'">
-              <line x1="-1" y1="7" x2="-1" y2="-8" stroke="#9ca3af" stroke-width="1.5"/>
-              <polygon points="-1,-8 9,-4 -1,0" fill="#ef4444" stroke="#dc2626" stroke-width="0.5"/>
-            </g>
+            <!-- Flag image -->
+            <image href="/assets/img/flag.png"
+                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
+                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'plaque') {
-            <!-- Plaque/chip icon -->
-            <g [attr.transform]="'scale(' + robotScale() + ')'">
-              <rect x="-6" y="-6" width="12" height="12" rx="2" fill="#8b5cf6" stroke="#6d28d9" stroke-width="0.8"/>
-              <rect x="-3" y="-3" width="6" height="6" rx="0.5" fill="#a78bfa"/>
-              <line x1="-6" y1="0" x2="-8" y2="0" stroke="#6d28d9" stroke-width="0.8"/>
-              <line x1="6" y1="0" x2="8" y2="0" stroke="#6d28d9" stroke-width="0.8"/>
-              <line x1="0" y1="-6" x2="0" y2="-8" stroke="#6d28d9" stroke-width="0.8"/>
-              <line x1="0" y1="6" x2="0" y2="8" stroke="#6d28d9" stroke-width="0.8"/>
-            </g>
+            <!-- XP image -->
+            <image href="/assets/img/xp.png"
+                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
+                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'threat') {
             <!-- Threat marker: image or fallback skull -->
             @if (d.imageUrl) {
@@ -113,8 +102,8 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
             }
           }
           <!-- Label -->
-          <text [attr.y]="d.type === 'player' ? 13 : 12" text-anchor="middle"
-                [attr.font-size]="size() * 0.28"
+          <text [attr.y]="printMode() ? (d.type === 'player' ? 13 : 12) : (d.type === 'player' ? 18 : 16)" text-anchor="middle"
+                [attr.font-size]="printMode() ? size() * 0.28 : size() * 0.3"
                 [attr.fill]="printMode() ? '#1a5c28' : '#22d3ee'" font-family="'Orbitron', monospace" font-weight="700">
             {{ d.label }}
           </text>
