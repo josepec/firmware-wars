@@ -417,7 +417,10 @@
   color: #1a2e1e;
   line-height: 1.75;
   margin: 0 0 0.6rem;
+}
 
+/* innerHTML-injected elements need ::ng-deep to bypass encapsulation */
+:host ::ng-deep .info-text {
   strong {
     color: #0a1a0d;
     font-weight: 700;
@@ -430,10 +433,7 @@
     background: #f0f8f1;
     border: 0.5pt solid #a3d8aa;
     padding: 0.05em 0.35em;
-  }
 
-  /* ── Token colors inline ─────────────────────────────────── */
-  code {
     &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    12%, white); border-color: color-mix(in srgb, var(--bs-kw)    40%, white); }
     &.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    12%, white); border-color: color-mix(in srgb, var(--bs-fn)    40%, white); }
     &.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   12%, white); border-color: color-mix(in srgb, var(--bs-var)   40%, white); }
@@ -718,7 +718,10 @@
   }
 
   .text-center { text-align: center; }
+}
 
+/* innerHTML-injected elements in fn-table need ::ng-deep */
+:host ::ng-deep .fn-table {
   code {
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.9em;
@@ -727,7 +730,6 @@
     border: 0.5pt solid #a3d8aa;
     padding: 0.05em 0.35em;
 
-    /* ── Token colors inline ─────────────────────────────────── */
     &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    12%, white); border-color: color-mix(in srgb, var(--bs-kw)    40%, white); }
     &.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    12%, white); border-color: color-mix(in srgb, var(--bs-fn)    40%, white); }
     &.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   12%, white); border-color: color-mix(in srgb, var(--bs-var)   40%, white); }
