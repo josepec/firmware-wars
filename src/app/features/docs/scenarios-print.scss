@@ -263,7 +263,7 @@
   grid-column: 1 / -1;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.4rem 0;
+  padding: 0.5rem 0;
   color: inherit;
   text-decoration: none;
 }
@@ -292,7 +292,7 @@
 }
 
 .toc-title {
-  font-size: 9pt;
+  font-size: 10pt;
   color: #0a1a0d;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -325,7 +325,7 @@
    ESCENARIOS — Páginas de contenido
    ═══════════════════════════════════════════════════════════════ */
 .scenario-page {
-  padding: 1.5cm 1.4cm 1.2cm;
+  padding: 2cm 1.8cm 1.8cm;
 
   @media print {
     padding: 0.25cm 0 0.85cm;
@@ -336,9 +336,9 @@
 .scenario-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   border-bottom: 2pt solid #1a5c28;
   page-break-after: avoid;
 }
@@ -356,10 +356,10 @@
 
 .scenario-title {
   font-family: 'Orbitron', monospace;
-  font-size: 12pt;
+  font-size: 14pt;
   font-weight: 700;
   color: #0a1a0d;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
@@ -402,7 +402,7 @@
   font-size: 7pt;
   font-weight: 700;
   color: #1a6b4a;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: 0.15rem;
   padding-bottom: 0.1rem;
@@ -427,7 +427,7 @@
     color: #1a5c28;
     background: #f0f8f1;
     border: 0.5pt solid #a3d8aa;
-    padding: 0.02em 0.25em;
+    padding: 0.05em 0.35em;
   }
 
   /* ── Token colors inline ─────────────────────────────────── */
@@ -505,7 +505,7 @@
 
 /* ── Scenario page right (map + functions) ─────────────────── */
 .scenario-page-right {
-  padding: 1.5cm 1.4cm 1.2cm;
+  padding: 2cm 1.8cm 1.8cm;
 
   @media print {
     padding: 0.25cm 0 0.85cm;
@@ -580,7 +580,7 @@
    AMENAZAS — Páginas de contenido
    ═══════════════════════════════════════════════════════════════ */
 .threat-page {
-  padding: 1.5cm 1.4cm 1.2cm;
+  padding: 2cm 1.8cm 1.8cm;
 
   @media print {
     padding: 0.25cm 0 0.85cm;
@@ -591,19 +591,19 @@
 .threat-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   border-bottom: 2pt solid #1a5c28;
   page-break-after: avoid;
 }
 
 .threat-title {
   font-family: 'Orbitron', monospace;
-  font-size: 13pt;
+  font-size: 14pt;
   font-weight: 700;
   color: #0a1a0d;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
@@ -645,7 +645,7 @@
 
 /* ── Threat page right (flowchart) ──────────────────────────── */
 .threat-page-right {
-  padding: 1.5cm 1.4cm 1.2cm;
+  padding: 2cm 1.8cm 1.8cm;
 
   @media print {
     padding: 0.25cm 0 0.85cm;
@@ -666,7 +666,7 @@
   border-collapse: collapse;
   margin: 0.2rem 0 0.5rem;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 7pt;
+  font-size: 8pt;
 
   thead {
     background: #1a3d22;
@@ -674,11 +674,11 @@
 
     th {
       font-family: 'Orbitron', monospace;
-      font-size: 5.5pt;
-      letter-spacing: 0.12em;
+      font-size: 6.5pt;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
       color: #e8f5ea;
-      padding: 0.25rem 0.35rem;
+      padding: 0.4rem 0.5rem;
       text-align: left;
       white-space: nowrap;
     }
@@ -709,9 +709,9 @@
 
       td {
         color: #1a2e1e;
-        padding: 0.2rem 0.35rem;
+        padding: 0.35rem 0.5rem;
         vertical-align: top;
-        line-height: 1.45;
+        line-height: 1.5;
       }
     }
   }
@@ -724,7 +724,7 @@
     color: #1a5c28;
     background: #f0f8f1;
     border: 0.5pt solid #a3d8aa;
-    padding: 0.02em 0.2em;
+    padding: 0.05em 0.35em;
 
     /* ── Token colors inline ─────────────────────────────────── */
     &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    12%, white); border-color: color-mix(in srgb, var(--bs-kw)    40%, white); }
