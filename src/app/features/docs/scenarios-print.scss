@@ -167,12 +167,14 @@
     &.divider-page {
       page-break-before: always;
       page-break-after: auto;
+      zoom: 0.96;
     }
 
     &.scenario-page-right,
     &.threat-page-right {
       page-break-before: always;
       page-break-after: auto;
+      zoom: 0.96;
     }
 
     &.blank-page {
