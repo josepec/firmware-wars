@@ -37,8 +37,36 @@
              class="field-input" placeholder="Nombre del escenario" />
     </div>
 
-    <!-- Nº Escenario + Turnos + Programadores + Bots -->
+    <!-- Tipo + Nº Escenario + Turnos + Programadores + Bots -->
     <div class="flex flex-wrap gap-8 items-end">
+      <div>
+        <label class="field-label">Tipo</label>
+        <div class="flex gap-2 mt-2">
+          @for (t of ['VS', 'COOP']; track t) {
+            <button (click)="tipoEscenario.set($any(t))" type="button"
+              class="px-3 h-10 text-[10px] tracking-wider border transition-all cursor-pointer"
+              [class]="tipoEscenario() === t
+                ? 'bg-green-500/20 border-green-400/50 text-green-300'
+                : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+              {{ t }}
+            </button>
+          }
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Acto</label>
+        <div class="flex gap-2 mt-2">
+          @for (a of ['', 'Acto 1', 'Acto 2', 'Acto 3', 'Final']; track a) {
+            <button (click)="acto.set($any(a))" type="button"
+              class="px-3 h-10 text-[10px] tracking-wider border transition-all cursor-pointer"
+              [class]="acto() === a
+                ? 'bg-green-500/20 border-green-400/50 text-green-300'
+                : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+              {{ a || '—' }}
+            </button>
+          }
+        </div>
+      </div>
       <div>
         <label class="field-label">Nº Escenario</label>
         <div class="flex items-center gap-1 mt-2">

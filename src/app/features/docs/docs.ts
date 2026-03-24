@@ -182,14 +182,16 @@ export class Docs implements OnInit, OnDestroy {
     if (cat.id === 'escenarios') {
       try {
         const [scenarioResp, threatResp] = await Promise.all([
-          fetch(`${API_URL}/api/scenarios`),
+          fetch(`${API_URL}/api/scenarios?full`),
           fetch(`${API_URL}/api/threats`),
         ]);
         const items: { id: string; num: string; title: string; subtitle: string; type?: string }[] = [];
         if (scenarioResp.ok) {
-          const scenarios: { id: string; title: string }[] = await scenarioResp.json();
-          for (let i = 0; i < scenarios.length; i++) {
-            items.push({ id: scenarios[i].id, num: String(i + 1).padStart(2, '0'), title: scenarios[i].title, subtitle: scenarios[i].title, type: 'scenario' });
+          const scenarios: { id: string; title: string; data?: any }[] = await scenarioResp.json();
+          scenarios.sort((a, b) => (a.data?.numeroEscenario ?? 0) - (b.data?.numeroEscenario ?? 0));
+          for (const s of scenarios) {
+            const n = s.data?.numeroEscenario ?? 0;
+            items.push({ id: s.id, num: String(n).padStart(2, '0'), title: s.title, subtitle: s.title, type: 'scenario' });
           }
         }
         if (threatResp.ok) {

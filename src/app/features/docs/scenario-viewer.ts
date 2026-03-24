@@ -23,6 +23,8 @@ interface ThreatInfo {
 }
 
 interface ScenarioData {
+  tipoEscenario: 'VS' | 'COOP';
+  acto: '' | 'Acto 1' | 'Acto 2' | 'Acto 3' | 'Final';
   numeroEscenario: number;
   numeroTurnos: number;
   numeroJugadores: number;
@@ -49,7 +51,7 @@ interface ScenarioData {
     } @else if (error()) {
       <p class="text-red-400/60 text-[10px] tracking-widest">> {{ error() }}</p>
     } @else if (data()) {
-      <h1 class="scenario-main-title">{{ data()!.numeroEscenario < 10 ? '0' + data()!.numeroEscenario : data()!.numeroEscenario }} — {{ title() }}</h1>
+      <h1 class="scenario-main-title">{{ data()!.numeroEscenario < 10 ? '0' + data()!.numeroEscenario : data()!.numeroEscenario }} — {{ title() }}{{ data()!.acto ? ' (' + data()!.acto + ')' : '' }}</h1>
 
       <div class="scenario-view lg:flex lg:gap-8 lg:items-start">
 
@@ -62,12 +64,16 @@ interface ScenarioData {
             <h2 class="section-title">Ficha Técnica</h2>
             <div class="flex flex-wrap gap-4">
               <div class="stat-card">
+                <span class="stat-value">{{ data()!.tipoEscenario || 'VS' }}</span>
+                <span class="stat-label">{{ (data()!.tipoEscenario || 'VS') === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
+              </div>
+              <div class="stat-card">
                 <span class="stat-value">{{ data()!.numeroJugadores }}</span>
                 <span class="stat-label">{{ data()!.numeroJugadores === 1 ? 'Programador' : 'Programadores' }}</span>
               </div>
               <div class="stat-card">
-                <span class="stat-value">{{ data()!.numeroBots || 3 }}</span>
-                <span class="stat-label">{{ (data()!.numeroBots || 3) === 1 ? 'Bot' : 'Bots' }} / Programador</span>
+                <span class="stat-value">{{ data()!.numeroBots || 2 }}</span>
+                <span class="stat-label">{{ (data()!.numeroBots || 2) === 1 ? 'Bot' : 'Bots' }} / Programador</span>
               </div>
               <div class="stat-card">
                 <span class="stat-value">{{ data()!.numeroTurnos === 0 ? '∞' : data()!.numeroTurnos }}</span>

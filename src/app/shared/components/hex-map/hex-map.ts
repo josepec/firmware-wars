@@ -66,33 +66,33 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
           @if (d.type === 'player') {
             <!-- Robot image -->
             <image href="/assets/img/bot.png"
-                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
-                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
                    preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'treasure') {
             <!-- Treasure image -->
             <image href="/assets/img/money.png"
-                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
-                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
                    preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'flag') {
             <!-- Flag image -->
             <image href="/assets/img/flag.png"
-                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
-                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
                    preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'plaque') {
             <!-- XP image -->
             <image href="/assets/img/xp.png"
-                   [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
-                   [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
                    preserveAspectRatio="xMidYMid meet" />
           } @else if (d.type === 'threat') {
             <!-- Threat marker: image or fallback skull -->
             @if (d.imageUrl) {
               <image [attr.href]="d.imageUrl"
-                     [attr.x]="-(size() * 0.35)" [attr.y]="-(size() * 0.45)"
-                     [attr.width]="size() * 0.7" [attr.height]="size() * 0.7"
+                     [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                     [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
                      preserveAspectRatio="xMidYMid meet" />
             } @else {
               <g [attr.transform]="'scale(' + robotScale() + ')'">
@@ -102,7 +102,7 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
             }
           }
           <!-- Label -->
-          <text [attr.y]="printMode() ? (d.type === 'player' ? 13 : 12) : (d.type === 'player' ? 18 : 16)" text-anchor="middle"
+          <text [attr.y]="printMode() ? (d.type === 'player' ? 13 : 12) : (d.type === 'player' ? 16 : 15)" text-anchor="middle"
                 [attr.font-size]="printMode() ? size() * 0.28 : size() * 0.3"
                 [attr.fill]="printMode() ? '#1a5c28' : '#22d3ee'" font-family="'Orbitron', monospace" font-weight="700">
             {{ d.label }}

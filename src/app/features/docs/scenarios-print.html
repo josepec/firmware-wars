@@ -99,21 +99,26 @@
 @for (s of scenarios(); track s.id) {
 <!-- Página izquierda: Info -->
 <div class="sp-page scenario-page" [id]="'scenario-' + s.id">
-  <span class="pdf-marker">FWMARK-S{{ scenarioNum(s) }}-{{ s.title }}</span>
+  <span class="pdf-marker">FWMARK-S{{ scenarioNum(s) }}-{{ scenarioNum(s) }} - {{ s.title }}{{ s.acto ? ' (' + s.acto + ')' : '' }}</span>
 
   <div class="scenario-header">
     <span class="scenario-num">{{ scenarioNum(s) }}</span>
     <span class="scenario-title">{{ s.title }}</span>
+    @if (s.acto) {
+    <span class="scenario-sub">{{ s.acto }}</span>
+    }
   </div>
 
   <!-- Ficha técnica -->
   <div class="info-block">
     <div class="info-label">Ficha Técnica</div>
     <div class="stat-row">
+      <span class="stat-item"><strong>{{ s.tipoEscenario || 'VS' }}</strong> {{ (s.tipoEscenario || 'VS') === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
+      <span class="stat-sep">·</span>
       <span class="stat-item"><strong>{{ s.numeroJugadores }}</strong> {{ s.numeroJugadores === 1 ? 'Programador' :
         'Programadores' }}</span>
       <span class="stat-sep">·</span>
-      <span class="stat-item"><strong>{{ s.numeroBots || 3 }}</strong> {{ (s.numeroBots || 3) === 1 ? 'Bot' : 'Bots'
+      <span class="stat-item"><strong>{{ s.numeroBots || 2 }}</strong> {{ (s.numeroBots || 2) === 1 ? 'Bot' : 'Bots'
         }}/Prog.</span>
       <span class="stat-sep">·</span>
       <span class="stat-item"><strong>{{ s.numeroTurnos === 0 ? '∞' : s.numeroTurnos }}</strong> Turnos</span>
@@ -193,7 +198,7 @@
   @if (s.hexMap && s.hexMap.hexes.length > 0) {
   <div class="scenario-map-full"
     [class.has-extra-content]="getScenarioFunctions(s, 'attack').length > 0 || getScenarioFunctions(s, 'passive').length > 0">
-    <div class="info-label">Mapa</div>
+    <div class="info-label">Entorno Digitalizado de Combate</div>
     <app-hex-map [mapData]="s.hexMap" [size]="18" [printMode]="true" />
   </div>
   }

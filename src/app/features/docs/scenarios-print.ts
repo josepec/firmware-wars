@@ -19,6 +19,8 @@ const DOT_COLOR_HEX: Record<string, string> = {
 interface ScenarioItem {
   id: string;
   title: string;
+  tipoEscenario: 'VS' | 'COOP';
+  acto: string;
   numeroEscenario: number;
   numeroTurnos: number;
   numeroJugadores: number;
@@ -364,10 +366,12 @@ export class ScenariosPrint implements OnDestroy {
             return {
               id: s.id,
               title: s.title ?? '',
+              tipoEscenario: d.tipoEscenario ?? 'VS',
+              acto: d.acto ?? '',
               numeroEscenario: d.numeroEscenario ?? 0,
               numeroTurnos: d.numeroTurnos ?? 0,
               numeroJugadores: d.numeroJugadores ?? 2,
-              numeroBots: d.numeroBots ?? 3,
+              numeroBots: d.numeroBots ?? 2,
               ambientacion: d.ambientacion ?? '',
               objetivo: d.objetivo ?? '',
               condicionDerrota: d.condicionDerrota ?? '',

@@ -365,6 +365,15 @@
   text-transform: uppercase;
 }
 
+.scenario-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10pt;
+  color: #4a7a52;
+  letter-spacing: 0.1em;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 /* ── Body: two-column layout ─────────────────────────────────── */
 .scenario-body {
   display: flex;

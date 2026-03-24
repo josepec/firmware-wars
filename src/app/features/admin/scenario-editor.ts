@@ -25,10 +25,12 @@ export class ScenarioEditor implements OnInit {
   error = signal('');
 
   title = signal('');
+  tipoEscenario = signal<'VS' | 'COOP'>('VS');
+  acto = signal<'' | 'Acto 1' | 'Acto 2' | 'Acto 3' | 'Final'>('');
   numeroEscenario = signal(1);
   numeroTurnos = signal(0);
   numeroJugadores = signal(2);
-  numeroBots = signal(3);
+  numeroBots = signal(2);
   ambientacion = signal('');
   objetivo = signal('');
   condicionDerrota = signal('');
@@ -99,10 +101,12 @@ export class ScenarioEditor implements OnInit {
       const scenario = await resp.json();
       this.title.set(scenario.title ?? '');
       const d = scenario.data ?? {};
+      this.tipoEscenario.set(d.tipoEscenario ?? 'VS');
+      this.acto.set(d.acto ?? '');
       this.numeroEscenario.set(d.numeroEscenario ?? 1);
       this.numeroTurnos.set(d.numeroTurnos ?? 0);
       this.numeroJugadores.set(d.numeroJugadores ?? 2);
-      this.numeroBots.set(d.numeroBots ?? 3);
+      this.numeroBots.set(d.numeroBots ?? 2);
       this.ambientacion.set(d.ambientacion ?? '');
       this.objetivo.set(d.objetivo ?? '');
       this.condicionDerrota.set(d.condicionDerrota ?? '');
@@ -264,6 +268,8 @@ export class ScenarioEditor implements OnInit {
     const payload = {
       title: this.title().trim(),
       data: {
+        tipoEscenario: this.tipoEscenario(),
+        acto: this.acto(),
         numeroEscenario: this.numeroEscenario(),
         numeroTurnos: this.numeroTurnos(),
         numeroJugadores: this.numeroJugadores(),
