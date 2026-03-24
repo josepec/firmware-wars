@@ -12,6 +12,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'reglamento', pathMatch: 'full' },
       { path: 'print', loadComponent: () => import('./features/docs/docs-print').then(m => m.DocsPrint) },
       { path: 'scenarios-print', loadComponent: () => import('./features/docs/scenarios-print').then(m => m.ScenariosPrint) },
+      { path: 'cover-print', loadComponent: () => import('./features/docs/cover-print').then(m => m.CoverPrint) },
       { path: '**', loadComponent: () => import('./features/docs/docs').then(m => m.Docs) },
     ],
   },

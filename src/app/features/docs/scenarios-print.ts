@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, inject, OnDestroy, signal, computed } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { classifyCode } from '../../shared/markdown/marked-extensions';
 import { HexMap } from '../../shared/components/hex-map/hex-map';
 import { HexMapData, HexTypeDefinition } from '../../shared/components/hex-map/hex-map.types';
+import { CoverPage } from './cover-page';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 const PDF_WORKER_URL = `${API_URL}/scenarios-pdf`;
@@ -66,7 +67,7 @@ interface ThreatInfo {
 
 @Component({
   selector: 'app-scenarios-print',
-  imports: [RouterLink, HexMap],
+  imports: [RouterLink, HexMap, CoverPage],
   templateUrl: './scenarios-print.html',
   styleUrl: './scenarios-print.scss',
 })
@@ -311,7 +312,7 @@ export class ScenariosPrint implements OnDestroy {
   private async loadAll(): Promise<void> {
     try {
       const [scenariosResp, threatsResp, hexTypesResp, functionsResp] = await Promise.all([
-        fetch(`${API_URL}/api/scenarios`),
+        fetch(`${API_URL}/api/scenarios?full`),
         fetch(`${API_URL}/api/threats`),
         fetch(`${API_URL}/api/hex-types`),
         fetch(`${API_URL}/api/functions/admin`),

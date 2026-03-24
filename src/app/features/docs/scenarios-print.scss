@@ -169,6 +169,12 @@
       page-break-after: auto;
     }
 
+    &.scenario-page-right,
+    &.threat-page-right {
+      page-break-before: always;
+      page-break-after: auto;
+    }
+
     &.blank-page {
       page-break-before: always;
       height: 100vh;
@@ -189,102 +195,6 @@
     height: 183mm;
     padding: 0;
   }
-}
-
-/* ── Top bar ─────────────────────────────────────────────────── */
-.cover-top-bar {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0.2cm 0.1cm 0;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 6.5pt;
-  color: #888;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.7;
-}
-
-.cover-top-right { text-align: right; }
-.cover-classified { color: #1a6b4a; }
-.cover-access-value { color: #1a6b4a; }
-
-/* ── Center content ──────────────────────────────────────────── */
-.cover-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0.55cm;
-}
-
-.cover-title-firmware {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: 36pt;
-  letter-spacing: 0.08em;
-  color: #0a0a0a;
-  line-height: 1;
-  text-align: center;
-}
-
-.cover-title-wars {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: 48pt;
-  letter-spacing: 0.13em;
-  color: #1a6b4a;
-  line-height: 0.95;
-  text-align: center;
-  margin-bottom: 0.05cm;
-}
-
-/* ── Hex circuit icon ────────────────────────────────────────── */
-.cover-hex-icon {
-  margin-bottom: 0;
-
-  svg {
-    width: 2.2cm;
-    height: 2.2cm;
-  }
-}
-
-/* ── Subtitle block ──────────────────────────────────────────── */
-.cover-subtitle-block {
-  text-align: center;
-  margin-top: 0.1cm;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.02cm;
-}
-
-.cover-manual {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: 20pt;
-  letter-spacing: 0.1em;
-  color: #0a0a0a;
-  text-transform: uppercase;
-}
-
-.cover-system {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 500;
-  font-size: 9pt;
-  letter-spacing: 0.18em;
-  color: #888;
-  text-transform: uppercase;
-}
-
-.cover-version {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 400;
-  font-size: 8pt;
-  letter-spacing: 0.12em;
-  color: #999;
-  text-transform: uppercase;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -468,10 +378,16 @@
 .scenario-map {
   flex: 0 0 42%;
   max-width: 42%;
+  overflow: hidden;
 
-  app-hex-map {
+  ::ng-deep app-hex-map {
     display: block;
     width: 100%;
+  }
+
+  ::ng-deep app-hex-map svg {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -566,26 +482,61 @@
   width: 1.2cm;
   height: 1.2cm;
   object-fit: contain;
-  border: 0.5pt solid #b8deba;
-  border-radius: 2pt;
-  background: #f8fdf8;
 }
 
 /* ── Hex type rows ───────────────────────────────────────────── */
 .hex-type-row {
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin-bottom: 0.15rem;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
   font-family: 'Share Tech Mono', monospace;
   font-size: 7.5pt;
   color: #1a2e1e;
 }
 
-/* ── Scenario functions ──────────────────────────────────────── */
+.hex-swatch {
+  display: block;
+  width: 0.7cm;
+  height: 0.7cm;
+  min-width: 0.7cm;
+  flex-shrink: 0;
+}
+
+/* ── Scenario page right (map + functions) ─────────────────── */
+.scenario-page-right {
+  padding: 1.5cm 1.4cm 1.2cm;
+
+  @media print {
+    padding: 0.25cm 0 0.85cm;
+  }
+}
+
+.scenario-map-full {
+  margin-bottom: 0.6rem;
+
+  ::ng-deep app-hex-map {
+    display: block;
+    width: 100%;
+  }
+
+  ::ng-deep app-hex-map svg {
+    max-width: 100%;
+    height: auto;
+    width: auto;
+    margin: 0 auto;
+  }
+
+  ::ng-deep app-hex-map svg {
+    max-height: 120mm;
+  }
+  &.has-extra-content ::ng-deep app-hex-map svg {
+    max-height: 80mm;
+  }
+}
+
 .scenario-functions {
   margin-top: 0.5rem;
-  page-break-inside: avoid;
 }
 
 
@@ -670,9 +621,6 @@
   img {
     width: 3cm;
     height: auto;
-    border: 0.5pt solid #b8deba;
-    border-radius: 2pt;
-    background: #f8fdf8;
   }
 }
 
@@ -695,10 +643,18 @@
   margin-top: 0.3rem;
 }
 
+/* ── Threat page right (flowchart) ──────────────────────────── */
+.threat-page-right {
+  padding: 1.5cm 1.4cm 1.2cm;
+
+  @media print {
+    padding: 0.25cm 0 0.85cm;
+  }
+}
+
 /* ── Threat functions ────────────────────────────────────────── */
 .threat-functions {
   margin-top: 0.4rem;
-  page-break-inside: avoid;
 }
 
 
@@ -726,6 +682,22 @@
       text-align: left;
       white-space: nowrap;
     }
+  }
+
+  /* Columnas numéricas estrechas */
+  th:nth-child(2), td:nth-child(2),
+  th:nth-child(3), td:nth-child(3),
+  th:nth-child(4), td:nth-child(4),
+  th:nth-child(5), td:nth-child(5),
+  th:nth-child(6), td:nth-child(6) {
+    width: 2.5em;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Función column compact */
+  th:first-child, td:first-child {
+    white-space: nowrap;
   }
 
   tbody {

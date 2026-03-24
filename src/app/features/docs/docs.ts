@@ -10,6 +10,7 @@ import { ThreatViewer } from './threat-viewer';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 const PDF_WORKER_URL = `${API_URL}/pdf`;
+const SCENARIOS_PDF_URL = `${API_URL}/scenarios-pdf`;
 
 interface DocsCategory {
   id: string;
@@ -17,12 +18,13 @@ interface DocsCategory {
   configUrl: string;
   docsPath: string;
   searchable: boolean;
+  hidden?: boolean;
 }
 
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO', configUrl: '/assets/config/docs.config.json', docsPath: 'assets/docs', searchable: true },
   { id: 'recursos', label: 'RECURSOS', configUrl: '/assets/config/recursos.config.json', docsPath: 'assets/recursos', searchable: false },
-  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false },
+  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false, hidden: true },
 ];
 
 @Component({
@@ -33,6 +35,7 @@ const CATEGORIES: DocsCategory[] = [
 })
 export class Docs implements OnInit, OnDestroy {
   readonly pdfUrl = PDF_WORKER_URL;
+  readonly scenariosPdfUrl = SCENARIOS_PDF_URL;
   markdownSrc = signal<string | null>(null);
   sections = signal<{ id: string; num: string; title: string; subtitle: string; type?: string }[]>([]);
   currentSectionId = signal<string | null>(null);
@@ -161,7 +164,7 @@ export class Docs implements OnInit, OnDestroy {
     const categoryId = parts[0] || 'reglamento';
     const section = parts[1] || null;
 
-    const cat = CATEGORIES.find(c => c.id === categoryId) ?? CATEGORIES[0];
+    const cat = CATEGORIES.find(c => c.id === categoryId && !c.hidden) ?? CATEGORIES[0];
     this.currentCategory.set(cat);
     this.currentSectionId.set(section);
     this.markdownSrc.set(cat.id !== 'escenarios' && section ? `${cat.docsPath}/${section}.md` : null);

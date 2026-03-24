@@ -11,13 +11,13 @@
 
   <span class="ctrl-title">FIRMWARE WARS — Guía de Escenarios</span>
 
-  <button (click)="print()" class="ctrl-print">
+  <a [href]="pdfUrl" target="_blank" rel="noopener" class="ctrl-print">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-      <rect x="6" y="14" width="12" height="8" />
+      <path d="M12 16V4M12 16l-4-4M12 16l4-4" />
+      <path d="M4 20h16" />
     </svg>
-    Imprimir
-  </button>
+    Descargar PDF
+  </a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -32,10 +32,6 @@
 <!-- ═══════════════════════════════════════════════════════════
      Pie fijo (visible en cada página impresa)
      ═══════════════════════════════════════════════════════════ -->
-<div class="print-footer print-only">
-  <span>FIRMWARE WARS — Escenarios y Amenazas</span>
-  <span>Firmware Wars © {{ copyrightYears }}</span>
-</div>
 
 @if (ready()) {
 
@@ -44,44 +40,10 @@
      ═══════════════════════════════════════════════════════════ -->
 <div class="sp-page cover-page">
 
-  <!-- Top bar -->
-  <div class="cover-top-bar">
-    <div class="cover-top-left">
-      <div class="cover-rights">ALL RIGHTS RESERVED</div>
-      <div class="cover-classified">&copy;{{ copyrightYears }}</div>
-    </div>
-    <div class="cover-top-right">
-      <div class="cover-access-label">ACCESS LEVEL:</div>
-      <div class="cover-access-value">SENIOR PROGRAMMER</div>
-    </div>
-  </div>
-
-  <!-- Content -->
-  <div class="cover-center">
-
-    <!-- Title -->
-    <div class="cover-title-firmware">FIRMWARE</div>
-    <div class="cover-title-wars">WARS</div>
-
-    <!-- Hex circuit icon -->
-    <div class="cover-hex-icon">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="none" stroke="#1a6b4a" stroke-width="2.5"/>
-        <polygon points="50,22 73,35 73,65 50,78 27,65 27,35" fill="none" stroke="#1a6b4a" stroke-width="1.5"/>
-        <line x1="50" y1="22" x2="50" y2="5" stroke="#1a6b4a" stroke-width="1"/><line x1="73" y1="35" x2="90" y2="27.5" stroke="#1a6b4a" stroke-width="1"/><line x1="73" y1="65" x2="90" y2="72.5" stroke="#1a6b4a" stroke-width="1"/><line x1="50" y1="78" x2="50" y2="95" stroke="#1a6b4a" stroke-width="1"/><line x1="27" y1="65" x2="10" y2="72.5" stroke="#1a6b4a" stroke-width="1"/><line x1="27" y1="35" x2="10" y2="27.5" stroke="#1a6b4a" stroke-width="1"/>
-        <circle cx="50" cy="50" r="8" fill="none" stroke="#1a6b4a" stroke-width="1.5"/><circle cx="50" cy="50" r="3" fill="#1a6b4a"/>
-        <circle cx="50" cy="22" r="2.5" fill="#1a6b4a"/><circle cx="73" cy="35" r="2.5" fill="#1a6b4a"/><circle cx="73" cy="65" r="2.5" fill="#1a6b4a"/><circle cx="50" cy="78" r="2.5" fill="#1a6b4a"/><circle cx="27" cy="65" r="2.5" fill="#1a6b4a"/><circle cx="27" cy="35" r="2.5" fill="#1a6b4a"/>
-      </svg>
-    </div>
-
-    <!-- Subtitle -->
-    <div class="cover-subtitle-block">
-      <div class="cover-manual">Guía de Escenarios</div>
-      <div class="cover-system">y Amenazas</div>
-      <div class="cover-version" id="cover-version"></div>
-    </div>
-
-  </div>
+  <app-cover-page
+    imageSrc="assets/img/cover-scenarios.png"
+    subtitle="Escenarios y Amenazas"
+    [copyrightYears]="copyrightYears" />
 
 </div>
 
@@ -131,126 +93,129 @@
   </ol>
 </div>
 
-<!-- Página en blanco (reverso de índice) -->
-<div class="sp-page blank-page"></div>
-
 <!-- ═══════════════════════════════════════════════════════════
-     ESCENARIOS
+     ESCENARIOS (2 páginas por escenario: izquierda + derecha)
      ═══════════════════════════════════════════════════════════ -->
 @for (s of scenarios(); track s.id) {
+<!-- Página izquierda: Info -->
 <div class="sp-page scenario-page" [id]="'scenario-' + s.id">
   <span class="pdf-marker">FWMARK-S{{ scenarioNum(s) }}-{{ s.title }}</span>
 
-  <!-- Title -->
   <div class="scenario-header">
     <span class="scenario-num">{{ scenarioNum(s) }}</span>
     <span class="scenario-title">{{ s.title }}</span>
   </div>
 
-  <!-- Two-column layout: Info left, Map right -->
-  <div class="scenario-body">
-
-    <!-- Left column: info -->
-    <div class="scenario-info">
-
-      <!-- Ficha técnica -->
-      <div class="info-block">
-        <div class="info-label">Ficha Técnica</div>
-        <div class="stat-row">
-          <span class="stat-item"><strong>{{ s.numeroJugadores }}</strong> {{ s.numeroJugadores === 1 ? 'Programador' : 'Programadores' }}</span>
-          <span class="stat-sep">·</span>
-          <span class="stat-item"><strong>{{ s.numeroBots || 3 }}</strong> {{ (s.numeroBots || 3) === 1 ? 'Bot' : 'Bots' }}/Prog.</span>
-          <span class="stat-sep">·</span>
-          <span class="stat-item"><strong>{{ s.numeroTurnos === 0 ? '∞' : s.numeroTurnos }}</strong> Turnos</span>
-        </div>
-      </div>
-
-      <!-- Ambientación -->
-      @if (s.ambientacion) {
-      <div class="info-block">
-        <div class="info-label">Ambientación</div>
-        <p class="info-text" [innerHTML]="renderInlineCode(s.ambientacion)"></p>
-      </div>
+  <!-- Ficha técnica -->
+  <div class="info-block">
+    <div class="info-label">Ficha Técnica</div>
+    <div class="stat-row">
+      <span class="stat-item"><strong>{{ s.numeroJugadores }}</strong> {{ s.numeroJugadores === 1 ? 'Programador' :
+        'Programadores' }}</span>
+      <span class="stat-sep">·</span>
+      <span class="stat-item"><strong>{{ s.numeroBots || 3 }}</strong> {{ (s.numeroBots || 3) === 1 ? 'Bot' : 'Bots'
+        }}/Prog.</span>
+      <span class="stat-sep">·</span>
+      <span class="stat-item"><strong>{{ s.numeroTurnos === 0 ? '∞' : s.numeroTurnos }}</strong> Turnos</span>
+      @if (s.hexMap && s.hexMap.hexes.length > 0) {
+      <span class="stat-sep">·</span>
+      <span class="stat-item"><strong>{{ s.hexMap.hexes.length }}</strong> Hexes</span>
       }
-
-      <!-- Objetivo -->
-      @if (s.objetivo) {
-      <div class="info-block">
-        <div class="info-label">Objetivo</div>
-        <p class="info-text" [innerHTML]="renderInlineCode(s.objetivo)"></p>
-      </div>
-      }
-
-      <!-- Condición de derrota -->
-      @if (s.condicionDerrota) {
-      <div class="info-block">
-        <div class="info-label">Condición de Derrota</div>
-        <p class="info-text" [innerHTML]="renderInlineCode(s.condicionDerrota)"></p>
-      </div>
-      }
-
-      <!-- Amenazas -->
-      @if (getScenarioThreats(s).length > 0) {
-      <div class="info-block">
-        <div class="info-label">Amenazas</div>
-        @for (t of getScenarioThreats(s); track t.id) {
-        <div class="threat-card">
-          @if (t.imageUrl) {
-          <img [src]="t.imageUrl" [alt]="t.name" class="threat-img" />
-          }
-          <div>
-            <strong>{{ t.name }}</strong>
-            @if (t.count > 0) { <span> ×{{ t.count }}</span> }
-          </div>
-        </div>
-        }
-      </div>
-      }
-
-      <!-- Hexes especiales -->
-      @if (specialHexTypes(s).length > 0) {
-      <div class="info-block">
-        <div class="info-label">Hexes Especiales</div>
-        @for (ht of specialHexTypes(s); track ht.id) {
-        <div class="hex-type-row">
-          <svg width="24" height="22" viewBox="-12 -11 24 22">
-            <polygon [attr.points]="miniHexPoints()" [attr.fill]="ht.color" [attr.stroke]="ht.borderColor" stroke-width="1.5" />
-          </svg>
-          <span>{{ ht.name }} ×{{ hexTypeCount(s, ht.id) }}</span>
-        </div>
-        }
-      </div>
-      }
-
-      <!-- Despliegue -->
-      <div class="info-block">
-        <div class="info-label">Despliegue</div>
-        @if (s.despliegueMode === 'dots' && s.despliegueDots) {
-          @for (entry of deployEntries(s); track entry.player) {
-          <p class="info-text"><strong>Programador {{ entry.player }}</strong>: Bots en Hexes con punto {{ dotName(entry.color) }}.</p>
-          }
-        } @else {
-          @for (i of playerIndexes(s); track i) {
-          <p class="info-text"><strong>Programador {{ i }}</strong>: Bots en marcadores P{{ i }}.</p>
-          }
-        }
-        @for (u of threatUnitList(s); track u.label) {
-        <p class="info-text"><strong>{{ u.label }}</strong>: {{ u.turno === 0 ? 'Al inicio de la partida' : 'Al inicio del turno ' + u.turno }}, en marcador {{ u.marker }}.</p>
-        }
-      </div>
-
     </div>
-
-    <!-- Right column: Map -->
-    @if (s.hexMap && s.hexMap.hexes.length > 0) {
-    <div class="scenario-map">
-      <app-hex-map [mapData]="s.hexMap" [size]="20" />
-    </div>
-    }
-
   </div>
 
-  <!-- Functions (full width below) -->
+  @if (s.ambientacion) {
+  <div class="info-block">
+    <div class="info-label">Ambientación</div>
+    <p class="info-text" [innerHTML]="renderInlineCode(s.ambientacion)"></p>
+  </div>
+  }
+
+  @if (s.objetivo) {
+  <div class="info-block">
+    <div class="info-label">Objetivo</div>
+    <p class="info-text" [innerHTML]="renderInlineCode(s.objetivo)"></p>
+  </div>
+  }
+
+  @if (s.condicionDerrota) {
+  <div class="info-block">
+    <div class="info-label">Condición de Derrota</div>
+    <p class="info-text" [innerHTML]="renderInlineCode(s.condicionDerrota)"></p>
+  </div>
+  }
+
+  @if (getScenarioThreats(s).length > 0) {
+  <div class="info-block">
+    <div class="info-label">Amenazas</div>
+    @for (t of getScenarioThreats(s); track t.id) {
+    <div class="threat-card">
+      @if (t.imageUrl) {
+      <img [src]="t.imageUrl" [alt]="t.name" class="threat-img" />
+      }
+      <div>
+        <strong>{{ t.name }}</strong>
+        @if (t.count > 0) { <span> ×{{ t.count }}</span> }
+        @if (t.description) {
+        <p class="info-text" style="margin-top: 0.1rem;" [innerHTML]="renderInlineCode(t.description)"></p>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  @if (specialHexTypes(s).length > 0) {
+  <div class="info-block">
+    <div class="info-label">Hexes Especiales</div>
+    @for (ht of specialHexTypes(s); track ht.id) {
+    <div class="hex-type-row">
+      <svg class="hex-swatch" viewBox="-14 -14 28 28">
+        <polygon [attr.points]="miniHexPoints()" [attr.fill]="ht.color" [attr.stroke]="ht.borderColor"
+          stroke-width="2" />
+      </svg>
+      <div>
+        <span><strong>{{ ht.name }}</strong> ×{{ hexTypeCount(s, ht.id) }}</span>
+        @if (ht.properties) {
+        <p class="info-text" style="margin-top: 0.1rem;" [innerHTML]="renderInlineCode('' + ht.properties)"></p>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+</div>
+
+<!-- Página derecha: Mapa + Despliegue + Funciones -->
+<div class="sp-page scenario-page-right">
+
+  @if (s.hexMap && s.hexMap.hexes.length > 0) {
+  <div class="scenario-map-full"
+    [class.has-extra-content]="getScenarioFunctions(s, 'attack').length > 0 || getScenarioFunctions(s, 'passive').length > 0">
+    <div class="info-label">Mapa</div>
+    <app-hex-map [mapData]="s.hexMap" [size]="18" [printMode]="true" />
+  </div>
+  }
+
+  <div class="info-block">
+    <div class="info-label">Despliegue</div>
+    @if (s.despliegueMode === 'dots' && s.despliegueDots) {
+    @for (entry of deployEntries(s); track entry.player) {
+    <p class="info-text"><strong>Programador {{ entry.player }}</strong>: Bots en Hexes con punto {{
+      dotName(entry.color) }}.</p>
+    }
+    } @else {
+    @for (i of playerIndexes(s); track i) {
+    <p class="info-text"><strong>Programador {{ i }}</strong>: Bots en marcadores P{{ i }}.</p>
+    }
+    }
+    @for (u of threatUnitList(s); track u.label) {
+    <p class="info-text"><strong>{{ u.label }}</strong>: {{ u.turno === 0 ? 'Al inicio de la partida' : 'Al inicio del
+      turno ' + u.turno }}, en marcador {{ u.marker }}.</p>
+    }
+  </div>
+
   @if (getScenarioFunctions(s, 'attack').length > 0 || getScenarioFunctions(s, 'passive').length > 0) {
   <div class="scenario-functions">
     <div class="info-label">Funciones de Escenario</div>
@@ -304,15 +269,14 @@
     }
   </div>
   }
-
 </div>
 }
 
 <!-- ═══════════════════════════════════════════════════════════
      SEPARADOR AMENAZAS
      ═══════════════════════════════════════════════════════════ -->
-<div class="sp-page blank-page"></div>
-<div class="sp-page divider-page">
+<div class="sp-page blank-page"><span class="pdf-marker">FWMARK-SKIP</span></div>
+<div class="sp-page divider-page"><span class="pdf-marker">FWMARK-SKIP</span>
   <div class="divider-center">
     <div class="divider-title">AMENAZAS</div>
     <div class="divider-subtitle">Entidades Hostiles del Sistema</div>
@@ -323,15 +287,14 @@
      AMENAZAS
      ═══════════════════════════════════════════════════════════ -->
 @for (t of threats(); track t.id) {
+<!-- Página izquierda: Info + Funciones -->
 <div class="sp-page threat-page" [id]="'threat-' + t.id">
-  <span class="pdf-marker">FWMARK-T{{ t.id }}</span>
+  <span class="pdf-marker">FWMARK-T{{ t.id }}-{{ t.name }}</span>
 
-  <!-- Title -->
   <div class="threat-header">
     <span class="threat-title">{{ t.name }}</span>
   </div>
 
-  <!-- Header: image + description -->
   <div class="threat-top">
     @if (t.imageUrl) {
     <div class="threat-image">
@@ -346,48 +309,6 @@
     }
   </div>
 
-  <!-- Flowchart -->
-  @if (t.flowchart?.nodes?.length) {
-  <div class="threat-flowchart">
-    <div class="info-label">Diagrama de Comportamiento</div>
-    <svg [attr.width]="svgWidth(t.flowchart.nodes)" [attr.height]="svgHeight(t.flowchart.nodes)" class="flowchart-svg">
-      <defs>
-        <marker id="sp-arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#1a6b4a" />
-        </marker>
-      </defs>
-
-      @for (c of t.flowchart.connections; track c.from + c.to) {
-        <path [attr.d]="connPath(c, t.flowchart.nodes)" fill="none" stroke="#1a6b4a" stroke-width="1.5"
-              marker-end="url(#sp-arrowhead)" />
-        @if (c.label) {
-          <text [attr.x]="connMid(c, t.flowchart.nodes).x" [attr.y]="connMid(c, t.flowchart.nodes).y"
-                text-anchor="middle" dominant-baseline="middle"
-                fill="#1a6b4a" font-size="8">
-            {{ c.label }}
-          </text>
-        }
-      }
-
-      @for (node of t.flowchart.nodes; track node.id) {
-        <g [attr.transform]="'translate(' + node.x + ',' + node.y + ')'">
-          <path [attr.d]="nodePath(node)"
-                fill="white"
-                [attr.stroke]="nodeColor(node.type)"
-                stroke-width="1.5" />
-          <text [attr.x]="nodeW(node) / 2" [attr.y]="nodeH(node) / 2"
-                text-anchor="middle" dominant-baseline="middle"
-                [attr.fill]="nodeColor(node.type)"
-                font-size="9" style="font-family: monospace;">
-            {{ node.label }}
-          </text>
-        </g>
-      }
-    </svg>
-  </div>
-  }
-
-  <!-- Functions -->
   @if (getThreatFunctions(t, 'attack').length > 0 || getThreatFunctions(t, 'passive').length > 0) {
   <div class="threat-functions">
     @if (getThreatFunctions(t, 'attack').length > 0) {
@@ -442,6 +363,48 @@
   </div>
   }
 
+</div>
+
+<!-- Página derecha: Flowchart -->
+<div class="sp-page threat-page-right">
+  @if (t.flowchart.nodes.length > 0) {
+  <div class="threat-flowchart">
+    <div class="info-label">Diagrama de Comportamiento</div>
+    <svg [attr.viewBox]="'0 0 ' + svgWidth(t.flowchart.nodes) + ' ' + svgHeight(t.flowchart.nodes)" width="100%"
+      preserveAspectRatio="xMidYMid meet" class="flowchart-svg">
+      <defs>
+        <marker id="sp-arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#1a6b4a" />
+        </marker>
+      </defs>
+
+      @for (c of t.flowchart.connections; track c.from + c.to) {
+      <path [attr.d]="connPath(c, t.flowchart.nodes)" fill="none" stroke="#1a6b4a" stroke-width="1.5"
+        marker-end="url(#sp-arrowhead)" />
+      @if (c.label) {
+      <text [attr.x]="connMid(c, t.flowchart.nodes).x" [attr.y]="connMid(c, t.flowchart.nodes).y" text-anchor="middle"
+        dominant-baseline="middle" fill="#1a6b4a" font-size="8">
+        {{ c.label }}
+      </text>
+      }
+      }
+
+      @for (node of t.flowchart.nodes; track node.id) {
+      <g [attr.transform]="'translate(' + node.x + ',' + node.y + ')'">
+        <path [attr.d]="nodePath(node)" fill="white" [attr.stroke]="nodeColor(node.type)" stroke-width="1.5" />
+        <foreignObject [attr.x]="node.type === 'condition' ? nodeW(node) * 0.2 : 4" y="0"
+          [attr.width]="node.type === 'condition' ? nodeW(node) * 0.6 : nodeW(node) - 8" [attr.height]="nodeH(node)">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+                        font-family: monospace; font-size: 9px; text-align: center; line-height: 1.2;
+                        word-break: break-word; overflow: hidden;" [style.color]="nodeColor(node.type)">
+            {{ node.label }}
+          </div>
+        </foreignObject>
+      </g>
+      }
+    </svg>
+  </div>
+  }
 </div>
 }
 

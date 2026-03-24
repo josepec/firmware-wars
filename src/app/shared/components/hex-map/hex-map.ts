@@ -10,7 +10,7 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
       <!-- 3D depth effect (bottom layer) -->
       @for (h of renderedHexes(); track h.key) {
         <polygon [attr.points]="h.depthPoints"
-                 [attr.fill]="h.isObstacle ? '#0a0a0a' : '#b0b0b0'"
+                 [attr.fill]="printMode() ? (h.isObstacle ? '#1a1a1a' : '#c8c8c8') : (h.isObstacle ? '#0a0a0a' : '#b0b0b0')"
                  stroke="none" />
       }
 
@@ -23,17 +23,32 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
                  (click)="onGhostClick(g.q, g.r)" />
       }
 
-      <!-- Hex faces -->
+      <!-- Hex faces: normal first, then special/obstacle on top -->
       @for (h of renderedHexes(); track h.key) {
+        @if (!h.isSpecial && !h.isObstacle) {
         <polygon [attr.points]="h.points"
                  [attr.fill]="h.fill"
                  [attr.stroke]="h.stroke"
-                 stroke-width="2"
+                 [attr.stroke-width]="h.strokeWidth"
                  class="hex-face"
                  [class.interactive]="interactive()"
                  [class.dragging]="dragHex()?.key === h.key"
                  (mousedown)="onDragStart($event, h.q, h.r)"
                  (click)="onHexClick(h.q, h.r)" />
+        }
+      }
+      @for (h of renderedHexes(); track h.key) {
+        @if (h.isSpecial || h.isObstacle) {
+        <polygon [attr.points]="h.points"
+                 [attr.fill]="h.fill"
+                 [attr.stroke]="h.stroke"
+                 [attr.stroke-width]="h.strokeWidth"
+                 class="hex-face"
+                 [class.interactive]="interactive()"
+                 [class.dragging]="dragHex()?.key === h.key"
+                 (mousedown)="onDragStart($event, h.q, h.r)"
+                 (click)="onHexClick(h.q, h.r)" />
+        }
       }
 
       <!-- Dots -->
@@ -98,9 +113,9 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
             }
           }
           <!-- Label -->
-          <text [attr.y]="d.type === 'player' ? 18 : 16" text-anchor="middle"
-                [attr.font-size]="size() * 0.3"
-                fill="#22d3ee" font-family="'Orbitron', monospace" font-weight="700">
+          <text [attr.y]="d.type === 'player' ? 13 : 12" text-anchor="middle"
+                [attr.font-size]="size() * 0.28"
+                [attr.fill]="printMode() ? '#1a5c28' : '#22d3ee'" font-family="'Orbitron', monospace" font-weight="700">
             {{ d.label }}
           </text>
         </g>
@@ -130,6 +145,7 @@ export class HexMap {
   readonly size = input(30);
   readonly interactive = input(false);
   readonly showGhosts = input(false);
+  readonly printMode = input(false);
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
@@ -197,6 +213,7 @@ export class HexMap {
   renderedHexes = computed(() => {
     const s = this.size();
     const data = this.mapData();
+    const print = this.printMode();
     const typeMap = new Map(data.hexTypes.map(t => [t.id, t]));
     const deployedSet = new Set(data.deployments.map(d => `${d.q},${d.r}`));
 
@@ -205,6 +222,14 @@ export class HexMap {
       const type = typeMap.get(h.typeId) ?? data.hexTypes[0];
       const dotDef = h.dot ? DOT_COLORS.find(d => d.id === h.dot) : null;
       const hasDeployment = deployedSet.has(`${h.q},${h.r}`);
+      let fill = type.color;
+      let stroke = type.borderColor;
+      const isSpecial = h.typeId !== 'normal' && h.typeId !== 'obstacle';
+      if (print) {
+        if (h.typeId === 'normal') { fill = '#ffffff'; stroke = '#aaaaaa'; }
+        else if (h.typeId === 'obstacle') { fill = '#1a1a1a'; stroke = '#333333'; }
+        // Speciales: keep their own colors
+      }
       return {
         key: `${h.q},${h.r}`,
         q: h.q,
@@ -215,8 +240,10 @@ export class HexMap {
         dotCy: hasDeployment ? y - s * 0.65 : y,
         points: hexPoints(x, y, s),
         depthPoints: hexPoints(x, y + this.depthOffset, s),
-        fill: type.color,
-        stroke: type.borderColor,
+        fill,
+        stroke,
+        strokeWidth: 2,
+        isSpecial,
         isObstacle: h.typeId === 'obstacle',
         dotColor: dotDef?.hex ?? null,
       };

@@ -5,12 +5,13 @@ import { Subscription, filter } from 'rxjs';
 interface DocsCategory {
   id: string;
   label: string;
+  hidden?: boolean;
 }
 
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO' },
   { id: 'recursos', label: 'RECURSOS' },
-  { id: 'escenarios', label: 'ESCENARIOS' },
+  { id: 'escenarios', label: 'ESCENARIOS', hidden: true },
 ];
 
 @Component({
@@ -22,7 +23,7 @@ const CATEGORIES: DocsCategory[] = [
 export class Navbar implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private routerSub!: Subscription;
-  readonly categories = CATEGORIES;
+  readonly categories = CATEGORIES.filter(c => !c.hidden);
   readonly docsMenuOpen = signal(false);
 
   isHomeActive(): boolean {

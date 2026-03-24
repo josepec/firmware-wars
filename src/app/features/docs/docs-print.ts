@@ -1,13 +1,14 @@
 import { ChangeDetectorRef, Component, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
+import { CoverPage } from './cover-page';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
 @Component({
   selector: 'app-docs-print',
-  imports: [RouterLink, MarkdownComponent],
+  imports: [RouterLink, MarkdownComponent, CoverPage],
   templateUrl: './docs-print.html',
   styleUrl: './docs-print.scss',
 })
