@@ -1,0 +1,24 @@
+.field-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 136, 0.45);
+  margin-bottom: 0.5rem;
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  background: rgba(0, 255, 136, 0.04);
+  border: 1px solid rgba(0, 255, 136, 0.18);
+  color: #86efac;
+  letter-spacing: 0.03em;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+
+  &::placeholder { color: rgba(0, 255, 136, 0.2); }
+  &:focus { border-color: rgba(0, 255, 136, 0.4); }
+}

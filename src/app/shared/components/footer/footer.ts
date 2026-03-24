@@ -1,10 +1,11 @@
 import { Component, signal, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
 @Component({
   selector: 'app-footer',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './footer.html',
   styleUrl: './footer.scss',
 })

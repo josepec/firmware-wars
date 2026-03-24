@@ -1,0 +1,749 @@
+/* ============================================================
+   SCENARIOS-PRINT — Guía de Escenarios y Amenazas (impresión / PDF)
+   ============================================================ */
+
+/* ── @page: A5 con márgenes que coinciden con la vista previa ── */
+@page {
+  size: A5;
+  margin: 1.5cm 1.8cm 1.2cm;
+}
+
+/* ── Visibilidad print/screen ────────────────────────────────── */
+.print-only { display: none; }
+
+@media print {
+  .no-print   { display: none !important; }
+  .print-only { display: flex; }
+}
+
+/* ── Host: fondo de vista previa ─────────────────────────────── */
+:host {
+  display: block;
+  background: #1c1c1c;
+  min-height: 100vh;
+  padding: 5rem 1rem 3rem;
+
+  @media print {
+    background: white;
+    padding: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BARRA DE CONTROL (solo pantalla)
+   ═══════════════════════════════════════════════════════════════ */
+.ctrl-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.92);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 1.5rem;
+  gap: 1rem;
+}
+
+.ctrl-back {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: rgba(74, 222, 128, 0.6);
+  text-decoration: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+
+  &:hover { color: #4ade80; }
+}
+
+.ctrl-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: rgba(0, 255, 136, 0.3);
+  text-transform: uppercase;
+}
+
+.ctrl-print {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  background: transparent;
+  color: #4ade80;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: rgba(0, 255, 136, 0.08);
+    color: #86efac;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENCABEZADO / PIE — position: fixed se repite en cada página
+   ═══════════════════════════════════════════════════════════════ */
+.print-header {
+  @media print {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 0.85cm;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-bottom: 0.75pt solid #b8deba;
+    font-family: 'Orbitron', monospace;
+    font-size: 6.5pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #3a6640;
+  }
+
+  .ph-sep { color: #6ea878; margin: 0 0.4em; }
+}
+
+.print-footer {
+  @media print {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 0.85cm;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-top: 0.75pt solid #b8deba;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 6pt;
+    letter-spacing: 0.08em;
+    color: #4a7a52;
+  }
+}
+
+/* En modo Worker (Puppeteer) el header/footer lo pone Puppeteer — ocultamos el HTML */
+@media print {
+  :host-context(body[data-worker]) .print-header,
+  :host-context(body[data-worker]) .print-footer { display: none !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PÁGINAS — wrapper A5
+   ═══════════════════════════════════════════════════════════════ */
+.sp-page {
+  background: white;
+  width: 148mm;
+  height: 210mm;
+  overflow: hidden;
+  margin: 0 auto 2rem;
+  box-shadow: 0 6px 50px rgba(0, 0, 0, 0.55);
+  position: relative;
+  visibility: hidden;
+
+  @media print {
+    visibility: visible;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    page-break-after: always;
+
+    &:last-child { page-break-after: avoid; }
+
+    &.scenario-page,
+    &.threat-page,
+    &.divider-page {
+      page-break-before: always;
+      page-break-after: auto;
+    }
+
+    &.scenario-page-right,
+    &.threat-page-right {
+      page-break-before: always;
+      page-break-after: auto;
+    }
+
+    &.blank-page {
+      page-break-before: always;
+      height: 100vh;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PORTADA
+   ═══════════════════════════════════════════════════════════════ */
+.cover-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+
+  @media print {
+    height: 183mm;
+    padding: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ÍNDICE
+   ═══════════════════════════════════════════════════════════════ */
+.toc-page {
+  padding: 2cm 1.8cm 1.8cm;
+
+  @media print {
+    padding: 0.85cm 0 0.85cm;
+  }
+}
+
+.toc-header { margin-bottom: 1.5rem; }
+
+.toc-heading {
+  font-family: 'Orbitron', monospace;
+  font-size: 14pt;
+  font-weight: 700;
+  color: #0a1a0d;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.625rem;
+}
+
+.toc-rule {
+  height: 2pt;
+  background: linear-gradient(to right, #1a5c28, transparent);
+  width: 100%;
+}
+
+.toc-section-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8pt;
+  font-weight: 700;
+  color: #1a6b4a;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 0.75pt solid #b8deba;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0;
+}
+
+.toc-item {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  font-family: 'Share Tech Mono', monospace;
+
+  & + & { border-top: 0.5pt solid #e8f5ea; }
+}
+
+.toc-link {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.toc-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 7pt;
+  color: #1a5c28;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: #e8f5ea;
+  padding: 0.15rem 0.35rem;
+  white-space: nowrap;
+}
+
+.toc-num-threat {
+  text-align: center;
+  font-size: 9pt;
+  padding: 0.1rem 0.35rem;
+}
+
+.toc-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.toc-title {
+  font-size: 9pt;
+  color: #0a1a0d;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.toc-page-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 8pt;
+  color: #3a6640;
+  font-weight: 700;
+  min-width: 1.5em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MARCADORES PDF (invisibles pero renderizados para pdf-parse)
+   ═══════════════════════════════════════════════════════════════ */
+.pdf-marker {
+  font-size: 0.5px;
+  color: white;
+  line-height: 0;
+  display: block;
+  user-select: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ESCENARIOS — Páginas de contenido
+   ═══════════════════════════════════════════════════════════════ */
+.scenario-page {
+  padding: 1.5cm 1.4cm 1.2cm;
+
+  @media print {
+    padding: 0.25cm 0 0.85cm;
+  }
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.scenario-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 2pt solid #1a5c28;
+  page-break-after: avoid;
+}
+
+.scenario-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 10pt;
+  color: #1a5c28;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: #e8f5ea;
+  padding: 0.2rem 0.45rem;
+  white-space: nowrap;
+}
+
+.scenario-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 12pt;
+  font-weight: 700;
+  color: #0a1a0d;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Body: two-column layout ─────────────────────────────────── */
+.scenario-body {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.scenario-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.scenario-map {
+  flex: 0 0 42%;
+  max-width: 42%;
+  overflow: hidden;
+
+  ::ng-deep app-hex-map {
+    display: block;
+    width: 100%;
+  }
+
+  ::ng-deep app-hex-map svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ── Info blocks ─────────────────────────────────────────────── */
+.info-block {
+  margin-bottom: 0.4rem;
+  page-break-inside: avoid;
+}
+
+.info-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 7pt;
+  font-weight: 700;
+  color: #1a6b4a;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+  padding-bottom: 0.1rem;
+  border-bottom: 0.5pt solid #b8deba;
+}
+
+.info-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7.5pt;
+  color: #1a2e1e;
+  line-height: 1.6;
+  margin: 0.1rem 0 0.15rem;
+
+  strong {
+    color: #0a1a0d;
+    font-weight: 700;
+  }
+
+  code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85em;
+    color: #1a5c28;
+    background: #f0f8f1;
+    border: 0.5pt solid #a3d8aa;
+    padding: 0.02em 0.25em;
+  }
+
+  /* ── Token colors inline ─────────────────────────────────── */
+  code {
+    &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    12%, white); border-color: color-mix(in srgb, var(--bs-kw)    40%, white); }
+    &.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    12%, white); border-color: color-mix(in srgb, var(--bs-fn)    40%, white); }
+    &.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   12%, white); border-color: color-mix(in srgb, var(--bs-var)   40%, white); }
+    &.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  12%, white); border-color: color-mix(in srgb, var(--bs-const)  40%, white); }
+    &.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 12%, white); border-color: color-mix(in srgb, var(--bs-status) 40%, white); }
+    &.bs-bug    { color: var(--bs-status); background: transparent; border: none; padding: 0; }
+    &.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   12%, white); border-color: color-mix(in srgb, var(--bs-type)   40%, white); }
+  }
+}
+
+/* ── Stats row ───────────────────────────────────────────────── */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7.5pt;
+  color: #1a2e1e;
+  line-height: 1.6;
+
+  strong {
+    color: #1a6b4a;
+    font-weight: 700;
+    font-size: 9pt;
+  }
+}
+
+.stat-sep {
+  color: #b8deba;
+  font-size: 8pt;
+}
+
+/* ── Threat cards (inside scenario) ──────────────────────────── */
+.threat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7.5pt;
+  color: #1a2e1e;
+
+  strong { color: #0a1a0d; }
+}
+
+.threat-img {
+  width: 1.2cm;
+  height: 1.2cm;
+  object-fit: contain;
+}
+
+/* ── Hex type rows ───────────────────────────────────────────── */
+.hex-type-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7.5pt;
+  color: #1a2e1e;
+}
+
+.hex-swatch {
+  display: block;
+  width: 0.7cm;
+  height: 0.7cm;
+  min-width: 0.7cm;
+  flex-shrink: 0;
+}
+
+/* ── Scenario page right (map + functions) ─────────────────── */
+.scenario-page-right {
+  padding: 1.5cm 1.4cm 1.2cm;
+
+  @media print {
+    padding: 0.25cm 0 0.85cm;
+  }
+}
+
+.scenario-map-full {
+  margin-bottom: 0.6rem;
+
+  ::ng-deep app-hex-map {
+    display: block;
+    width: 100%;
+  }
+
+  ::ng-deep app-hex-map svg {
+    max-width: 100%;
+    height: auto;
+    width: auto;
+    margin: 0 auto;
+  }
+
+  ::ng-deep app-hex-map svg {
+    max-height: 120mm;
+  }
+  &.has-extra-content ::ng-deep app-hex-map svg {
+    max-height: 80mm;
+  }
+}
+
+.scenario-functions {
+  margin-top: 0.5rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   DIVIDER PAGE (Amenazas section title)
+   ═══════════════════════════════════════════════════════════════ */
+.divider-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media print {
+    height: 183mm;
+  }
+}
+
+.divider-center {
+  text-align: center;
+}
+
+.divider-title {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 28pt;
+  letter-spacing: 0.15em;
+  color: #1a6b4a;
+  margin-bottom: 0.3cm;
+}
+
+.divider-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  font-size: 10pt;
+  letter-spacing: 0.18em;
+  color: #888;
+  text-transform: uppercase;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   AMENAZAS — Páginas de contenido
+   ═══════════════════════════════════════════════════════════════ */
+.threat-page {
+  padding: 1.5cm 1.4cm 1.2cm;
+
+  @media print {
+    padding: 0.25cm 0 0.85cm;
+  }
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.threat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 2pt solid #1a5c28;
+  page-break-after: avoid;
+}
+
+.threat-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 13pt;
+  font-weight: 700;
+  color: #0a1a0d;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Top: image + description side by side ───────────────────── */
+.threat-top {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.threat-image {
+  flex: 0 0 3cm;
+
+  img {
+    width: 3cm;
+    height: auto;
+  }
+}
+
+.threat-desc {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Flowchart ───────────────────────────────────────────────── */
+.threat-flowchart {
+  margin-top: 0.4rem;
+  margin-bottom: 0.5rem;
+  page-break-inside: avoid;
+}
+
+.flowchart-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-top: 0.3rem;
+}
+
+/* ── Threat page right (flowchart) ──────────────────────────── */
+.threat-page-right {
+  padding: 1.5cm 1.4cm 1.2cm;
+
+  @media print {
+    padding: 0.25cm 0 0.85cm;
+  }
+}
+
+/* ── Threat functions ────────────────────────────────────────── */
+.threat-functions {
+  margin-top: 0.4rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FUNCTION TABLES — Compact print style
+   ═══════════════════════════════════════════════════════════════ */
+.fn-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.2rem 0 0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7pt;
+
+  thead {
+    background: #1a3d22;
+    border-bottom: none;
+
+    th {
+      font-family: 'Orbitron', monospace;
+      font-size: 5.5pt;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #e8f5ea;
+      padding: 0.25rem 0.35rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+  }
+
+  /* Columnas numéricas estrechas */
+  th:nth-child(2), td:nth-child(2),
+  th:nth-child(3), td:nth-child(3),
+  th:nth-child(4), td:nth-child(4),
+  th:nth-child(5), td:nth-child(5),
+  th:nth-child(6), td:nth-child(6) {
+    width: 2.5em;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Función column compact */
+  th:first-child, td:first-child {
+    white-space: nowrap;
+  }
+
+  tbody {
+    tr {
+      border-bottom: 0.5pt solid #d4edda;
+
+      &:last-child { border-bottom: none; }
+      &:nth-child(even) { background: #f0f8f1; }
+
+      td {
+        color: #1a2e1e;
+        padding: 0.2rem 0.35rem;
+        vertical-align: top;
+        line-height: 1.45;
+      }
+    }
+  }
+
+  .text-center { text-align: center; }
+
+  code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9em;
+    color: #1a5c28;
+    background: #f0f8f1;
+    border: 0.5pt solid #a3d8aa;
+    padding: 0.02em 0.2em;
+
+    /* ── Token colors inline ─────────────────────────────────── */
+    &.bs-kw    { color: var(--bs-kw);    background: color-mix(in srgb, var(--bs-kw)    12%, white); border-color: color-mix(in srgb, var(--bs-kw)    40%, white); }
+    &.bs-fn    { color: var(--bs-fn);    background: color-mix(in srgb, var(--bs-fn)    12%, white); border-color: color-mix(in srgb, var(--bs-fn)    40%, white); }
+    &.bs-var   { color: var(--bs-var);   background: color-mix(in srgb, var(--bs-var)   12%, white); border-color: color-mix(in srgb, var(--bs-var)   40%, white); }
+    &.bs-const  { color: var(--bs-const);  background: color-mix(in srgb, var(--bs-const)  12%, white); border-color: color-mix(in srgb, var(--bs-const)  40%, white); }
+    &.bs-status { color: var(--bs-status); background: color-mix(in srgb, var(--bs-status) 12%, white); border-color: color-mix(in srgb, var(--bs-status) 40%, white); }
+    &.bs-bug    { color: var(--bs-status); background: transparent; border: none; padding: 0; }
+    &.bs-phase  { color: var(--bs-type);   background: color-mix(in srgb, var(--bs-type)   12%, white); border-color: color-mix(in srgb, var(--bs-type)   40%, white); }
+  }
+
+  strong {
+    color: #0a1a0d;
+    font-weight: 700;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════════════════ */
+.text-center { text-align: center; }

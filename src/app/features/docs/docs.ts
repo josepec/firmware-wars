@@ -5,8 +5,12 @@ import { Subscription, filter } from 'rxjs';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 import { DocsSearchIndex, SearchResult } from './docs-search';
+import { ScenarioViewer } from './scenario-viewer';
+import { ThreatViewer } from './threat-viewer';
 
-const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
+const API_URL = 'https://firmware-wars-api.josepec.eu';
+const PDF_WORKER_URL = `${API_URL}/pdf`;
+const SCENARIOS_PDF_URL = `${API_URL}/scenarios-pdf`;
 
 interface DocsCategory {
   id: string;
@@ -14,23 +18,26 @@ interface DocsCategory {
   configUrl: string;
   docsPath: string;
   searchable: boolean;
+  hidden?: boolean;
 }
 
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO', configUrl: '/assets/config/docs.config.json', docsPath: 'assets/docs', searchable: true },
   { id: 'recursos', label: 'RECURSOS', configUrl: '/assets/config/recursos.config.json', docsPath: 'assets/recursos', searchable: false },
+  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false, hidden: true },
 ];
 
 @Component({
   selector: 'app-docs',
-  imports: [RouterLink, RouterLinkActive, MarkdownComponent],
+  imports: [RouterLink, RouterLinkActive, MarkdownComponent, ScenarioViewer, ThreatViewer],
   templateUrl: './docs.html',
   styleUrl: './docs.scss',
 })
 export class Docs implements OnInit, OnDestroy {
   readonly pdfUrl = PDF_WORKER_URL;
+  readonly scenariosPdfUrl = SCENARIOS_PDF_URL;
   markdownSrc = signal<string | null>(null);
-  sections = signal<{ id: string; num: string; title: string; subtitle: string }[]>([]);
+  sections = signal<{ id: string; num: string; title: string; subtitle: string; type?: string }[]>([]);
   currentSectionId = signal<string | null>(null);
   currentCategory = signal<DocsCategory>(CATEGORIES[0]);
   mobileMenuOpen = signal(false);
@@ -47,6 +54,8 @@ export class Docs implements OnInit, OnDestroy {
     const id = this.currentSectionId();
     return this.sections().find(s => s.id === id) ?? null;
   });
+
+  isThreatSection = computed(() => this.currentSection()?.type === 'threat');
 
   private readonly router = inject(Router);
   private readonly el = inject(ElementRef<HTMLElement>);
@@ -155,10 +164,10 @@ export class Docs implements OnInit, OnDestroy {
     const categoryId = parts[0] || 'reglamento';
     const section = parts[1] || null;
 
-    const cat = CATEGORIES.find(c => c.id === categoryId) ?? CATEGORIES[0];
+    const cat = CATEGORIES.find(c => c.id === categoryId && !c.hidden) ?? CATEGORIES[0];
     this.currentCategory.set(cat);
     this.currentSectionId.set(section);
-    this.markdownSrc.set(section ? `${cat.docsPath}/${section}.md` : null);
+    this.markdownSrc.set(cat.id !== 'escenarios' && section ? `${cat.docsPath}/${section}.md` : null);
     this.mobileMenuOpen.set(false);
 
     if (this.loadedCategory !== cat.id) {
@@ -168,6 +177,38 @@ export class Docs implements OnInit, OnDestroy {
   }
 
   private async loadConfig(url: string): Promise<void> {
+    const cat = this.currentCategory();
+
+    if (cat.id === 'escenarios') {
+      try {
+        const [scenarioResp, threatResp] = await Promise.all([
+          fetch(`${API_URL}/api/scenarios`),
+          fetch(`${API_URL}/api/threats`),
+        ]);
+        const items: { id: string; num: string; title: string; subtitle: string; type?: string }[] = [];
+        if (scenarioResp.ok) {
+          const scenarios: { id: string; title: string }[] = await scenarioResp.json();
+          for (let i = 0; i < scenarios.length; i++) {
+            items.push({ id: scenarios[i].id, num: String(i + 1).padStart(2, '0'), title: scenarios[i].title, subtitle: scenarios[i].title, type: 'scenario' });
+          }
+        }
+        if (threatResp.ok) {
+          const threats: { id: string; name: string }[] = await threatResp.json();
+          if (threats.length > 0) {
+            items.push({ id: '__amenazas_header__', num: '', title: '// AMENAZAS', subtitle: '// AMENAZAS', type: 'header' });
+            for (let i = 0; i < threats.length; i++) {
+              items.push({ id: threats[i].id, num: String(i + 1).padStart(2, '0'), title: threats[i].name, subtitle: threats[i].name, type: 'threat' });
+            }
+          }
+        }
+        this.sections.set(items);
+      } catch {
+        this.sections.set([]);
+      }
+      this.cdr.markForCheck();
+      return;
+    }
+
     try {
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);

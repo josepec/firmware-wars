@@ -1,0 +1,182 @@
+<div class="border border-green-500/15 bg-black/40">
+
+  <!-- Toolbar -->
+  <div class="border-b border-green-500/15 p-4 flex flex-wrap gap-4 items-end">
+
+    <!-- Add node -->
+    <div class="flex flex-col gap-1">
+      <span class="text-[9px] tracking-wider uppercase text-green-500/40">Nuevo Nodo</span>
+      <div class="flex items-center gap-2">
+        <div class="flex gap-0.5">
+          @for (t of nodeTypes; track t.id) {
+            <button (click)="newNodeType.set(t.id)" type="button"
+              class="px-2.5 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+              [class]="newNodeType() === t.id
+                ? 'border-green-400/50 bg-green-500/15'
+                : 'border-green-500/15 opacity-50 hover:opacity-100'"
+              [style.color]="t.color">
+              {{ t.label }}
+            </button>
+          }
+        </div>
+        <input type="text" placeholder="Etiqueta" [ngModel]="newNodeLabel()" (ngModelChange)="newNodeLabel.set($event)"
+               (keydown.enter)="addNode()"
+               class="px-2 py-1.5 text-[10px] bg-green-500/5 border border-green-500/20
+                      text-green-300 focus:outline-none w-32" />
+        <button (click)="addNode()" type="button"
+          class="px-3 py-1.5 text-[9px] tracking-wider uppercase
+                 bg-green-500/10 border border-green-500/30 text-green-400
+                 hover:bg-green-500/20 transition-all cursor-pointer">
+          Añadir
+        </button>
+      </div>
+    </div>
+
+    <div class="h-8 border-l border-green-500/15"></div>
+
+    <!-- Instructions -->
+    <div class="flex flex-col gap-0.5 text-[8px] text-green-500/30 tracking-wider">
+      <span>Drag: Mover nodo</span>
+      <span>Doble-click: Editar etiqueta</span>
+      <span>
+        @if (connectingFrom()) {
+          <span class="text-yellow-400/60">Selecciona punto de anclaje destino...</span>
+          <button (click)="connectingFrom.set(null); connectingAnchor.set(null)" type="button"
+            class="text-red-400/50 hover:text-red-400 cursor-pointer ml-1">cancelar</button>
+        } @else {
+          Puntos de anclaje: Conectar nodos
+        }
+      </span>
+      <span>Esquina inferior-derecha: Redimensionar</span>
+    </div>
+  </div>
+
+  <!-- SVG canvas -->
+  <div class="overflow-auto bg-[#0a0f0c] min-h-[400px]">
+    <svg #svgCanvas
+      [attr.width]="svgWidth()" [attr.height]="svgHeight()"
+      class="flowchart-svg"
+      (mousemove)="onMouseMove($event)"
+      (mouseup)="onMouseUp()">
+
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="rgb(34 197 94 / 0.5)" />
+        </marker>
+      </defs>
+
+      <!-- Connections -->
+      @for (c of data().connections; track connKey(c)) {
+        <g class="connection-group">
+          <path [attr.d]="connPath(c)"
+                fill="none" stroke="rgb(34 197 94 / 0.3)" stroke-width="2"
+                marker-end="url(#arrowhead)" />
+          <!-- Click area -->
+          <path [attr.d]="connPath(c)"
+                fill="none" stroke="transparent" stroke-width="14"
+                class="cursor-pointer"
+                (contextmenu)="$event.preventDefault(); deleteConnection(c.from, c.to)"
+                (dblclick)="startEditConn(c)" />
+          <!-- Connection label -->
+          @if (editingConn() === connKey(c)) {
+            <foreignObject [attr.x]="connMid(c).x - 40" [attr.y]="connMid(c).y - 12" width="80" height="24">
+              <input type="text" [ngModel]="editConnLabel()" (ngModelChange)="editConnLabel.set($event)"
+                     (blur)="saveConnLabel(c)" (keydown.enter)="saveConnLabel(c)"
+                     class="w-full h-full px-1 text-[9px] bg-black/80 border border-green-500/30
+                            text-green-300 focus:outline-none text-center" />
+            </foreignObject>
+          } @else if (c.label) {
+            <text [attr.x]="connMid(c).x" [attr.y]="connMid(c).y"
+                  text-anchor="middle" dominant-baseline="middle"
+                  fill="rgb(34 197 94 / 0.5)" font-size="9"
+                  class="cursor-pointer select-none"
+                  (dblclick)="startEditConn(c)">
+              {{ c.label }}
+            </text>
+          }
+        </g>
+      }
+
+      <!-- Nodes -->
+      @for (node of data().nodes; track node.id) {
+        <g [attr.transform]="'translate(' + node.x + ',' + node.y + ')'"
+           class="node-group"
+           [class.selected]="selectedNode() === node.id"
+           [class.connecting]="connectingFrom() === node.id"
+           (mousedown)="onMouseDown($event, node.id)"
+           (dblclick)="startEdit(node)">
+
+          <!-- Node shape -->
+          <path [attr.d]="nodePath(node)"
+                [attr.fill]="nodeColor(node.type) + '15'"
+                [attr.stroke]="nodeColor(node.type) + '60'"
+                stroke-width="1.5"
+                class="cursor-grab" />
+
+          <!-- Label -->
+          @if (editingNode() === node.id) {
+            <foreignObject x="4" y="4"
+                           [attr.width]="nodeW(node) - 8"
+                           [attr.height]="nodeH(node) - 8">
+              <input type="text" [ngModel]="editLabel()" (ngModelChange)="editLabel.set($event)"
+                     (blur)="saveEdit()" (keydown.enter)="saveEdit()"
+                     class="w-full h-full px-1 text-[10px] bg-black/80 border border-green-500/30
+                            text-green-300 focus:outline-none text-center" />
+            </foreignObject>
+          } @else {
+            <foreignObject [attr.x]="node.type === 'condition' ? nodeW(node) * 0.2 : 6"
+                           y="0"
+                           [attr.width]="node.type === 'condition' ? nodeW(node) * 0.6 : nodeW(node) - 12"
+                           [attr.height]="nodeH(node)">
+              <div class="select-none pointer-events-none"
+                   style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+                          font-family: monospace; font-size: 11px; letter-spacing: 0.05em;
+                          text-align: center; line-height: 1.3; word-break: break-word; overflow: hidden;"
+                   [style.color]="nodeColor(node.type) + 'cc'">
+                {{ node.label }}
+              </div>
+            </foreignObject>
+          }
+
+          <!-- Delete button (top-right) -->
+          <g [attr.transform]="'translate(' + (nodeW(node) - 6) + ',-6)'"
+             class="delete-btn cursor-pointer"
+             (click)="$event.stopPropagation(); deleteNode(node.id)">
+            <circle r="7" fill="#0a0f0c" stroke="rgb(239 68 68 / 0.3)" stroke-width="1" />
+            <line x1="-3" y1="-3" x2="3" y2="3" stroke="rgb(239 68 68 / 0.5)" stroke-width="1.5" />
+            <line x1="3" y1="-3" x2="-3" y2="3" stroke="rgb(239 68 68 / 0.5)" stroke-width="1.5" />
+          </g>
+
+          <!-- Anchor points (4 sides) -->
+          @for (anchor of anchorList; track anchor) {
+            <circle [attr.cx]="anchorRelative(node, anchor).cx"
+                    [attr.cy]="anchorRelative(node, anchor).cy"
+                    r="5"
+                    [attr.fill]="connectingFrom() && connectingFrom() !== node.id
+                      ? 'rgb(34 197 94 / 0.3)' : 'rgb(34 197 94 / 0.1)'"
+                    [attr.stroke]="connectingFrom() && connectingFrom() !== node.id
+                      ? 'rgb(34 197 94 / 0.6)' : 'rgb(34 197 94 / 0.25)'"
+                    stroke-width="1"
+                    class="anchor-handle cursor-crosshair"
+                    [class.anchor-target]="connectingFrom() && connectingFrom() !== node.id"
+                    (mousedown)="$event.stopPropagation(); startConnect(node.id, anchor)" />
+          }
+
+          <!-- Resize handle (bottom-right corner) -->
+          <rect [attr.x]="nodeW(node) - 10" [attr.y]="nodeH(node) - 10"
+                width="10" height="10" fill="transparent"
+                class="resize-handle cursor-nwse-resize"
+                (mousedown)="startResize($event, node.id)" />
+          <!-- Resize visual indicator -->
+          <g [attr.transform]="'translate(' + (nodeW(node) - 9) + ',' + (nodeH(node) - 9) + ')'"
+             class="resize-indicator pointer-events-none">
+            <line x1="7" y1="1" x2="1" y2="7" stroke="rgb(34 197 94 / 0.2)" stroke-width="1" />
+            <line x1="7" y1="4" x2="4" y2="7" stroke="rgb(34 197 94 / 0.2)" stroke-width="1" />
+          </g>
+        </g>
+      }
+
+    </svg>
+  </div>
+
+</div>

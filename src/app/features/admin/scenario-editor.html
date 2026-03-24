@@ -1,0 +1,300 @@
+<div class="min-h-screen p-6 md:p-10 max-w-5xl mx-auto">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <div class="text-[10px] tracking-[0.3em] text-green-500/50 mb-1">// ADMIN</div>
+      <h1 class="text-lg tracking-[0.15em] text-green-400 font-bold uppercase"
+          style="font-family: 'Orbitron', monospace;">
+        {{ editId() ? 'Editar' : 'Nuevo' }} Escenario
+      </h1>
+    </div>
+    <a routerLink="/admin/scenarios"
+      class="px-4 py-2 text-[10px] tracking-[0.15em] uppercase
+             border border-green-500/15 text-green-500/40
+             hover:text-green-400 hover:border-green-500/30 transition-all">
+      Volver
+    </a>
+  </div>
+
+  @if (loading()) {
+  <div class="text-[10px] tracking-[0.2em] text-green-500/40 animate-pulse py-8">
+    > LOADING...
+  </div>
+  } @else {
+
+  @if (error()) {
+  <div class="mb-4 text-[10px] tracking-[0.2em] text-red-400/80 border border-red-500/20 px-4 py-2.5">
+    > {{ error() }}
+  </div>
+  }
+
+  <div class="flex flex-col gap-6">
+
+    <!-- Titulo -->
+    <div class="scenario-field">
+      <label class="field-label">Titulo</label>
+      <input type="text" [ngModel]="title()" (ngModelChange)="title.set($event)"
+             class="field-input" placeholder="Nombre del escenario" />
+    </div>
+
+    <!-- Nº Escenario + Turnos + Programadores + Bots -->
+    <div class="flex flex-wrap gap-8 items-end">
+      <div>
+        <label class="field-label">Nº Escenario</label>
+        <div class="flex items-center gap-1 mt-2">
+          <button (click)="numeroEscenario.set(Math.max(1, numeroEscenario() - 1))" type="button"
+            class="w-8 h-10 text-sm border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">−</button>
+          <span class="w-10 h-10 flex items-center justify-center text-sm text-green-300 border border-green-400/50 bg-green-500/20">
+            {{ numeroEscenario() < 10 ? '0' + numeroEscenario() : numeroEscenario() }}
+          </span>
+          <button (click)="numeroEscenario.set(numeroEscenario() + 1)" type="button"
+            class="w-8 h-10 text-sm border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">+</button>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Turnos</label>
+        <div class="flex items-center gap-1 mt-2">
+          <button (click)="numeroTurnos.set(Math.max(0, numeroTurnos() - 1))" type="button"
+            class="w-8 h-10 text-sm border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">−</button>
+          <span class="w-10 h-10 flex items-center justify-center text-sm border border-green-400/50 bg-green-500/20"
+                [class]="numeroTurnos() === 0 ? 'text-green-500/50' : 'text-green-300'">
+            {{ numeroTurnos() === 0 ? '∞' : numeroTurnos() }}
+          </span>
+          <button (click)="numeroTurnos.set(numeroTurnos() + 1)" type="button"
+            class="w-8 h-10 text-sm border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">+</button>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Programadores</label>
+        <div class="flex gap-2 mt-2">
+          @for (n of playerNums; track n) {
+            <button (click)="setNumeroJugadores(n)" type="button"
+              class="w-10 h-10 text-sm border transition-all cursor-pointer"
+              [class]="numeroJugadores() === n
+                ? 'bg-green-500/20 border-green-400/50 text-green-300'
+                : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+              {{ n }}
+            </button>
+          }
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Bots por Programador</label>
+        <div class="flex gap-2 mt-2">
+          @for (n of botNums; track n) {
+            <button (click)="setNumeroBots(n)" type="button"
+              class="w-10 h-10 text-sm border transition-all cursor-pointer"
+              [class]="numeroBots() === n
+                ? 'bg-green-500/20 border-green-400/50 text-green-300'
+                : 'bg-green-500/5 border-green-500/15 text-green-500/50 hover:text-green-400'">
+              {{ n }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Ambientación -->
+    <div class="scenario-field">
+      <label class="field-label">Ambientación</label>
+      <textarea [ngModel]="ambientacion()" (ngModelChange)="ambientacion.set($event)"
+                class="field-textarea" rows="4" placeholder="Texto narrativo..."></textarea>
+    </div>
+
+    <!-- Objetivo -->
+    <div class="scenario-field">
+      <label class="field-label">Objetivo</label>
+      <textarea [ngModel]="objetivo()" (ngModelChange)="objetivo.set($event)"
+                class="field-textarea" rows="3" placeholder="Condiciones de victoria..."></textarea>
+    </div>
+
+    <!-- Condición de Derrota (opcional) -->
+    <div class="scenario-field">
+      <label class="field-label">Condición de Derrota <span class="text-green-500/25">(opcional)</span></label>
+      <textarea [ngModel]="condicionDerrota()" (ngModelChange)="condicionDerrota.set($event)"
+                class="field-textarea" rows="2" placeholder="Si no se rellena, no aparece en el visor..."></textarea>
+    </div>
+
+    <!-- Amenazas -->
+    <div class="scenario-field">
+      <label class="field-label">Amenazas</label>
+      @if (availableThreats().length === 0) {
+      <div class="text-[9px] text-green-500/30 tracking-wider">
+        > No hay amenazas creadas. Crea amenazas en la sección "Amenazas".
+      </div>
+      } @else {
+      <div class="flex flex-wrap gap-2">
+        @for (t of availableThreats(); track t.id) {
+          <div class="flex flex-col items-center gap-1.5">
+            <button (click)="toggleThreat(t.id)" type="button"
+              class="flex items-center gap-2 px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
+              [class]="amenazaIds().includes(t.id)
+                ? 'bg-green-500/15 border-green-400/50 text-green-300'
+                : 'border-green-500/15 text-green-500/40 hover:text-green-400'">
+              @if (t.imageUrl) {
+              <img [src]="t.imageUrl" class="w-5 h-5 object-contain" />
+              }
+              {{ t.name }}
+            </button>
+            @if (amenazaIds().includes(t.id)) {
+              <div class="flex items-center gap-1">
+                <button (click)="setAmenazaCount(t.id, getAmenazaCount(t.id) - 1)" type="button"
+                  class="w-5 h-5 text-[9px] border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">−</button>
+                <span class="text-[10px] text-green-400 w-4 text-center">{{ getAmenazaCount(t.id) }}</span>
+                <button (click)="setAmenazaCount(t.id, getAmenazaCount(t.id) + 1)" type="button"
+                  class="w-5 h-5 text-[9px] border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">+</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Funciones Vinculadas -->
+    <div class="scenario-field">
+      <label class="field-label">Funciones Vinculadas</label>
+      @if (availableFunctions().length === 0) {
+      <div class="text-[9px] text-green-500/30 tracking-wider">
+        > No hay funciones creadas. Crea funciones en la sección "Funciones".
+      </div>
+      } @else {
+      <div class="flex flex-col gap-3">
+        <div>
+          <span class="text-[8px] text-green-500/30 tracking-wider uppercase block mb-1.5">Ataque</span>
+          <div class="flex flex-wrap gap-2">
+            @for (fn of attackFunctions(); track fn.id) {
+              <button (click)="toggleFunction(fn.id)" type="button"
+                class="px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
+                [class]="linkedFunctions().includes(fn.id)
+                  ? 'bg-green-500/15 border-green-400/50'
+                  : 'border-green-500/15 opacity-50 hover:opacity-100'"
+                [style.color]="fnColor(fn.name) || null">
+                {{ fn.name }}
+              </button>
+            }
+          </div>
+        </div>
+        <div>
+          <span class="text-[8px] text-green-500/30 tracking-wider uppercase block mb-1.5">Pasivas</span>
+          <div class="flex flex-wrap gap-2">
+            @for (fn of passiveFunctions(); track fn.id) {
+              <button (click)="toggleFunction(fn.id)" type="button"
+                class="px-3 py-1.5 text-[9px] tracking-wider border transition-all cursor-pointer"
+                [class]="linkedFunctions().includes(fn.id)
+                  ? 'bg-green-500/15 border-green-400/50'
+                  : 'border-green-500/15 opacity-50 hover:opacity-100'"
+                [style.color]="fnColor(fn.name) || null">
+                {{ fn.name }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Despliegue -->
+    <div class="grid grid-cols-2 gap-6">
+      <!-- Despliegue de Bots -->
+      <div class="scenario-field">
+        <label class="field-label">Despliegue de Bots</label>
+        <div class="flex gap-2 mb-3">
+          <button (click)="despliegueMode.set('map')" type="button"
+            class="px-3 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+            [class]="despliegueMode() === 'map'
+              ? 'bg-green-500/20 border-green-400/50 text-green-300'
+              : 'border-green-500/15 text-green-500/50'">
+            En Mapa
+          </button>
+          <button (click)="despliegueMode.set('dots')" type="button"
+            class="px-3 py-1.5 text-[9px] tracking-wider uppercase border transition-all cursor-pointer"
+            [class]="despliegueMode() === 'dots'
+              ? 'bg-green-500/20 border-green-400/50 text-green-300'
+              : 'border-green-500/15 text-green-500/50'">
+            Por Color
+          </button>
+        </div>
+
+        @if (despliegueMode() === 'dots') {
+        <div class="flex flex-col gap-2">
+          @for (p of playerNums; track p) {
+            @if (p <= numeroJugadores()) {
+            <div class="flex items-center gap-3">
+              <span class="text-[10px] text-green-500/50 w-24 shrink-0">Programador {{ p }}:</span>
+              <div class="flex gap-1">
+                @for (c of dotColors; track c.id) {
+                  <button (click)="setDespliegueColor(p, c.id)" type="button"
+                    class="w-5 h-5 rounded-full border-2 transition-all cursor-pointer"
+                    [style.background]="c.hex"
+                    [class]="despliegueDots()[p] === c.id ? 'border-white scale-110' : 'border-transparent opacity-50 hover:opacity-100'">
+                  </button>
+                }
+              </div>
+            </div>
+            }
+          }
+        </div>
+        } @else {
+        <div class="text-[9px] text-green-500/30 tracking-wider">
+          > Usa marcadores de despliegue en el mapa de abajo.
+        </div>
+        }
+      </div>
+
+      <!-- Despliegue de Amenazas -->
+      @if (selectedThreats().length > 0) {
+      <div class="scenario-field">
+        <label class="field-label">Despliegue de Amenazas</label>
+        <div class="flex flex-col gap-3">
+          @for (t of selectedThreats(); track t.id) {
+            <div class="flex flex-col gap-1.5">
+              @for (i of countRange(getAmenazaCount(t.id)); track i) {
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-green-500/50 w-20 shrink-0">{{ t.name }} {{ i }}:</span>
+                  <span class="text-[8px] text-green-500/30">Turno:</span>
+                  <button (click)="setUnitTurno(t.id, i, getUnitTurno(t.id, i) - 1)" type="button"
+                    class="w-5 h-5 text-[9px] border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">−</button>
+                  <span class="text-[10px] text-green-400 w-6 text-center">{{ getUnitTurno(t.id, i) === 0 ? 'INI' : getUnitTurno(t.id, i) }}</span>
+                  <button (click)="setUnitTurno(t.id, i, getUnitTurno(t.id, i) + 1)" type="button"
+                    class="w-5 h-5 text-[9px] border border-green-500/20 text-green-500/50 hover:text-green-400 transition-all cursor-pointer">+</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="text-[9px] text-green-500/30 tracking-wider mt-3">
+          > Usa marcadores de Amenaza en el mapa de abajo para posicionar cada unidad.
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Entorno Digitalizado de Combate -->
+    <div>
+      <label class="field-label mb-3 block">Entorno Digitalizado de Combate</label>
+      <app-hex-map-editor [(mapData)]="hexMap" [maxPlayers]="numeroJugadores()"
+        [availableThreats]="selectedThreats()" [(amenazaCounts)]="amenazaCounts" />
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3 pt-4 border-t border-green-500/10">
+      <button (click)="save()" type="button" [disabled]="saving()"
+        class="px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase
+               bg-green-500/15 border border-green-500/40 text-green-400
+               hover:bg-green-500/25 hover:border-green-400/60 transition-all
+               disabled:opacity-50 cursor-pointer">
+        @if (saving()) { GUARDANDO... } @else { Guardar }
+      </button>
+      <a routerLink="/admin/scenarios"
+        class="px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase
+               border border-green-500/15 text-green-500/40
+               hover:text-green-400 transition-all">
+        Cancelar
+      </a>
+    </div>
+
+  </div>
+  }
+
+</div>

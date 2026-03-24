@@ -6,7 +6,76 @@
    Paleta: #040c0f bg, #00ff88 accent, green-400 text
    ============================================================ */
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 136, 0.15) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 136, 0.2);
+  border-radius: 2px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 136, 0.35);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+*::-webkit-resizer {
+  background: transparent;
+  border-right: 1px solid rgba(0, 255, 136, 0.1);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+}
+
+/* ── Number input spinners — hide native arrows ── */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── Stepper component ── */
+.num-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+.num-stepper-btn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: rgba(74, 222, 128, 0.6);
+  background: rgba(0, 255, 136, 0.05);
+  border: none;
+  transition: all 0.15s;
+}
+.num-stepper-btn:hover {
+  color: #4ade80;
+  background: rgba(0, 255, 136, 0.15);
+}
+.num-stepper-val {
+  width: 2.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #86efac;
+  border-left: 1px solid rgba(0, 255, 136, 0.15);
+  border-right: 1px solid rgba(0, 255, 136, 0.15);
+  padding: 0.25rem 0;
+}
 
 body {
   font-family: 'Share Tech Mono', 'Courier New', monospace;
