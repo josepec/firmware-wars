@@ -1,4 +1,4 @@
-# 07 — CORPORATIONS.MD — Las Cinco Grandes
+# CORP.DATA: Las Cinco Grandes
 
 ## Las Cinco Grandes Tecnológicas
 
@@ -111,15 +111,3 @@ En modo campaña, cada jugador elige **una corporación** antes de empezar. Esta
 *Obsidian no destruye Bots, destruye economías. Sus funciones atacan los recursos del rival — energía, operaciones, capacidad de recuperación — hasta que colapsa solo.*
 
 ---
-
-## Equilibrio entre corporaciones
-
-Cada corporación tiene contadores naturales que crean un meta-juego estratégico:
-
-| Corporación | Fuerte contra | Débil contra |
-|---|---|---|
-| HDG | ACS (predecible) | Obsidian (actúa antes del escaneo) |
-| TIS | Obsidian (no depende de energía) | NovaLife (ventajas progresivas) |
-| ACS | NovaLife (frágil a corto plazo) | HDG (desmonta su BattleScript) |
-| NovaLife | TIS (supera en largo plazo) | ACS (combate directo) |
-| Obsidian | HDG (paraliza sus scans) | TIS (simplemente no se detiene) |

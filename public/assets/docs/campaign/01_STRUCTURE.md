@@ -1,10 +1,10 @@
-# 01 — Estructura de la Campaña
+# STRUCTURE.SYS: Estructura
 
 ## ¿Qué es el modo campaña?
 
 El modo campaña de Firmware Wars es una experiencia para **2 jugadores** estructurada en **3 Actos** y **10 Escenarios**, donde cada Programador representa a una de las **Cinco Grandes Corporaciones** compitiendo en las 28ª Firmware Wars.
 
-A diferencia del modo escaramuza, la campaña introduce progresión permanente entre partidas: los Bots ganan experiencia, el arsenal se amplía comprando funciones en el MARKET.SYS, y las decisiones tomadas a lo largo de la campaña determinan cuál de los **5 Finales** posibles se desencadena.
+A diferencia del modo escaramuza, la campaña introduce progresión permanente entre partidas: los Bots ganan experiencia, el arsenal se amplía comprando funciones en el MARKET.SYS, y las decisiones tomadas a lo largo de la campaña determinan cuál de los **Finales** posibles se desencadena.
 
 ---
 
@@ -12,13 +12,12 @@ A diferencia del modo escaramuza, la campaña introduce progresión permanente e
 
 Antes de empezar, cada jugador:
 
-1. **Elige su Corporación** entre las Cinco Grandes (ver `07_CORPORATIONS.md`).
-2. **Crea su Programador Senior** — Alias, trasfondo corporativo y Directiva Primaria.
-3. **Construye sus Bots** con el presupuesto inicial de **120◈ por Bot** (igual que en el modo base).
-4. **Determina el número de Bots** — Se recomienda **2 Bots por jugador** para la campaña.
-5. **Registra la campaña en la web** para activar el sistema de IDC y Decisiones Corporativas.
+1. **Crea su Programador Senior** — Alias, trasfondo corporativo y Directiva Primaria.
+2. **Construye sus Bots** con el presupuesto inicial de **120◈ por Bot** (igual que en el modo base) con **2 Bots por jugador** para la campaña.
+3. **Elige su Corporación** entre las Cinco Grandes (ver sección **CORP.DATA**).
+4. **Registra la campaña en la web** para activar el sistema de IDC y Decisiones Corporativas.
 
-> *Recuerda: Puedes construir tus Bots fácilmente desde el apartado Lista de la web.*
+> Recuerda: Puedes construir tus Bots fácilmente desde el apartado Lista de la web. El registro y seguimiento de la campaña, se hace en ese mismo apartado.
 
 ---
 
@@ -31,18 +30,18 @@ Los dos Programadores son rivales dentro del circuito de clasificación corporat
 
 **Reglas especiales del Acto I:**
 - La corporación cubre **todas las reparaciones** de Bots destruidos. No hay coste de reparación.
-- Al final del Acto I se determina quién es el **Programador Principal** (más victorias) y quién el **Programador Secundario**. El Principal tiene prioridad en el MARKET.SYS. El Secundario recibe **+20◈ de compensación**.
+- Cada escenario puede tener un **objetivo de victoria propio** — no es eliminación total.
 
 ---
 
 ### ACTO II — Phase Groups (Cooperativo)
 **3 Escenarios cooperativos**
 
-Los dos Programadores son ahora aliados temporales enfrentándose a los **ROGUE.EXE** — Juniors Renegados que operan en los márgenes de las arenas (ver `06_ROGUE_EXE.md`). Cada escenario tiene su propio objetivo de victoria.
+Los dos Programadores son ahora aliados temporales enfrentándose a los **ROGUE.EXE** — Juniors Renegados que operan en los márgenes de las arenas (ver sección **ROGUE.EXE**). Cada escenario tiene su propio objetivo de victoria.
 
 **Reglas especiales del Acto II:**
 - La corporación cubre la **primera reparación** por escenario. Las bajas adicionales cuestan **25◈**.
-- El IDC se mueve por rendimiento individual dentro del cooperativo (ver `02_IDC.md`).
+- El IDC se mueve por rendimiento individual dentro del cooperativo (ver sección **DOMINANCE.IDC**).
 - Cada escenario tiene un **objetivo de victoria propio** — no es eliminación total.
 
 ---
@@ -65,13 +64,13 @@ Vuelve el versus. Los escenarios son más complejos, con tableros que incluyen z
 | 1 | I | Versus | — |
 | 2 | I | Versus | Decisión Corporativa tras este escenario |
 | 3 | I | Versus | Decisión Corporativa tras este escenario |
-| 4 | II | Cooperativo — PURGE.PROTOCOL | — |
-| 5 | II | Cooperativo — SIEGE.MODE | Decisión Corporativa tras este escenario |
-| 6 | II | Cooperativo — CORE.HUNT | Decisión Corporativa tras este escenario |
+| 4 | II | Cooperativo | — |
+| 5 | II | Cooperativo | Decisión Corporativa tras este escenario |
+| 6 | II | Cooperativo | Decisión Corporativa tras este escenario |
 | 7 | III | Versus | — |
 | 8 | III | Versus | Decisión Corporativa tras este escenario |
 | 9 | III | Versus | Decisión Corporativa antes del Final |
-| 10 | Final | Variable según IDC | Ver `08_ENDINGS.md` |
+| 10 | Final | Variable según IDC | Ver sección **FINAL.EXE** |
 
 > Las Decisiones Corporativas se presentan automáticamente a través de la web en el momento indicado.
 
@@ -95,4 +94,4 @@ Los Bots siguen el sistema de upgrade del juego base:
 
 Esto ocurre dentro de cada escenario de forma independiente. Los Bots no mantienen su versión entre escenarios — cada partida empieza desde Versión 1.
 
-Lo que sí persiste entre escenarios son los **Puntos de Mejora de campaña** ganados mediante XP (ver `03_XP.md`), que modifican las Constantes del Bot de forma permanente.
+Lo que sí persiste entre escenarios son los **Puntos de Mejora de campaña** ganados mediante XP (ver sección **LEVEL.UP**), que modifican las Constantes del Bot de forma permanente.
