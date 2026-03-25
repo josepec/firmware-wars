@@ -82,7 +82,7 @@
     @for (t of threats(); track t.id) {
     <li class="toc-item">
       <a class="toc-link" [href]="'#threat-' + t.id">
-        <span class="toc-num toc-num-threat">▪</span>
+        <span class="toc-num">{{ ($index + 1) < 10 ? '0' + ($index + 1) : ($index + 1) }}</span>
         <span class="toc-label">
           <span class="toc-title">{{ t.name }}</span>
         </span>
@@ -99,7 +99,7 @@
 @for (s of scenarios(); track s.id) {
 <!-- Página izquierda: Info -->
 <div class="sp-page scenario-page" [id]="'scenario-' + s.id">
-  <span class="pdf-marker">FWMARK-S{{ scenarioNum(s) }}-{{ scenarioNum(s) }} - {{ s.title }}{{ s.acto ? ' (' + s.acto + ')' : '' }}</span>
+  <span class="pdf-marker">FWMARK-S{{ scenarioNum(s) }}-{{ scenarioNum(s) }} - {{ s.title }}{{ s.acto ? ' (' + s.acto + ')' : '' }}-FWEND</span>
 
   <div class="scenario-header">
     <span class="scenario-num">{{ scenarioNum(s) }}</span>
@@ -113,8 +113,10 @@
   <div class="info-block">
     <div class="info-label">Ficha Técnica</div>
     <div class="stat-row">
-      <span class="stat-item"><strong>{{ s.tipoEscenario || 'VS' }}</strong> {{ (s.tipoEscenario || 'VS') === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
+      @if (s.tipoEscenario) {
+      <span class="stat-item"><strong>{{ s.tipoEscenario }}</strong> {{ s.tipoEscenario === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
       <span class="stat-sep">·</span>
+      }
       <span class="stat-item"><strong>{{ s.numeroJugadores }}</strong> {{ s.numeroJugadores === 1 ? 'Programador' :
         'Programadores' }}</span>
       <span class="stat-sep">·</span>
@@ -207,8 +209,8 @@
     <div class="info-label">Despliegue</div>
     @if (s.despliegueMode === 'dots' && s.despliegueDots) {
     @for (entry of deployEntries(s); track entry.player) {
-    <p class="info-text"><strong>Programador {{ entry.player }}</strong>: Bots en Hexes con punto {{
-      dotName(entry.color) }}.</p>
+    <p class="info-text"><strong>Programador {{ entry.player }}</strong>: Bots en Hexes con punto
+      <span class="dot-color" [style.background]="dotHex(entry.color)"></span>{{ dotName(entry.color) }}.</p>
     }
     } @else {
     @for (i of playerIndexes(s); track i) {
@@ -294,7 +296,7 @@
 @for (t of threats(); track t.id) {
 <!-- Página izquierda: Info + Funciones -->
 <div class="sp-page threat-page" [id]="'threat-' + t.id">
-  <span class="pdf-marker">FWMARK-T{{ t.id }}-{{ t.name }}</span>
+  <span class="pdf-marker">FWMARK-T{{ t.id }}-{{ t.name }}-FWEND</span>
 
   <div class="threat-header">
     <span class="threat-title">{{ t.name }}</span>
@@ -308,7 +310,6 @@
     }
     @if (t.description) {
     <div class="threat-desc">
-      <div class="info-label">Descripción</div>
       <p class="info-text" [innerHTML]="renderInlineCode(t.description)"></p>
     </div>
     }
@@ -379,16 +380,16 @@
       preserveAspectRatio="xMidYMid meet" class="flowchart-svg">
       <defs>
         <marker id="sp-arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#1a6b4a" />
+          <polygon points="0 0, 10 3.5, 0 7" fill="#2d5a3a" />
         </marker>
       </defs>
 
       @for (c of t.flowchart.connections; track c.from + c.to) {
-      <path [attr.d]="connPath(c, t.flowchart.nodes)" fill="none" stroke="#1a6b4a" stroke-width="1.5"
+      <path [attr.d]="connPath(c, t.flowchart.nodes)" fill="none" stroke="#2d5a3a" stroke-width="1.5"
         marker-end="url(#sp-arrowhead)" />
       @if (c.label) {
       <text [attr.x]="connMid(c, t.flowchart.nodes).x" [attr.y]="connMid(c, t.flowchart.nodes).y" text-anchor="middle"
-        dominant-baseline="middle" fill="#1a6b4a" font-size="8">
+        dominant-baseline="middle" fill="#4a6a5a" font-size="8">
         {{ c.label }}
       </text>
       }

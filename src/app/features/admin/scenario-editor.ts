@@ -25,7 +25,7 @@ export class ScenarioEditor implements OnInit {
   error = signal('');
 
   title = signal('');
-  tipoEscenario = signal<'VS' | 'COOP'>('VS');
+  tipoEscenario = signal<'' | 'VS' | 'COOP'>('');
   acto = signal<'' | 'Acto 1' | 'Acto 2' | 'Acto 3' | 'Final'>('');
   numeroEscenario = signal(1);
   numeroTurnos = signal(0);
@@ -101,7 +101,7 @@ export class ScenarioEditor implements OnInit {
       const scenario = await resp.json();
       this.title.set(scenario.title ?? '');
       const d = scenario.data ?? {};
-      this.tipoEscenario.set(d.tipoEscenario ?? 'VS');
+      this.tipoEscenario.set(d.tipoEscenario ?? '');
       this.acto.set(d.acto ?? '');
       this.numeroEscenario.set(d.numeroEscenario ?? 1);
       this.numeroTurnos.set(d.numeroTurnos ?? 0);

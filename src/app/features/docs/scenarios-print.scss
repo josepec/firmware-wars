@@ -430,6 +430,16 @@
   margin: 0 0 0.6rem;
 }
 
+.dot-color {
+  display: inline-block;
+  width: 7pt;
+  height: 7pt;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 0.2em 0 0.1em;
+  border: 0.5pt solid rgba(0, 0, 0, 0.15);
+}
+
 /* innerHTML-injected elements need ::ng-deep to bypass encapsulation */
 :host ::ng-deep .info-text {
   strong {

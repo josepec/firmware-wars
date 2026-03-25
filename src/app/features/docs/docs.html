@@ -143,7 +143,7 @@
           } @else {
           <a [routerLink]="'/docs/' + currentCategory().id + '/' + s.id" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
                    py-1 pl-0 text-xs tracking-widest uppercase">
-            {{ s.subtitle }}
+            @if (s.num) { <span class="mr-1">{{ s.num }} —</span> }{{ s.subtitle }}
           </a>
           }
         </li>

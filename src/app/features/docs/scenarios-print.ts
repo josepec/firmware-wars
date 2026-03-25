@@ -19,7 +19,7 @@ const DOT_COLOR_HEX: Record<string, string> = {
 interface ScenarioItem {
   id: string;
   title: string;
-  tipoEscenario: 'VS' | 'COOP';
+  tipoEscenario: '' | 'VS' | 'COOP';
   acto: string;
   numeroEscenario: number;
   numeroTurnos: number;
@@ -208,7 +208,7 @@ export class ScenariosPrint implements OnDestroy {
   /* ── Flowchart (read-only, simplified for print) ── */
 
   readonly NODE_COLORS: Record<string, string> = {
-    start: '#22c55e', action: '#3b82f6', condition: '#eab308', end: '#ef4444',
+    start: '#1a6b4a', action: '#2a5a8a', condition: '#8a7a2a', end: '#8a2a2a',
   };
 
   nodeColor(type: string): string { return this.NODE_COLORS[type] ?? '#666'; }
@@ -366,7 +366,7 @@ export class ScenariosPrint implements OnDestroy {
             return {
               id: s.id,
               title: s.title ?? '',
-              tipoEscenario: d.tipoEscenario ?? 'VS',
+              tipoEscenario: d.tipoEscenario ?? '',
               acto: d.acto ?? '',
               numeroEscenario: d.numeroEscenario ?? 0,
               numeroTurnos: d.numeroTurnos ?? 0,

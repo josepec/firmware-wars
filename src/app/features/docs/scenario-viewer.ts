@@ -23,7 +23,7 @@ interface ThreatInfo {
 }
 
 interface ScenarioData {
-  tipoEscenario: 'VS' | 'COOP';
+  tipoEscenario: '' | 'VS' | 'COOP';
   acto: '' | 'Acto 1' | 'Acto 2' | 'Acto 3' | 'Final';
   numeroEscenario: number;
   numeroTurnos: number;
@@ -63,10 +63,12 @@ interface ScenarioData {
           <section class="mb-8">
             <h2 class="section-title">Ficha Técnica</h2>
             <div class="flex flex-wrap gap-4">
+              @if (data()!.tipoEscenario) {
               <div class="stat-card">
-                <span class="stat-value">{{ data()!.tipoEscenario || 'VS' }}</span>
-                <span class="stat-label">{{ (data()!.tipoEscenario || 'VS') === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
+                <span class="stat-value">{{ data()!.tipoEscenario }}</span>
+                <span class="stat-label">{{ data()!.tipoEscenario === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
               </div>
+              }
               <div class="stat-card">
                 <span class="stat-value">{{ data()!.numeroJugadores }}</span>
                 <span class="stat-label">{{ data()!.numeroJugadores === 1 ? 'Programador' : 'Programadores' }}</span>
@@ -208,6 +210,7 @@ interface ScenarioData {
       <section class="mt-8">
         <h2 class="section-title">Funciones de Escenario</h2>
         <p class="section-text mb-4">Las siguientes Funciones están disponibles exclusivamente durante este Escenario. Pueden asignarse a cualquier ranura de Función de los Bots.<br>Al finalizar el Escenario, se pierden.</p>
+        @if (attackScenarioFunctions().length > 0) {
         <div>
           <table class="fn-table">
             <thead>
@@ -236,6 +239,7 @@ interface ScenarioData {
             </tbody>
           </table>
         </div>
+        }
         @if (passiveScenarioFunctions().length > 0) {
         <div class="mt-4">
           <table class="fn-table">
