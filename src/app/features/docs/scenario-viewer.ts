@@ -425,7 +425,8 @@ export class ScenarioViewer implements OnChanges {
   specialHexTypes(): HexTypeDefinition[] {
     const types = this.data()?.hexMap?.hexTypes;
     if (!types) return [];
-    return types.filter(t => t.id !== 'normal' && t.id !== 'obstacle');
+    const usedTypeIds = new Set(this.data()?.hexMap?.hexes?.map(h => h.typeId) ?? []);
+    return types.filter(t => t.id !== 'normal' && t.id !== 'obstacle' && usedTypeIds.has(t.id));
   }
 
   miniHexPoints(): string {

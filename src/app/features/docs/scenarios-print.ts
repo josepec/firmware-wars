@@ -163,7 +163,8 @@ export class ScenariosPrint implements OnDestroy {
   specialHexTypes(s: ScenarioItem): HexTypeDefinition[] {
     const types = s.hexMap?.hexTypes;
     if (!types) return [];
-    return types.filter(t => t.id !== 'normal' && t.id !== 'obstacle');
+    const usedTypeIds = new Set(s.hexMap?.hexes?.map(h => h.typeId) ?? []);
+    return types.filter(t => t.id !== 'normal' && t.id !== 'obstacle' && usedTypeIds.has(t.id));
   }
 
   hexTypeCount(s: ScenarioItem, typeId: string): number {
