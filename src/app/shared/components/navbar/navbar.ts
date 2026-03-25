@@ -1,17 +1,18 @@
 import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
+import { AppConfig } from '../../../core/services/app-config';
 
 interface DocsCategory {
   id: string;
   label: string;
-  hidden?: boolean;
 }
 
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO' },
+  { id: 'campaign', label: 'CAMPAÑA' },
+  { id: 'escenarios', label: 'ESCENARIOS' },
   { id: 'recursos', label: 'RECURSOS' },
-  { id: 'escenarios', label: 'ESCENARIOS', hidden: false },
 ];
 
 @Component({
@@ -22,8 +23,9 @@ const CATEGORIES: DocsCategory[] = [
 })
 export class Navbar implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly appConfig = inject(AppConfig);
   private routerSub!: Subscription;
-  readonly categories = CATEGORIES.filter(c => !c.hidden);
+  readonly categories = signal(CATEGORIES.filter(c => c.id === 'reglamento' || c.id === 'recursos'));
   readonly docsMenuOpen = signal(false);
 
   isHomeActive(): boolean {
@@ -42,7 +44,13 @@ export class Navbar implements OnInit, OnDestroy {
     this.docsMenuOpen.update(v => !v);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    const visible: DocsCategory[] = [];
+    for (const c of CATEGORIES) {
+      if (await this.appConfig.isCategoryVisible(c.id)) visible.push(c);
+    }
+    this.categories.set(visible);
+
     this.routerSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => this.docsMenuOpen.set(false));

@@ -7,10 +7,12 @@ import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 import { DocsSearchIndex, SearchResult } from './docs-search';
 import { ScenarioViewer } from './scenario-viewer';
 import { ThreatViewer } from './threat-viewer';
+import { AppConfig } from '../../core/services/app-config';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 const PDF_WORKER_URL = `${API_URL}/pdf`;
 const SCENARIOS_PDF_URL = `${API_URL}/scenarios-pdf`;
+const CAMPAIGN_PDF_URL = `${API_URL}/campaign-pdf`;
 
 interface DocsCategory {
   id: string;
@@ -18,13 +20,13 @@ interface DocsCategory {
   configUrl: string;
   docsPath: string;
   searchable: boolean;
-  hidden?: boolean;
 }
 
 const CATEGORIES: DocsCategory[] = [
   { id: 'reglamento', label: 'REGLAMENTO', configUrl: '/assets/config/docs.config.json', docsPath: 'assets/docs', searchable: true },
+  { id: 'campaign', label: 'CAMPAÑA', configUrl: '/assets/config/campaign.config.json', docsPath: 'assets/docs/campaign', searchable: false },
+  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false },
   { id: 'recursos', label: 'RECURSOS', configUrl: '/assets/config/recursos.config.json', docsPath: 'assets/recursos', searchable: false },
-  { id: 'escenarios', label: 'ESCENARIOS', configUrl: '', docsPath: '', searchable: false, hidden: false },
 ];
 
 @Component({
@@ -34,8 +36,10 @@ const CATEGORIES: DocsCategory[] = [
   styleUrl: './docs.scss',
 })
 export class Docs implements OnInit, OnDestroy {
+  private readonly appConfig = inject(AppConfig);
   readonly pdfUrl = PDF_WORKER_URL;
   readonly scenariosPdfUrl = SCENARIOS_PDF_URL;
+  readonly campaignPdfUrl = CAMPAIGN_PDF_URL;
   markdownSrc = signal<string | null>(null);
   sections = signal<{ id: string; num: string; title: string; subtitle: string; type?: string }[]>([]);
   currentSectionId = signal<string | null>(null);
@@ -72,11 +76,22 @@ export class Docs implements OnInit, OnDestroy {
     }
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.initCategories();
     this.parseUrl(this.router.url);
     this.routerSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(e => this.parseUrl(e.urlAfterRedirects));
+  }
+
+  private visibleIds = new Set(CATEGORIES.map(c => c.id));
+
+  private async initCategories(): Promise<void> {
+    const visible = new Set<string>();
+    for (const c of CATEGORIES) {
+      if (await this.appConfig.isCategoryVisible(c.id)) visible.add(c.id);
+    }
+    this.visibleIds = visible;
   }
 
   ngOnDestroy() {
@@ -164,7 +179,7 @@ export class Docs implements OnInit, OnDestroy {
     const categoryId = parts[0] || 'reglamento';
     const section = parts[1] || null;
 
-    const cat = CATEGORIES.find(c => c.id === categoryId && !c.hidden) ?? CATEGORIES[0];
+    const cat = CATEGORIES.find(c => c.id === categoryId && this.visibleIds.has(c.id)) ?? CATEGORIES[0];
     this.currentCategory.set(cat);
     this.currentSectionId.set(section);
     this.markdownSrc.set(cat.id !== 'escenarios' && section ? `${cat.docsPath}/${section}.md` : null);

@@ -30,7 +30,7 @@
           @if (docsMenuOpen()) {
           <div class="absolute top-full left-0 pt-1 min-w-[160px]">
             <ul class="border border-green-500/25 bg-[#060e0a] shadow-xl shadow-black/70">
-              @for (cat of categories; track cat.id) {
+              @for (cat of categories(); track cat.id) {
               <li>
                 <a [routerLink]="'/docs/' + cat.id"
                   class="block px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase
@@ -82,7 +82,7 @@
       @if (docsMenuOpen()) {
       <div class="absolute top-full left-1/2 -translate-x-1/2 pt-1 min-w-[160px]">
         <ul class="border border-green-500/25 bg-[#060e0a] shadow-xl shadow-black/70">
-          @for (cat of categories; track cat.id) {
+          @for (cat of categories(); track cat.id) {
           <li>
             <a [routerLink]="'/docs/' + cat.id"
               class="block px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase

@@ -1,0 +1,12 @@
+{
+  "sections": [
+    { "id": "01_STRUCTURE", "num": "01", "title": "STRUCTURE.SYS",    "subtitle": "Estructura" },
+    { "id": "02_IDC", "num": "02", "title": "IDC",  "subtitle": "Índice de Dominancia Corporativa" },
+    { "id": "03_XP", "num": "03", "title": "XP", "subtitle": "Experiencia" },
+    { "id": "04_NIBBLES", "num": "04", "title": "NIBBLES",    "subtitle": "Economía" },
+    { "id": "05_LOOT", "num": "05", "title": "LOOT",   "subtitle": "Tesoros" },
+    { "id": "06_ROGUE_EXE", "num": "06", "title": "ROGUE.EXE",     "subtitle": "Enemigos" },
+    { "id": "07_CORPORATIONS", "num": "07", "title": "CORPORATIONS",     "subtitle": "Las Cinco Grandes" },
+    { "id": "08_ENDINGS", "num": "08", "title": "ENDINGS",    "subtitle": "Finales" }
+  ]
+}
