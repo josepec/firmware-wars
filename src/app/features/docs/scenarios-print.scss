@@ -525,6 +525,12 @@
   flex-shrink: 0;
 }
 
+/* ── Deploy block (compact) ─────────────────────────────────── */
+.deploy-block .info-text {
+  margin-bottom: 0.15rem;
+  line-height: 1.45;
+}
+
 /* ── Scenario page right (map + functions) ─────────────────── */
 .scenario-page-right {
   padding: 2cm 1.8cm 1.8cm;
@@ -550,10 +556,10 @@
   }
 
   ::ng-deep app-hex-map svg {
-    max-height: 120mm;
+    max-height: 135mm;
   }
   &.has-extra-content ::ng-deep app-hex-map svg {
-    max-height: 80mm;
+    max-height: 95mm;
   }
 }
 

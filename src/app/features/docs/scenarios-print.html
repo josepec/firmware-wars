@@ -114,7 +114,7 @@
     <div class="info-label">Ficha Técnica</div>
     <div class="stat-row">
       @if (s.tipoEscenario) {
-      <span class="stat-item"><strong>{{ s.tipoEscenario }}</strong> {{ s.tipoEscenario === 'VS' ? 'Versus' : 'Cooperativo' }}</span>
+      <span class="stat-item"><strong>{{ s.tipoEscenario === 'VS' ? 'Versus' : 'Cooperativo' }}</strong></span>
       <span class="stat-sep">·</span>
       }
       <span class="stat-item"><strong>{{ s.numeroJugadores }}</strong> {{ s.numeroJugadores === 1 ? 'Programador' :
@@ -205,7 +205,7 @@
   </div>
   }
 
-  <div class="info-block">
+  <div class="info-block deploy-block">
     <div class="info-label">Despliegue</div>
     @if (s.despliegueMode === 'dots' && s.despliegueDots) {
     @for (entry of deployEntries(s); track entry.player) {
