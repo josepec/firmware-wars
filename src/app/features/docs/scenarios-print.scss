@@ -525,28 +525,23 @@
 /* ── Hex type rows ───────────────────────────────────────────── */
 .hex-type-row {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-bottom: 0;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
   font-family: 'Share Tech Mono', monospace;
   font-size: 9pt;
   color: #1a2e1e;
-  line-height: 1.3;
 }
 
 .hex-swatch {
   display: block;
-  width: 0.45cm;
-  height: 0.45cm;
-  min-width: 0.45cm;
+  width: 0.7cm;
+  height: 0.7cm;
+  min-width: 0.7cm;
   flex-shrink: 0;
 }
 
 /* ── Deploy block (compact) ─────────────────────────────────── */
-.deploy-block .info-label {
-  margin-top: 0.4rem;
-  margin-bottom: 0.25rem;
-}
 .deploy-block .info-text {
   margin-bottom: 0.15rem;
   line-height: 1.45;
@@ -575,7 +570,7 @@
     height: auto;
     width: auto;
     margin: 0 auto;
-    transform: rotate(-30deg);
+    transform: rotate(30deg);
     transform-origin: center center;
   }
 
@@ -606,13 +601,8 @@
 }
 
 .hex-types-block {
-  margin-top: 0;
-  margin-bottom: 0.1rem;
-
-  .info-label {
-    margin-top: 0.4rem;
-    margin-bottom: 0.25rem;
-  }
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
 }
 
 .loot-block {
