@@ -558,9 +558,20 @@
   ::ng-deep app-hex-map svg {
     max-height: 135mm;
   }
-  &.has-extra-content ::ng-deep app-hex-map svg {
-    max-height: 95mm;
+  &.has-hex-types ::ng-deep app-hex-map svg {
+    max-height: 110mm;
   }
+  &.has-extra-content ::ng-deep app-hex-map svg {
+    max-height: 85mm;
+  }
+  &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg {
+    max-height: 70mm;
+  }
+}
+
+.hex-types-block {
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
 }
 
 .scenario-functions {

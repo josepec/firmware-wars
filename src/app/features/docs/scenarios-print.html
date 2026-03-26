@@ -172,8 +172,23 @@
   </div>
   }
 
+
+</div>
+
+<!-- Página derecha: Mapa + Hexes Especiales + Despliegue + Funciones -->
+<div class="sp-page scenario-page-right">
+
+  @if (s.hexMap && s.hexMap.hexes.length > 0) {
+  <div class="scenario-map-full"
+    [class.has-extra-content]="getScenarioFunctions(s, 'attack').length > 0 || getScenarioFunctions(s, 'passive').length > 0"
+    [class.has-hex-types]="specialHexTypes(s).length > 0">
+    <div class="info-label">Entorno Digitalizado de Combate</div>
+    <app-hex-map [mapData]="s.hexMap" [size]="18" [printMode]="true" />
+  </div>
+  }
+
   @if (specialHexTypes(s).length > 0) {
-  <div class="info-block">
+  <div class="info-block hex-types-block">
     <div class="info-label">Hexes Especiales</div>
     @for (ht of specialHexTypes(s); track ht.id) {
     <div class="hex-type-row">
@@ -189,19 +204,6 @@
       </div>
     </div>
     }
-  </div>
-  }
-
-</div>
-
-<!-- Página derecha: Mapa + Despliegue + Funciones -->
-<div class="sp-page scenario-page-right">
-
-  @if (s.hexMap && s.hexMap.hexes.length > 0) {
-  <div class="scenario-map-full"
-    [class.has-extra-content]="getScenarioFunctions(s, 'attack').length > 0 || getScenarioFunctions(s, 'passive').length > 0">
-    <div class="info-label">Entorno Digitalizado de Combate</div>
-    <app-hex-map [mapData]="s.hexMap" [size]="18" [printMode]="true" />
   </div>
   }
 
