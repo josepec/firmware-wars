@@ -180,7 +180,8 @@
   @if (s.hexMap && s.hexMap.hexes.length > 0) {
   <div class="scenario-map-full"
     [class.has-extra-content]="getScenarioFunctions(s, 'attack').length > 0 || getScenarioFunctions(s, 'passive').length > 0"
-    [class.has-hex-types]="specialHexTypes(s).length > 0">
+    [class.has-hex-types]="specialHexTypes(s).length > 0"
+    [class.has-loot]="lootEntries(s).length > 0">
     <div class="info-label">Entorno Digitalizado de Combate</div>
     <app-hex-map [mapData]="s.hexMap" [size]="18" [printMode]="true" />
   </div>
@@ -202,6 +203,15 @@
         }
       </div>
     </div>
+    }
+  </div>
+  }
+
+  @if (lootEntries(s).length > 0) {
+  <div class="info-block loot-block">
+    <div class="info-label">Botín</div>
+    @for (l of lootEntries(s); track l.type) {
+    <p class="info-text"><strong>{{ l.type }} ({{ l.markers.join(', ') }})</strong>: {{ l.desc }}</p>
     }
   </div>
   }

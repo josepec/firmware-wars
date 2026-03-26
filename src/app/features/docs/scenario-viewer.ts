@@ -195,6 +195,17 @@ interface ScenarioData {
           </section>
           }
 
+          @if (lootEntries().length > 0) {
+          <section class="mb-8">
+            <h2 class="section-title">Botín</h2>
+            <div class="flex flex-col gap-1">
+              @for (l of lootEntries(); track l.type) {
+              <p class="section-text"><span style="color: #f0fdf4; font-weight: 600;">{{ l.type }} ({{ l.markers.join(', ') }})</span>: {{ l.desc }}</p>
+              }
+            </div>
+          </section>
+          }
+
           <!-- Despliegue -->
           <section>
             <h2 class="section-title">Despliegue</h2>
@@ -490,6 +501,21 @@ export class ScenarioViewer implements OnChanges {
   }
   dotName(color: string): string { return DOT_COLOR_NAMES[color] ?? color; }
   dotHex(color: string): string { return DOT_COLOR_HEX[color] ?? color; }
+
+  lootEntries(): { type: string; markers: string[]; desc: string }[] {
+    const deps = this.data()?.hexMap?.deployments;
+    if (!deps?.length) return [];
+    const entries: { type: string; markers: string[]; desc: string }[] = [];
+    const plaques = deps.filter(d => d.type === 'plaque');
+    const treasures = deps.filter(d => d.type === 'treasure');
+    if (plaques.length > 0) {
+      entries.push({ type: 'Nodo de Datos', markers: plaques.map(d => d.label), desc: 'Otorga 1 XP al Bot que lo recoge.' });
+    }
+    if (treasures.length > 0) {
+      entries.push({ type: 'Tesoro', markers: treasures.map(d => d.label), desc: 'Otorga +10◈ al Programador que lo recoge.' });
+    }
+    return entries;
+  }
 
   specialHexTypes(): HexTypeDefinition[] {
     const types = this.data()?.hexMap?.hexTypes;

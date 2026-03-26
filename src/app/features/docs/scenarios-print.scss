@@ -431,7 +431,7 @@
 .ambient-text {
   font-family: 'Share Tech Mono', monospace;
   font-size: 9pt;
-  color: #3a5a3e;
+  color: #2e4a32;
   line-height: 1.75;
   font-style: italic;
   margin: 0;
@@ -525,24 +525,28 @@
 /* ── Hex type rows ───────────────────────────────────────────── */
 .hex-type-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.3rem;
-  margin-bottom: 0.1rem;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0;
   font-family: 'Share Tech Mono', monospace;
   font-size: 9pt;
   color: #1a2e1e;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .hex-swatch {
   display: block;
-  width: 0.55cm;
-  height: 0.55cm;
-  min-width: 0.55cm;
+  width: 0.45cm;
+  height: 0.45cm;
+  min-width: 0.45cm;
   flex-shrink: 0;
 }
 
 /* ── Deploy block (compact) ─────────────────────────────────── */
+.deploy-block .info-label {
+  margin-top: 0.4rem;
+  margin-bottom: 0.25rem;
+}
 .deploy-block .info-text {
   margin-bottom: 0.15rem;
   line-height: 1.45;
@@ -558,7 +562,8 @@
 }
 
 .scenario-map-full {
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.25rem;
+  overflow: visible;
 
   ::ng-deep app-hex-map {
     display: block;
@@ -570,25 +575,57 @@
     height: auto;
     width: auto;
     margin: 0 auto;
+    transform: rotate(-30deg);
+    transform-origin: center center;
   }
 
   ::ng-deep app-hex-map svg {
     max-height: 135mm;
   }
+  &.has-loot ::ng-deep app-hex-map svg {
+    max-height: 120mm;
+  }
   &.has-hex-types ::ng-deep app-hex-map svg {
     max-height: 100mm;
+  }
+  &.has-hex-types.has-loot ::ng-deep app-hex-map svg {
+    max-height: 90mm;
   }
   &.has-extra-content ::ng-deep app-hex-map svg {
     max-height: 85mm;
   }
+  &.has-extra-content.has-loot ::ng-deep app-hex-map svg {
+    max-height: 75mm;
+  }
   &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg {
     max-height: 65mm;
+  }
+  &.has-hex-types.has-extra-content.has-loot ::ng-deep app-hex-map svg {
+    max-height: 55mm;
   }
 }
 
 .hex-types-block {
-  margin-top: 0.15rem;
-  margin-bottom: 0.15rem;
+  margin-top: 0;
+  margin-bottom: 0.1rem;
+
+  .info-label {
+    margin-top: 0.4rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.loot-block {
+  margin-bottom: 0.1rem;
+
+  .info-label {
+    margin-top: 0.4rem;
+    margin-bottom: 0.25rem;
+  }
+  .info-text {
+    margin-bottom: 0.1rem;
+    line-height: 1.45;
+  }
 }
 
 .scenario-functions {

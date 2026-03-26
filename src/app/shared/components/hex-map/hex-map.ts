@@ -62,7 +62,7 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
 
       <!-- Deployment markers -->
       @for (d of renderedDeployments(); track d.key) {
-        <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ')'" class="pointer-events-none">
+        <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ')' + (printMode() ? ' rotate(30)' : '')" class="pointer-events-none">
           @if (d.type === 'player') {
             <!-- Robot image -->
             <image href="/assets/img/bot.png"

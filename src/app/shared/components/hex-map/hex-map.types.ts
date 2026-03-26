@@ -31,7 +31,7 @@ export const MARKER_TYPES: { id: MarkerType; label: string; prefix: string }[] =
   { id: 'threat', label: 'Amenaza', prefix: 'A' },
   { id: 'treasure', label: 'Tesoro', prefix: 'T' },
   { id: 'flag', label: 'Bandera', prefix: 'B' },
-  { id: 'plaque', label: 'Placa', prefix: 'X' },
+  { id: 'plaque', label: 'Nodo de Datos', prefix: 'X' },
 ];
 
 export interface DeploymentMarker {

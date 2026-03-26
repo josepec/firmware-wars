@@ -1,4 +1,4 @@
-# DATA.LOOT: Tesoros
+# DATA.LOOT: Botín
 
 ## Nodos de Datos y Tesoros
 

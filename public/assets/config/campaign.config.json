@@ -4,7 +4,7 @@
     { "id": "02_IDC", "num": "02", "title": "DOMINANCE.IDC", "subtitle": "Índice de Dominancia Corporativa" },
     { "id": "03_XP", "num": "03", "title": "LEVEL.UP", "subtitle": "Experiencia" },
     { "id": "04_NIBBLES", "num": "04", "title": "MARKET.SYS", "subtitle": "Economía" },
-    { "id": "05_LOOT", "num": "05", "title": "DATA.LOOT", "subtitle": "Tesoros" },
+    { "id": "05_LOOT", "num": "05", "title": "DATA.LOOT", "subtitle": "Botín" },
     { "id": "06_ROGUE_EXE", "num": "06", "title": "ROGUE.EXE", "subtitle": "Enemigos" },
     { "id": "07_CORPORATIONS", "num": "07", "title": "CORP.DATA", "subtitle": "Las Cinco Grandes" },
     { "id": "08_ENDINGS", "num": "08", "title": "FINAL.EXE", "subtitle": "Finales" }

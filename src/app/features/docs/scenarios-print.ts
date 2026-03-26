@@ -198,6 +198,21 @@ export class ScenariosPrint implements OnDestroy {
     return Array.from({ length: n }, (_, i) => i + 1);
   }
 
+  lootEntries(s: ScenarioItem): { type: string; markers: string[]; desc: string }[] {
+    const deps = s.hexMap?.deployments;
+    if (!deps?.length) return [];
+    const entries: { type: string; markers: string[]; desc: string }[] = [];
+    const treasures = deps.filter(d => d.type === 'treasure');
+    const plaques = deps.filter(d => d.type === 'plaque');
+    if (plaques.length > 0) {
+      entries.push({ type: 'Nodo de Datos', markers: plaques.map(d => d.label), desc: 'Otorga 1 XP al Bot que lo recoge.' });
+    }
+    if (treasures.length > 0) {
+      entries.push({ type: 'Tesoro', markers: treasures.map(d => d.label), desc: 'Otorga +10◈ al Programador que lo recoge.' });
+    }
+    return entries;
+  }
+
   deployEntries(s: ScenarioItem): { player: string; color: string }[] {
     if (!s.despliegueDots) return [];
     const n = s.numeroJugadores ?? 2;
