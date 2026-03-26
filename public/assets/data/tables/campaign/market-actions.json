@@ -1,0 +1,6 @@
+[
+  { "Acción": "Comprar función general", "Coste~": "*", "Restricción": "Stock limitado — 1 copia por función" },
+  { "Acción": "Comprar función de corpo", "Coste~": "*", "Restricción": "Exclusiva — solo tu corporación" },
+  { "Acción": "Reparar Bot destruido", "Coste~": "25◈", "Restricción": "Ver tabla de reparaciones por Acto" },
+  { "Acción": "Bot en Estado Crítico", "Coste~": "0◈", "Restricción": "MAX_LIFE ÷ 2 el próximo escenario" }
+]

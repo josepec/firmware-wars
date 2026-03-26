@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../core/services/admin-auth';
@@ -82,8 +82,15 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
           </div>
           <div class="fn-field">
             <label class="fn-label">Coste</label>
-            <input type="text" [ngModel]="cost()" (ngModelChange)="cost.set($event)"
-                   class="fn-input" placeholder="10" />
+            <div class="relative">
+              <input type="text" [ngModel]="cost()" (ngModelChange)="cost.set($event)"
+                     class="fn-input w-full" placeholder="10" />
+              @if (estimatedCost() !== null) {
+              <span class="cost-hint" [title]="'Estimación basada en V.' + version() + ', E' + energy() + ', Rango ' + range()">
+                ≈ {{ estimatedCost() }}◈
+              </span>
+              }
+            </div>
           </div>
         </div>
 
@@ -156,6 +163,17 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
         border-color: rgb(74 222 128 / 0.5);
       }
     }
+    .cost-hint {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgb(250 204 21 / 0.6);
+      pointer-events: auto;
+      cursor: help;
+    }
   `],
 })
 export class FunctionEditor implements OnInit {
@@ -176,6 +194,32 @@ export class FunctionEditor implements OnInit {
   energy = signal('');
   cost = signal('');
   effects = signal('');
+
+  estimatedCost = computed(() => {
+    const v = parseInt(this.version()) || 0;
+    const e = parseInt(this.energy()) || 0;
+    if (v <= 0 || e <= 0) return null;
+
+    if (v >= 3) return 50;
+
+    const r = this.range().trim();
+    const maxRange = this.parseMaxRange(r);
+    const isAoE = /R\(\d+\)/i.test(r);
+
+    if (v === 1) {
+      return Math.min(20, Math.max(10, e * 5 + (maxRange > 1 ? 5 : 0)));
+    }
+    // V2
+    const bonus = isAoE ? 10 : e >= 5 ? 5 : 0;
+    return Math.min(30, Math.max(15, e * 5 + bonus));
+  });
+
+  private parseMaxRange(r: string): number {
+    if (!r || r === '—') return 0;
+    const m = r.match(/(\d+)(?:\s*-\s*(\d+))?/);
+    if (!m) return 0;
+    return parseInt(m[2] ?? m[1]) || 0;
+  }
 
   ngOnInit(): void {
     if (!this.auth.isAuthenticated()) {

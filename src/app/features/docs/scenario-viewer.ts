@@ -148,8 +148,24 @@ interface ScenarioData {
           @if (data()!.hexMap && data()!.hexMap.hexes.length > 0) {
           <section class="mb-8">
             <h2 class="section-title">Entorno Digitalizado de Combate</h2>
-            <div class="mt-4 p-4 border border-green-500/10 bg-[#111a14]">
-              <app-hex-map [mapData]="data()!.hexMap" [size]="28" />
+            <div class="hex-map-wrapper mt-4 relative border border-green-500/10 bg-[#111a14]">
+              <div class="hex-map-viewport"
+                   (wheel)="onMapWheel($event)"
+                   (pointerdown)="onMapPointerDown($event)"
+                   (pointermove)="onMapPointerMove($event)"
+                   (pointerup)="onMapPointerUp($event)"
+                   (pointerleave)="onMapPointerUp($event)">
+                <div class="hex-map-canvas" [style.transform]="mapTransform()">
+                  <app-hex-map [mapData]="data()!.hexMap" [size]="28" />
+                </div>
+              </div>
+              <div class="map-zoom-controls">
+                <button (click)="zoomIn()" type="button" title="Acercar">+</button>
+                <button (click)="zoomOut()" type="button" title="Alejar">−</button>
+                @if (mapZoom() > 1) {
+                <button (click)="resetMapZoom()" type="button" title="Reset" class="map-zoom-reset">↺</button>
+                }
+              </div>
             </div>
           </section>
           }
@@ -389,6 +405,49 @@ interface ScenarioData {
       text-transform: uppercase;
       color: rgba(74, 222, 128, 0.45);
     }
+    app-scenario-viewer .hex-map-viewport {
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    app-scenario-viewer .hex-map-viewport.grabbing {
+      cursor: grabbing;
+    }
+    app-scenario-viewer .hex-map-canvas {
+      transform-origin: 0 0;
+    }
+    app-scenario-viewer .map-zoom-controls {
+      position: absolute;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 10;
+    }
+    app-scenario-viewer .map-zoom-controls button {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(0, 255, 136, 0.25);
+      color: rgba(0, 255, 136, 0.6);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    app-scenario-viewer .map-zoom-controls button:hover {
+      color: #00ff88;
+      border-color: rgba(0, 255, 136, 0.5);
+    }
+    app-scenario-viewer .map-zoom-controls .map-zoom-reset {
+      margin-top: 2px;
+      font-size: 13px;
+    }
   `],
 })
 export class ScenarioViewer implements OnChanges {
@@ -464,10 +523,85 @@ export class ScenarioViewer implements OnChanges {
       .map(([player, color]) => ({ player, color }));
   }
 
+  /* ── Zoom & Pan ─────────────────────────────────────────── */
+  mapZoom = signal(1);
+  private mapPanX = signal(0);
+  private mapPanY = signal(0);
+  private dragging = false;
+  private lastPointerX = 0;
+  private lastPointerY = 0;
+
+  mapTransform = computed(() => {
+    const z = this.mapZoom();
+    const x = this.mapPanX();
+    const y = this.mapPanY();
+    return `translate(${x}px, ${y}px) scale(${z})`;
+  });
+
+  onMapWheel(e: WheelEvent): void {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    const oldZoom = this.mapZoom();
+    const newZoom = Math.min(Math.max(oldZoom * factor, 1), 6);
+
+    // Zoom toward pointer position
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    const scale = newZoom / oldZoom;
+    this.mapPanX.update(v => px - scale * (px - v));
+    this.mapPanY.update(v => py - scale * (py - v));
+    this.mapZoom.set(newZoom);
+  }
+
+  onMapPointerDown(e: PointerEvent): void {
+    this.dragging = true;
+    this.lastPointerX = e.clientX;
+    this.lastPointerY = e.clientY;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as HTMLElement).classList.add('grabbing');
+  }
+
+  onMapPointerMove(e: PointerEvent): void {
+    if (!this.dragging) return;
+    const dx = e.clientX - this.lastPointerX;
+    const dy = e.clientY - this.lastPointerY;
+    this.lastPointerX = e.clientX;
+    this.lastPointerY = e.clientY;
+    this.mapPanX.update(v => v + dx);
+    this.mapPanY.update(v => v + dy);
+  }
+
+  onMapPointerUp(e: PointerEvent): void {
+    if (!this.dragging) return;
+    this.dragging = false;
+    (e.currentTarget as HTMLElement).classList.remove('grabbing');
+  }
+
+  zoomIn(): void {
+    this.mapZoom.update(z => Math.min(z * 1.3, 6));
+  }
+
+  zoomOut(): void {
+    const newZoom = this.mapZoom() / 1.3;
+    if (newZoom <= 1) {
+      this.resetMapZoom();
+    } else {
+      this.mapZoom.set(newZoom);
+    }
+  }
+
+  resetMapZoom(): void {
+    this.mapZoom.set(1);
+    this.mapPanX.set(0);
+    this.mapPanY.set(0);
+  }
+
   ngOnChanges(): void {
     const id = this.scenarioId();
     if (id && id !== this.loadedId) {
       this.loadedId = id;
+      this.resetMapZoom();
       this.load(id);
     }
   }

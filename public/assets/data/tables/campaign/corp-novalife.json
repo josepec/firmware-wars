@@ -1,0 +1,6 @@
+[
+  { "Función": "`cellularRegen()`", "V.~": "1", "Coste~": "15◈", "Energía~": "2", "Efecto": "Al inicio de cada `BOOT()`, recupera 1 punto de `life` si `bugs` = 0." },
+  { "Función": "`adaptiveShell()`", "V.~": "2", "Coste~": "25◈", "Energía~": "3", "Efecto": "Tras recibir daño, `MAX_SHIELD` aumenta en 1 hasta el final de la ronda. Máximo +2 acumulable." },
+  { "Función": "`viralPatch()`", "V.~": "2", "Coste~": "30◈", "Energía~": "3", "Efecto": "Elimina 1 BUG propio e inyecta 1 BUG al Bot enemigo más cercano en rango 2." },
+  { "Función": "`evolutionProtocol()`", "V.~": "3", "Coste~": "50◈", "Energía~": "5", "Efecto": "El Bot gana +1 en una Constante a elegir hasta el final de la partida. No computa como Punto de Mejora de campaña." }
+]

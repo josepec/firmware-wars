@@ -1,0 +1,6 @@
+[
+  { "Función": "`armorPiercing()`", "V.~": "1", "Coste~": "20◈", "Energía~": "2", "Efecto": "El próximo ataque ignora el `shield` del defensor completamente." },
+  { "Función": "`suppressiveFire()`", "V.~": "2", "Coste~": "25◈", "Energía~": "3", "Efecto": "El objetivo no puede moverse durante su próximo turno." },
+  { "Función": "`artilleryStrike()`", "V.~": "2", "Coste~": "35◈", "Energía~": "5", "Efecto": "Ataque a rango 3–6 (SLDV) que hace 1d6 de daño a todos los Bots en R(1) del impacto." },
+  { "Función": "`lockdownProtocol()`", "V.~": "3", "Coste~": "50◈", "Energía~": "6", "Efecto": "Durante esta ronda, ningún Bot enemigo puede ejecutar `move()`." }
+]

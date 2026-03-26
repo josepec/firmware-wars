@@ -1,0 +1,6 @@
+[
+  { "Función": "`dataScan()`", "V.~": "1", "Coste~": "15◈", "Energía~": "2", "Efecto": "Mira las Operaciones que el rival ha compilado este turno antes de que las ejecute." },
+  { "Función": "`predictiveStrike()`", "V.~": "2", "Coste~": "25◈", "Energía~": "3", "Efecto": "Si el rival tiene un `numbers` igual al dado lanzado en la condición, el ataque no puede ser interceptado." },
+  { "Función": "`algorithmicJam()`", "V.~": "2", "Coste~": "30◈", "Energía~": "4", "Efecto": "El rival debe descartar una Operación compilada de su elección antes de ejecutar `RUN()`." },
+  { "Función": "`neuralOverride()`", "V.~": "3", "Coste~": "50◈", "Energía~": "5", "Efecto": "Elige una Función del BattleScript compilado del rival. Esa Función no se ejecuta este turno." }
+]

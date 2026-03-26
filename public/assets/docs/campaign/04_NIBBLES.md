@@ -10,12 +10,7 @@ Los **Nibbles ◈** ganados en combate se gestionan entre escenarios a través d
 
 ### Resultado de combate
 
-| Resultado | Nibbles ganados |
-|---|---|
-| Victoria con todos los Bots vivos | 40◈ |
-| Victoria con alguna baja | 25◈ |
-| Derrota sin perder Bots | 15◈ |
-| Derrota con bajas | 5◈ |
+/json tables/campaign/nibbles-income.json
 
 ---
 
@@ -23,11 +18,7 @@ Los **Nibbles ◈** ganados en combate se gestionan entre escenarios a través d
 
 El coste de reparar un Bot destruido varía según el Acto en que se produzca la baja:
 
-| Acto | Cobertura corporativa | Coste adicional |
-|---|---|---|
-| **Acto I** | Todas las reparaciones gratuitas | 0◈ |
-| **Acto II** | Primera baja por escenario gratuita | 25◈ las siguientes |
-| **Acto III** | Primera baja por escenario gratuita | 25◈ las siguientes |
+/json tables/campaign/nibbles-repair.json
 
 ---
 
@@ -47,12 +38,7 @@ El MARKET.SYS ocurre **entre cada escenario**. El jugador que ganó el último e
 
 ### Acciones disponibles
 
-| Acción | Coste | Restricción |
-|---|---|---|
-| Comprar función general | * | Stock limitado — 1 copia por función |
-| Comprar función de corpo | * | Exclusiva — solo tu corporación |
-| Reparar Bot destruido | 25◈ | Ver tabla de reparaciones por Acto |
-| Bot en Estado Crítico | 0◈ | MAX_LIFE ÷ 2 el próximo escenario |
+/json tables/campaign/market-actions.json
 
 ### El Baúl
 

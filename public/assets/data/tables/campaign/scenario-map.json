@@ -1,0 +1,12 @@
+[
+  { "#~": "1", "Acto~": "I", "Tipo": "Versus", "Notas": "—" },
+  { "#~": "2", "Acto~": "I", "Tipo": "Versus", "Notas": "Decisión Corporativa tras este escenario" },
+  { "#~": "3", "Acto~": "I", "Tipo": "Versus", "Notas": "Decisión Corporativa tras este escenario" },
+  { "#~": "4", "Acto~": "II", "Tipo": "Cooperativo", "Notas": "—" },
+  { "#~": "5", "Acto~": "II", "Tipo": "Cooperativo", "Notas": "Decisión Corporativa tras este escenario" },
+  { "#~": "6", "Acto~": "II", "Tipo": "Cooperativo", "Notas": "Decisión Corporativa tras este escenario" },
+  { "#~": "7", "Acto~": "III", "Tipo": "Versus", "Notas": "—" },
+  { "#~": "8", "Acto~": "III", "Tipo": "Versus", "Notas": "Decisión Corporativa tras este escenario" },
+  { "#~": "9", "Acto~": "III", "Tipo": "Versus", "Notas": "Decisión Corporativa antes del Final" },
+  { "#~": "10", "Acto~": "Final", "Tipo": "Variable según IDC", "Notas": "Ver sección **FINAL.EXE**" }
+]

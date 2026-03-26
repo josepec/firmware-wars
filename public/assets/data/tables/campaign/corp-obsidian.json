@@ -1,0 +1,6 @@
+[
+  { "Función": "`debtProtocol()`", "V.~": "1", "Coste~": "20◈", "Energía~": "2", "Efecto": "El rival pierde 1d6 de `energy`. Si no tiene suficiente, pierde 1 `life` por cada punto que falta." },
+  { "Función": "`blackMarketDeal()`", "V.~": "2", "Coste~": "30◈", "Energía~": "0", "Efecto": "Una vez por escenario, usa cualquier función del Baúl del rival temporalmente durante este turno." },
+  { "Función": "`hostileTakeover()`", "V.~": "2", "Coste~": "35◈", "Energía~": "4", "Efecto": "El rival debe gastar 3 de `energy` adicional en su próxima Función o no puede ejecutarla." },
+  { "Función": "`zeroDay()`", "V.~": "3", "Coste~": "50◈", "Energía~": "6", "Efecto": "El Bot objetivo recibe 2 BUGs inmediatamente y no puede usar `DEBUG()` el próximo turno." }
+]

@@ -1,0 +1,6 @@
+[
+  { "Evento": "Ser el jugador que elimina más ROGUE.EXE en el escenario", "Modificador IDC~": "+1" },
+  { "Evento": "Completar el escenario sin ninguna baja propia", "Modificador IDC~": "+1" },
+  { "Evento": "Empate en eliminaciones", "Modificador IDC~": "0" },
+  { "Evento": "Perder todos tus Bots en el escenario", "Modificador IDC~": "−1" }
+]

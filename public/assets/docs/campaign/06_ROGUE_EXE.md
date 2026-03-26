@@ -45,12 +45,7 @@ Cuando le toca actuar al enemigo, se activa el siguiente ROGUE.EXE de la lista e
 
 Aunque los jugadores son aliados, las corporaciones miden el rendimiento individual. Los modificadores de IDC del cooperativo son:
 
-| Evento | Modificador IDC |
-|---|---|
-| Ser el jugador que elimina más ROGUE.EXE en el escenario | +1 |
-| Completar el escenario sin ninguna baja propia | +1 |
-| Empate en eliminaciones | 0 |
-| Perder todos tus Bots en el escenario | −1 |
+/json tables/campaign/idc-coop.json
 
 > Máximo +1 de IDC por escenario cooperativo.
 

@@ -59,18 +59,7 @@ Vuelve el versus. Los escenarios son más complejos, con tableros que incluyen z
 
 ## Mapa de escenarios
 
-| # | Acto | Tipo | Notas |
-|---|---|---|---|
-| 1 | I | Versus | — |
-| 2 | I | Versus | Decisión Corporativa tras este escenario |
-| 3 | I | Versus | Decisión Corporativa tras este escenario |
-| 4 | II | Cooperativo | — |
-| 5 | II | Cooperativo | Decisión Corporativa tras este escenario |
-| 6 | II | Cooperativo | Decisión Corporativa tras este escenario |
-| 7 | III | Versus | — |
-| 8 | III | Versus | Decisión Corporativa tras este escenario |
-| 9 | III | Versus | Decisión Corporativa antes del Final |
-| 10 | Final | Variable según IDC | Ver sección **FINAL.EXE** |
+/json tables/campaign/scenario-map.json
 
 > Las Decisiones Corporativas se presentan automáticamente a través de la web en el momento indicado.
 

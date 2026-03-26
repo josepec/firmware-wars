@@ -1,0 +1,7 @@
+[
+  { "Evento": "Victoria con todos los Bots vivos", "Modificador IDC~": "+2" },
+  { "Evento": "Victoria en escenario versus", "Modificador IDC~": "+1" },
+  { "Evento": "Empate", "Modificador IDC~": "0" },
+  { "Evento": "Derrota sin perder ningún Bot", "Modificador IDC~": "−1" },
+  { "Evento": "Perder todos los Bots", "Modificador IDC~": "−2" }
+]

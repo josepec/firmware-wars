@@ -1,0 +1,6 @@
+[
+  { "Función": "`redundantSystem()`", "V.~": "1", "Coste~": "15◈", "Energía~": "0", "Efecto": "Una vez por turno, si una Función no se ejecuta por falta de energía, no produce OVERLOAD." },
+  { "Función": "`bulkRepair()`", "V.~": "2", "Coste~": "25◈", "Energía~": "3", "Efecto": "Recupera 1 punto de `life` por cada BUG activo eliminado en esta fase `DEBUG()`." },
+  { "Función": "`supplyDrop()`", "V.~": "2", "Coste~": "30◈", "Energía~": "0", "Efecto": "Una vez por escenario, recupera 4 puntos de `energy` fuera de la fase `BOOT()`." },
+  { "Función": "`massProduction()`", "V.~": "3", "Coste~": "50◈", "Energía~": "6", "Efecto": "Si este Bot es destruido, vuelve al tablero en el Hex de despliegue inicial con `MAX_LIFE/2` al inicio de la siguiente ronda. Solo una vez por partida." }
+]

@@ -15,13 +15,7 @@ El **Índice de Dominancia Corporativa (IDC)** es un valor interno que mide la p
 
 ## Estado narrativo visible
 
-| Rango IDC | Lo que ve el jugador en la web |
-|---|---|
-| 0–2 | Sistema crítico. Señal corporativa débil. |
-| 3–4 | Rendimiento por debajo de lo esperado. |
-| 5 | Equilibrio operativo. Sin ventaja detectada. |
-| 6–7 | Dominancia creciente en el mercado. |
-| 8–10 | Control total de la red. Corporación hegemónica. |
+/json tables/campaign/idc-narrative.json
 
 ---
 
@@ -29,24 +23,13 @@ El **Índice de Dominancia Corporativa (IDC)** es un valor interno que mide la p
 
 ### Escenarios versus (Acto I y III)
 
-| Evento | Modificador IDC |
-|---|---|
-| Victoria con todos los Bots vivos | +2 |
-| Victoria en escenario versus | +1 |
-| Empate | 0 |
-| Derrota sin perder ningún Bot | −1 |
-| Perder todos los Bots | −2 |
+/json tables/campaign/idc-versus.json
 
 > **Límite por escenario versus:** máximo +2 / mínimo −2 por escenario.
 
 ### Escenarios cooperativos (Acto II)
 
-| Evento | Modificador IDC |
-|---|---|
-| Ser el jugador que elimina más Bots enemigos en el escenario | +1 |
-| Completar el escenario sin ninguna baja propia | +1 |
-| Empate en eliminaciones | 0 |
-| Perder todos tus Bots en el escenario | −1 |
+/json tables/campaign/idc-coop.json
 
 > Máximo +1 por escenario cooperativo.
 
