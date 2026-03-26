@@ -558,7 +558,6 @@
 
 .scenario-map-full {
   margin-bottom: 0.25rem;
-  overflow: visible;
 
   ::ng-deep app-hex-map {
     display: block;
@@ -570,8 +569,6 @@
     height: auto;
     width: auto;
     margin: 0 auto;
-    transform: rotate(30deg);
-    transform-origin: center center;
   }
 
   ::ng-deep app-hex-map svg {

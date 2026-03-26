@@ -7,6 +7,8 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
     <svg [attr.viewBox]="viewBox()" class="block mx-auto w-full h-auto max-w-[900px]"
          preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
 
+      <g [attr.transform]="rotateTransform()">
+
       <!-- 3D depth effect (bottom layer) -->
       @for (h of renderedHexes(); track h.key) {
         <polygon [attr.points]="h.depthPoints"
@@ -62,7 +64,7 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
 
       <!-- Deployment markers -->
       @for (d of renderedDeployments(); track d.key) {
-        <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ')' + (printMode() ? ' rotate(-30)' : '')" class="pointer-events-none">
+        <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'" class="pointer-events-none">
           @if (d.type === 'player') {
             <!-- Robot image -->
             <image href="/assets/img/bot.png"
@@ -117,6 +119,8 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
                  stroke-width="1.5" stroke-dasharray="4,3"
                  class="pointer-events-none" />
       }
+
+      </g>
     </svg>
   `,
   styles: [`
@@ -135,6 +139,7 @@ export class HexMap {
   readonly interactive = input(false);
   readonly showGhosts = input(false);
   readonly printMode = input(false);
+  readonly rotateAngle = input(0);
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
@@ -167,10 +172,50 @@ export class HexMap {
     return { minX, minY, maxX, maxY };
   });
 
+  /** Center of the unrotated content — used as pivot for rotation */
+  private rotateCenter = computed(() => {
+    const b = this.allBounds();
+    return { cx: (b.minX + b.maxX) / 2, cy: (b.minY + b.maxY) / 2 };
+  });
+
+  /** SVG transform for the wrapping <g> */
+  rotateTransform = computed(() => {
+    const a = this.rotateAngle();
+    if (a === 0) return '';
+    const { cx, cy } = this.rotateCenter();
+    return `rotate(${a} ${cx} ${cy})`;
+  });
+
   viewBox = computed(() => {
     const b = this.allBounds();
     const p = this.padding;
-    return `${b.minX - p} ${b.minY - p} ${b.maxX - b.minX + p * 2} ${b.maxY - b.minY + p * 2}`;
+    const a = this.rotateAngle();
+
+    if (a === 0) {
+      return `${b.minX - p} ${b.minY - p} ${b.maxX - b.minX + p * 2} ${b.maxY - b.minY + p * 2}`;
+    }
+
+    // Rotate the four corners of the bounding box around the center and find new extents
+    const { cx, cy } = this.rotateCenter();
+    const rad = (a * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const corners = [
+      { x: b.minX, y: b.minY }, { x: b.maxX, y: b.minY },
+      { x: b.maxX, y: b.maxY }, { x: b.minX, y: b.maxY },
+    ];
+    let rMinX = Infinity, rMinY = Infinity, rMaxX = -Infinity, rMaxY = -Infinity;
+    for (const c of corners) {
+      const dx = c.x - cx;
+      const dy = c.y - cy;
+      const rx = cx + dx * cos - dy * sin;
+      const ry = cy + dx * sin + dy * cos;
+      rMinX = Math.min(rMinX, rx);
+      rMaxX = Math.max(rMaxX, rx);
+      rMinY = Math.min(rMinY, ry);
+      rMaxY = Math.max(rMaxY, ry);
+    }
+    return `${rMinX - p} ${rMinY - p} ${rMaxX - rMinX + p * 2} ${rMaxY - rMinY + p * 2}`;
   });
 
   private ghostCoords = computed(() => {
