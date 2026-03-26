@@ -422,6 +422,22 @@
   page-break-after: avoid;
 }
 
+.ambient-block {
+  margin-bottom: 0.5rem;
+  padding-left: 0.35rem;
+  border-left: 2pt solid #c8e6cc;
+}
+
+.ambient-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9pt;
+  color: #3a5a3e;
+  line-height: 1.75;
+  font-style: italic;
+  margin: 0;
+  white-space: pre-line;
+}
+
 .info-text {
   font-family: 'Share Tech Mono', monospace;
   font-size: 9pt;
@@ -510,18 +526,19 @@
 .hex-type-row {
   display: flex;
   align-items: flex-start;
-  gap: 0.4rem;
-  margin-bottom: 0.25rem;
+  gap: 0.3rem;
+  margin-bottom: 0.1rem;
   font-family: 'Share Tech Mono', monospace;
   font-size: 9pt;
   color: #1a2e1e;
+  line-height: 1.4;
 }
 
 .hex-swatch {
   display: block;
-  width: 0.7cm;
-  height: 0.7cm;
-  min-width: 0.7cm;
+  width: 0.55cm;
+  height: 0.55cm;
+  min-width: 0.55cm;
   flex-shrink: 0;
 }
 
@@ -559,19 +576,19 @@
     max-height: 135mm;
   }
   &.has-hex-types ::ng-deep app-hex-map svg {
-    max-height: 110mm;
+    max-height: 100mm;
   }
   &.has-extra-content ::ng-deep app-hex-map svg {
     max-height: 85mm;
   }
   &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg {
-    max-height: 70mm;
+    max-height: 65mm;
   }
 }
 
 .hex-types-block {
-  margin-top: 0.3rem;
-  margin-bottom: 0.3rem;
+  margin-top: 0.15rem;
+  margin-bottom: 0.15rem;
 }
 
 .scenario-functions {

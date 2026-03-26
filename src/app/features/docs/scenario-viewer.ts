@@ -90,9 +90,8 @@ interface ScenarioData {
           }
 
           @if (data()!.ambientacion) {
-          <section class="mb-8">
-            <h2 class="section-title">Ambientación</h2>
-            <p class="section-text" [innerHTML]="renderInlineCode(data()!.ambientacion)"></p>
+          <section class="mb-8 ambient-section">
+            <p class="ambient-text" [innerHTML]="renderInlineCode(data()!.ambientacion)"></p>
           </section>
           }
 
@@ -304,6 +303,17 @@ interface ScenarioData {
       margin-bottom: 0.75rem;
       padding-left: 0.875rem;
       border-left: 2px solid #00ff88;
+    }
+    app-scenario-viewer .ambient-section {
+      padding-left: 1rem;
+      border-left: 2px solid rgba(0, 255, 136, 0.15);
+    }
+    app-scenario-viewer .ambient-text {
+      color: rgba(74, 222, 128, 0.55);
+      line-height: 1.85;
+      font-size: 0.9rem;
+      font-style: italic;
+      white-space: pre-line;
     }
     app-scenario-viewer .section-text {
       color: rgba(74, 222, 128, 0.8);
