@@ -563,36 +563,18 @@
   }
 
   ::ng-deep app-hex-map svg {
-    max-width: 100%;
-    height: auto;
-    width: auto;
+    display: block;
+    width: 100%;
     margin: 0 auto;
+    height: 155mm;
   }
-
-  ::ng-deep app-hex-map svg {
-    max-height: 135mm;
-  }
-  &.has-loot ::ng-deep app-hex-map svg {
-    max-height: 120mm;
-  }
-  &.has-hex-types ::ng-deep app-hex-map svg {
-    max-height: 100mm;
-  }
-  &.has-hex-types.has-loot ::ng-deep app-hex-map svg {
-    max-height: 90mm;
-  }
-  &.has-extra-content ::ng-deep app-hex-map svg {
-    max-height: 85mm;
-  }
-  &.has-extra-content.has-loot ::ng-deep app-hex-map svg {
-    max-height: 75mm;
-  }
-  &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg {
-    max-height: 65mm;
-  }
-  &.has-hex-types.has-extra-content.has-loot ::ng-deep app-hex-map svg {
-    max-height: 55mm;
-  }
+  &.has-loot ::ng-deep app-hex-map svg { height: 140mm; }
+  &.has-hex-types ::ng-deep app-hex-map svg { height: 120mm; }
+  &.has-hex-types.has-loot ::ng-deep app-hex-map svg { height: 105mm; }
+  &.has-extra-content ::ng-deep app-hex-map svg { height: 100mm; }
+  &.has-extra-content.has-loot ::ng-deep app-hex-map svg { height: 85mm; }
+  &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg { height: 75mm; }
+  &.has-hex-types.has-extra-content.has-loot ::ng-deep app-hex-map svg { height: 60mm; }
 }
 
 .hex-types-block {
