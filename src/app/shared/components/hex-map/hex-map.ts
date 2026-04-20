@@ -154,7 +154,8 @@ export class HexMap {
   dotRadius = computed(() => this.size() * 0.15);
   robotScale = computed(() => this.size() / 30);
 
-  private allBounds = computed(() => {
+  /** AABB of all hex polygon vertices in unrotated space — tighter than using centers ± size */
+  private rawBounds = computed(() => {
     const s = this.size();
     const allCoords = [
       ...this.mapData().hexes.map(h => ({ q: h.q, r: h.r })),
@@ -162,11 +163,17 @@ export class HexMap {
     ];
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const h of allCoords) {
-      const { x, y } = hexToPixel(h.q, h.r, s);
-      minX = Math.min(minX, x - s);
-      maxX = Math.max(maxX, x + s);
-      minY = Math.min(minY, y - s);
-      maxY = Math.max(maxY, y + s + this.depthOffset);
+      const { x: cx, y: cy } = hexToPixel(h.q, h.r, s);
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 180) * (60 * i);
+        const vx = cx + s * Math.cos(angle);
+        const vy = cy + s * Math.sin(angle);
+        if (vx < minX) minX = vx;
+        if (vx > maxX) maxX = vx;
+        if (vy < minY) minY = vy;
+        const vyDepth = vy + this.depthOffset;
+        if (vyDepth > maxY) maxY = vyDepth;
+      }
     }
     if (!isFinite(minX)) { minX = 0; minY = 0; maxX = 200; maxY = 200; }
     return { minX, minY, maxX, maxY };
@@ -174,7 +181,7 @@ export class HexMap {
 
   /** Center of the unrotated content — used as pivot for rotation */
   private rotateCenter = computed(() => {
-    const b = this.allBounds();
+    const b = this.rawBounds();
     return { cx: (b.minX + b.maxX) / 2, cy: (b.minY + b.maxY) / 2 };
   });
 
@@ -187,35 +194,49 @@ export class HexMap {
   });
 
   viewBox = computed(() => {
-    const b = this.allBounds();
     const p = this.padding;
     const a = this.rotateAngle();
 
     if (a === 0) {
+      const b = this.rawBounds();
       return `${b.minX - p} ${b.minY - p} ${b.maxX - b.minX + p * 2} ${b.maxY - b.minY + p * 2}`;
     }
 
-    // Rotate the four corners of the bounding box around the center and find new extents
-    const { cx, cy } = this.rotateCenter();
+    // Tight AABB of ROTATED hex vertices (rotating each vertex around the content center).
+    // Much tighter than rotating the 4 corners of the content AABB, especially for
+    // non-rectangular grid shapes: removes the triangular empty space those corners carry.
+    const s = this.size();
+    const { cx: rcx, cy: rcy } = this.rotateCenter();
     const rad = (a * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    const corners = [
-      { x: b.minX, y: b.minY }, { x: b.maxX, y: b.minY },
-      { x: b.maxX, y: b.maxY }, { x: b.minX, y: b.maxY },
+    const allCoords = [
+      ...this.mapData().hexes.map(h => ({ q: h.q, r: h.r })),
+      ...(this.showGhosts() ? this.ghostCoords() : []),
     ];
-    let rMinX = Infinity, rMinY = Infinity, rMaxX = -Infinity, rMaxY = -Infinity;
-    for (const c of corners) {
-      const dx = c.x - cx;
-      const dy = c.y - cy;
-      const rx = cx + dx * cos - dy * sin;
-      const ry = cy + dx * sin + dy * cos;
-      rMinX = Math.min(rMinX, rx);
-      rMaxX = Math.max(rMaxX, rx);
-      rMinY = Math.min(rMinY, ry);
-      rMaxY = Math.max(rMaxY, ry);
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const addRotated = (x: number, y: number) => {
+      const dx = x - rcx;
+      const dy = y - rcy;
+      const rx = rcx + dx * cos - dy * sin;
+      const ry = rcy + dx * sin + dy * cos;
+      if (rx < minX) minX = rx;
+      if (rx > maxX) maxX = rx;
+      if (ry < minY) minY = ry;
+      if (ry > maxY) maxY = ry;
+    };
+    for (const h of allCoords) {
+      const { x: hcx, y: hcy } = hexToPixel(h.q, h.r, s);
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 180) * (60 * i);
+        const vx = hcx + s * Math.cos(angle);
+        const vy = hcy + s * Math.sin(angle);
+        addRotated(vx, vy);
+        addRotated(vx, vy + this.depthOffset);
+      }
     }
-    return `${rMinX - p} ${rMinY - p} ${rMaxX - rMinX + p * 2} ${rMaxY - rMinY + p * 2}`;
+    if (!isFinite(minX)) { minX = 0; minY = 0; maxX = 200; maxY = 200; }
+    return `${minX - p} ${minY - p} ${maxX - minX + p * 2} ${maxY - minY + p * 2}`;
   });
 
   private ghostCoords = computed(() => {

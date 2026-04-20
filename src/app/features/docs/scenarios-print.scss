@@ -557,6 +557,8 @@
 .scenario-map-full {
   margin-bottom: 0.25rem;
 
+  /* El SVG toma el aspect del viewBox (width 100%, height auto → sin letterbox interior).
+     max-height en el contenedor solo actúa como tope si el mapa es muy alto. */
   ::ng-deep app-hex-map {
     display: block;
     width: 100%;
@@ -565,16 +567,17 @@
   ::ng-deep app-hex-map svg {
     display: block;
     width: 100%;
+    height: auto;
     margin: 0 auto;
-    height: 155mm;
+    max-height: 160mm;
   }
-  &.has-loot ::ng-deep app-hex-map svg { height: 140mm; }
-  &.has-hex-types ::ng-deep app-hex-map svg { height: 120mm; }
-  &.has-hex-types.has-loot ::ng-deep app-hex-map svg { height: 105mm; }
-  &.has-extra-content ::ng-deep app-hex-map svg { height: 100mm; }
-  &.has-extra-content.has-loot ::ng-deep app-hex-map svg { height: 85mm; }
-  &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg { height: 75mm; }
-  &.has-hex-types.has-extra-content.has-loot ::ng-deep app-hex-map svg { height: 60mm; }
+  &.has-loot ::ng-deep app-hex-map svg { max-height: 140mm; }
+  &.has-hex-types ::ng-deep app-hex-map svg { max-height: 120mm; }
+  &.has-hex-types.has-loot ::ng-deep app-hex-map svg { max-height: 100mm; }
+  &.has-extra-content ::ng-deep app-hex-map svg { max-height: 95mm; }
+  &.has-extra-content.has-loot ::ng-deep app-hex-map svg { max-height: 80mm; }
+  &.has-hex-types.has-extra-content ::ng-deep app-hex-map svg { max-height: 70mm; }
+  &.has-hex-types.has-extra-content.has-loot ::ng-deep app-hex-map svg { max-height: 55mm; }
 }
 
 .hex-types-block {
