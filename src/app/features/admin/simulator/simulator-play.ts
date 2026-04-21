@@ -22,6 +22,10 @@ import { replayTo } from './engine/replay';
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 const DEPLOY_PERIMETER = 6;
 
+type CriterionChoice = 'junior-1' | 'junior-2' | 'ppt';
+type PptHand = 'r' | 'p' | 's';
+type DeploySubPhase = 'criterion' | 'ppt-p1' | 'ppt-p2' | 'ppt-reveal' | 'done';
+
 const COLOR_HEX: Record<DotColor, string> = Object.fromEntries(
   DOT_COLORS.map(c => [c.id, c.hex]),
 ) as Record<DotColor, string>;
@@ -76,25 +80,116 @@ const COLOR_HEX: Record<DotColor, string> = Object.fromEntries(
 
             @if (currentState().phase === 'deploy') {
               @if (!deployStarter()) {
-                <div class="space-y-2">
-                  <div class="text-[9px] tracking-wider text-green-500/60">
-                    ¿Quién empieza el despliegue? (setup.md: Programador más Junior o PPT)
+                @if (subPhase() === 'criterion') {
+                  <div class="space-y-3">
+                    <div class="text-[9px] tracking-wider text-green-500/60">
+                      Criterio inicial (setup.md): Programador más Junior; si hay conflicto, PPT.
+                      Cada jugador indica quién es el Junior o pide PPT directamente.
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <!-- P1 column -->
+                      <div class="border border-green-500/15 p-2 space-y-1">
+                        <div class="text-[9px] tracking-[0.2em] uppercase text-green-300">
+                          {{ r.player1Alias }}
+                        </div>
+                        @if (choiceP1(); as c) {
+                          <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
+                          <button type="button" (click)="resetChoice(1)"
+                            class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
+                            cambiar
+                          </button>
+                        } @else {
+                          <button type="button" (click)="onCriterionPick(1, 'junior-1')"
+                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                            {{ r.player1Alias }} es Junior
+                          </button>
+                          <button type="button" (click)="onCriterionPick(1, 'junior-2')"
+                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                            {{ r.player2Alias }} es Junior
+                          </button>
+                          <button type="button" (click)="onCriterionPick(1, 'ppt')"
+                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                            PPT
+                          </button>
+                        }
+                      </div>
+                      <!-- P2 column -->
+                      <div class="border border-green-500/15 p-2 space-y-1">
+                        <div class="text-[9px] tracking-[0.2em] uppercase text-green-300">
+                          {{ r.player2Alias }}
+                        </div>
+                        @if (choiceP2(); as c) {
+                          <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
+                          <button type="button" (click)="resetChoice(2)"
+                            class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
+                            cambiar
+                          </button>
+                        } @else {
+                          <button type="button" (click)="onCriterionPick(2, 'junior-1')"
+                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                            {{ r.player1Alias }} es Junior
+                          </button>
+                          <button type="button" (click)="onCriterionPick(2, 'junior-2')"
+                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                            {{ r.player2Alias }} es Junior
+                          </button>
+                          <button type="button" (click)="onCriterionPick(2, 'ppt')"
+                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                            PPT
+                          </button>
+                        }
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex gap-2">
-                    <button type="button" (click)="deployStarter.set(1)"
-                      class="flex-1 py-2 text-[10px] tracking-[0.2em] uppercase
-                             border border-green-500/20 text-green-500/60
-                             hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                      {{ r.player1Alias }}
-                    </button>
-                    <button type="button" (click)="deployStarter.set(2)"
-                      class="flex-1 py-2 text-[10px] tracking-[0.2em] uppercase
-                             border border-green-500/20 text-green-500/60
-                             hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                      {{ r.player2Alias }}
+                } @else if (subPhase() === 'ppt-p1' || subPhase() === 'ppt-p2') {
+                  <div class="space-y-3">
+                    <div class="text-[9px] tracking-[0.2em] uppercase text-yellow-400/80">
+                      Protocolo PPT
+                    </div>
+                    <div class="text-[9px] tracking-wider text-green-500/60">
+                      {{ subPhase() === 'ppt-p1' ? r.player1Alias : r.player2Alias }} elige en secreto.
+                      El otro jugador no debe mirar.
+                    </div>
+                    <div class="flex gap-2">
+                      @for (h of pptHands; track h) {
+                        <button type="button" (click)="onPptPick(subPhase() === 'ppt-p1' ? 1 : 2, h)"
+                          class="flex-1 py-3 text-[10px] tracking-[0.2em] uppercase
+                                 border border-green-500/20 text-green-500/60
+                                 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                          {{ pptLabel(h) }}
+                        </button>
+                      }
+                    </div>
+                    @if (subPhase() === 'ppt-p2' && pptP1()) {
+                      <div class="text-[8px] text-green-500/30 tracking-wider">
+                        ✓ {{ r.player1Alias }} ya eligió (oculto).
+                      </div>
+                    }
+                  </div>
+                } @else if (subPhase() === 'ppt-reveal') {
+                  <div class="space-y-3">
+                    <div class="text-[9px] tracking-[0.2em] uppercase text-yellow-400/80">
+                      PPT · Empate
+                    </div>
+                    <div class="text-[9px] tracking-wider text-green-500/60">
+                      {{ r.player1Alias }}: <span class="text-cyan-300">{{ pptLabel(pptP1()!) }}</span>
+                      &middot;
+                      {{ r.player2Alias }}: <span class="text-cyan-300">{{ pptLabel(pptP2()!) }}</span>
+                    </div>
+                    <button type="button" (click)="repeatPpt()"
+                      class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+                             bg-green-500/10 border border-green-500/30 text-green-400
+                             hover:bg-green-500/20 cursor-pointer">
+                      Re-tirar PPT
                     </button>
                   </div>
-                </div>
+                }
               } @else if (activeDeployer(); as p) {
                 <div class="space-y-3">
                   <div class="text-[9px] tracking-wider text-green-500/50">
@@ -197,6 +292,24 @@ export class SimulatorPlay implements OnInit {
 
   deployStarter = signal<PlayerId | null>(null);
   pendingRoll = signal<DotColor | null>(null);
+
+  readonly pptHands: PptHand[] = ['r', 'p', 's'];
+
+  /* Criterion phase: each player picks who is Junior or requests PPT */
+  choiceP1 = signal<CriterionChoice | null>(null);
+  choiceP2 = signal<CriterionChoice | null>(null);
+  pptP1 = signal<PptHand | null>(null);
+  pptP2 = signal<PptHand | null>(null);
+
+  readonly subPhase = computed<DeploySubPhase>(() => {
+    if (this.deployStarter()) return 'done';
+    const c1 = this.choiceP1();
+    const c2 = this.choiceP2();
+    if (!c1 || !c2) return 'criterion';
+    if (!this.pptP1()) return 'ppt-p1';
+    if (!this.pptP2()) return 'ppt-p2';
+    return 'ppt-reveal';
+  });
 
   readonly currentState = computed<BattleState>(() => {
     const r = this.report();
@@ -382,6 +495,49 @@ export class SimulatorPlay implements OnInit {
       if (ok) out.add(k);
     }
     return out;
+  }
+
+  choiceLabel(c: CriterionChoice, p1Alias: string, p2Alias: string): string {
+    if (c === 'junior-1') return `${p1Alias} es Junior`;
+    if (c === 'junior-2') return `${p2Alias} es Junior`;
+    return 'PPT';
+  }
+
+  resetChoice(player: PlayerId): void {
+    (player === 1 ? this.choiceP1 : this.choiceP2).set(null);
+  }
+
+  onCriterionPick(player: PlayerId, choice: CriterionChoice): void {
+    (player === 1 ? this.choiceP1 : this.choiceP2).set(choice);
+    const c1 = this.choiceP1();
+    const c2 = this.choiceP2();
+    if (c1 && c2 && c1 === c2 && (c1 === 'junior-1' || c1 === 'junior-2')) {
+      this.deployStarter.set(c1 === 'junior-1' ? 1 : 2);
+    }
+  }
+
+  pptLabel(h: PptHand): string {
+    return h === 'r' ? 'Piedra' : h === 'p' ? 'Papel' : 'Tijera';
+  }
+
+  onPptPick(player: PlayerId, hand: PptHand): void {
+    (player === 1 ? this.pptP1 : this.pptP2).set(hand);
+    const a = this.pptP1();
+    const b = this.pptP2();
+    if (!a || !b) return;
+    const winner = this.resolvePpt(a, b);
+    if (winner !== null) this.deployStarter.set(winner);
+  }
+
+  repeatPpt(): void {
+    this.pptP1.set(null);
+    this.pptP2.set(null);
+  }
+
+  private resolvePpt(a: PptHand, b: PptHand): PlayerId | null {
+    if (a === b) return null;
+    const beats: Record<PptHand, PptHand> = { r: 's', s: 'p', p: 'r' };
+    return beats[a] === b ? 1 : 2;
   }
 
   async finish(): Promise<void> {
