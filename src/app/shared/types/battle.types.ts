@@ -83,7 +83,6 @@ export interface BattleState {
   players: Record<PlayerId, PlayerState>;
   bots: BattleBot[];
   hexMap: HexMapData;
-  deploymentZones: { team1: string[]; team2: string[] };
   winner?: PlayerId;
 }
 

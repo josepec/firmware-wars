@@ -128,7 +128,6 @@ export class SimulatorViewer implements OnInit {
         activationOrder: [], currentActivationIdx: 0, cpuPriority: 1,
         players: { 1: { alias: '', listId: '' }, 2: { alias: '', listId: '' } },
         bots: [], hexMap: { hexTypes: [], hexes: [], deployments: [] },
-        deploymentZones: { team1: [], team2: [] },
       };
     }
     return replayTo(r.initialSnapshot, r.events as BattleEvent[], this.index());

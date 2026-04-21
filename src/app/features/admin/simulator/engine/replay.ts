@@ -18,10 +18,6 @@ function cloneState(s: BattleState): BattleState {
         : undefined,
     })),
     hexMap: s.hexMap,
-    deploymentZones: {
-      team1: [...s.deploymentZones.team1],
-      team2: [...s.deploymentZones.team2],
-    },
   };
 }
 
