@@ -1,4 +1,11 @@
 import type { Comparator } from '../../../../shared/types/battle.types';
+import type { DotColor } from '../../../../shared/components/hex-map/hex-map.types';
+
+const DICE_COLORS: DotColor[] = ['green', 'blue', 'yellow', 'orange', 'red'];
+
+export function rollDadoColores(): DotColor {
+  return DICE_COLORS[Math.floor(Math.random() * DICE_COLORS.length)];
+}
 
 export function rollD6(): number {
   return 1 + Math.floor(Math.random() * 6);

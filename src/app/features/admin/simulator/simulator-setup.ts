@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
-import type { BattleState, PlayerId } from '../../../shared/types/battle.types';
+import type { BattleBot, BattleState, PlayerId } from '../../../shared/types/battle.types';
 import type { HexMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { DEFAULT_HEX_TYPES, emptyMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { HexMapEditor } from '../hex-map-editor';
@@ -16,10 +16,19 @@ interface ScenarioSummary {
   updated_at: string;
 }
 
+interface AttackFnRef { name: string; version?: number }
+interface RawListBot {
+  name: string;
+  attackFunctions?: {
+    v1?: (AttackFnRef | null)[];
+    v2?: (AttackFnRef | null)[];
+    v3?: AttackFnRef | null;
+  };
+}
 interface ListResponse {
   id: string;
   programmer: string;
-  bots: unknown[];
+  bots: RawListBot[];
 }
 
 type Source = 'scenario' | 'custom';
@@ -252,6 +261,8 @@ export class SimulatorSetup implements OnInit {
   list2Id = '';
   list1Alias = signal('');
   list2Alias = signal('');
+  list1Bots = signal<RawListBot[]>([]);
+  list2Bots = signal<RawListBot[]>([]);
   list1Loading = signal(false);
   list2Loading = signal(false);
   list1Error = signal<string | null>(null);
@@ -357,15 +368,18 @@ export class SimulatorSetup implements OnInit {
   private async fetchList(id: string, slot: 1 | 2): Promise<void> {
     const setLoading = slot === 1 ? this.list1Loading : this.list2Loading;
     const setAlias = slot === 1 ? this.list1Alias : this.list2Alias;
+    const setBots = slot === 1 ? this.list1Bots : this.list2Bots;
     const setError = slot === 1 ? this.list1Error : this.list2Error;
     try {
       const resp = await fetch(`${API_URL}/api/lists/${encodeURIComponent(id)}`);
       if (!resp.ok) {
         setError.set(`Lista no encontrada (${resp.status})`);
         setAlias.set('');
+        setBots.set([]);
       } else {
         const data = (await resp.json()) as ListResponse;
         setAlias.set(data.programmer || '—');
+        setBots.set(Array.isArray(data.bots) ? data.bots : []);
       }
     } catch (e) {
       setError.set(String(e));
@@ -430,6 +444,10 @@ export class SimulatorSetup implements OnInit {
       1: { alias: this.list1Alias(), listId: this.list1Id.trim() },
       2: { alias: this.list2Alias(), listId: this.list2Id.trim() },
     };
+    const bots: BattleBot[] = [
+      ...this.list1Bots().map((b, i) => this.toBattleBot(b, 1, i)),
+      ...this.list2Bots().map((b, i) => this.toBattleBot(b, 2, i)),
+    ];
     return {
       id: '',
       status: 'in_progress',
@@ -439,8 +457,35 @@ export class SimulatorSetup implements OnInit {
       currentActivationIdx: 0,
       cpuPriority: 1 as PlayerId,
       players,
-      bots: [],
+      bots,
       hexMap,
+    };
+  }
+
+  private toBattleBot(raw: RawListBot, playerId: PlayerId, idx: number): BattleBot {
+    const v1 = (raw.attackFunctions?.v1 ?? []).map(a => a ? { functionId: a.name } : null);
+    const v2 = (raw.attackFunctions?.v2 ?? []).map(a => a ? { functionId: a.name } : null);
+    const v3raw = raw.attackFunctions?.v3 ?? null;
+    const v3 = v3raw ? { functionId: v3raw.name } : null;
+    return {
+      id: `p${playerId}-${idx}`,
+      playerId,
+      name: raw.name || `Bot ${idx + 1}`,
+      q: -999,
+      r: -999,
+      life: 5, maxLife: 5,
+      energy: 0, maxEnergy: 3,
+      shield: 0, maxShield: 3,
+      maxMovement: 2,
+      maxNumbers: 3,
+      maxOperations: 3,
+      version: 1,
+      bugs: 0,
+      numbers: [],
+      pendingOperations: [],
+      destroyed: false,
+      hasInterceptedThisTurn: false,
+      attacks: { v1, v2, v3 },
     };
   }
 }
