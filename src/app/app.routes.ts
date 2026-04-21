@@ -43,6 +43,10 @@ export const routes: Routes = [
       { path: 'threats', loadComponent: () => import('./features/admin/threat-list').then(m => m.ThreatList) },
       { path: 'threats/new', loadComponent: () => import('./features/admin/threat-editor').then(m => m.ThreatEditor) },
       { path: 'threats/:id', loadComponent: () => import('./features/admin/threat-editor').then(m => m.ThreatEditor) },
+      { path: 'simulator', loadComponent: () => import('./features/admin/simulator/simulator-list').then(m => m.SimulatorList) },
+      { path: 'simulator/new', loadComponent: () => import('./features/admin/simulator/simulator-setup').then(m => m.SimulatorSetup) },
+      { path: 'simulator/play/:id', loadComponent: () => import('./features/admin/simulator/simulator-play').then(m => m.SimulatorPlay) },
+      { path: 'simulator/view/:id', loadComponent: () => import('./features/admin/simulator/simulator-viewer').then(m => m.SimulatorViewer) },
     ],
   },
   {

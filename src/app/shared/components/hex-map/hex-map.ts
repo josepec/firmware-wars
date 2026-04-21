@@ -112,6 +112,15 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
         </g>
       }
 
+      <!-- Highlight overlay -->
+      @for (h of highlightOverlays(); track h.key) {
+        <polygon [attr.points]="h.points"
+                 fill="none"
+                 [attr.stroke]="h.color"
+                 stroke-width="3"
+                 class="pointer-events-none" />
+      }
+
       <!-- Drag ghost -->
       @if (dragGhost()) {
         <polygon [attr.points]="dragGhost()!.points"
@@ -140,6 +149,9 @@ export class HexMap {
   readonly showGhosts = input(false);
   readonly printMode = input(false);
   readonly rotateAngle = input(0);
+  readonly highlightedHexes = input<Set<string> | null>(null);
+  readonly highlightColor = input<string>('#3b82f6');
+  readonly selectable = input<Set<string> | null>(null);
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
@@ -305,6 +317,23 @@ export class HexMap {
     });
   });
 
+  highlightOverlays = computed(() => {
+    const set = this.highlightedHexes();
+    if (!set || set.size === 0) return [];
+    const s = this.size();
+    const color = this.highlightColor();
+    const out: { key: string; points: string; color: string }[] = [];
+    for (const key of set) {
+      const [qStr, rStr] = key.split(',');
+      const q = Number(qStr);
+      const r = Number(rStr);
+      if (!Number.isFinite(q) || !Number.isFinite(r)) continue;
+      const { x, y } = hexToPixel(q, r, s);
+      out.push({ key: `hl-${key}`, points: hexPoints(x, y, s * 0.9), color });
+    }
+    return out;
+  });
+
   renderedDeployments = computed(() => {
     const s = this.size();
     const data = this.mapData();
@@ -317,9 +346,10 @@ export class HexMap {
   /* ── Events ──────────────────────────────────────────────── */
 
   onHexClick(q: number, r: number): void {
-    if (this.interactive()) {
-      this.hexClicked.emit({ q, r });
-    }
+    if (!this.interactive()) return;
+    const sel = this.selectable();
+    if (sel && !sel.has(`${q},${r}`)) return;
+    this.hexClicked.emit({ q, r });
   }
 
   onGhostClick(q: number, r: number): void {

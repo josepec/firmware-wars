@@ -65,6 +65,12 @@ import { AdminAuth } from '../../core/services/admin-auth';
               [routerLinkActiveOptions]="{ exact: false }">
               Amenazas
             </a>
+            <a routerLink="/admin/simulator" routerLinkActive="text-green-400"
+              class="text-[10px] tracking-[0.2em] uppercase text-green-500/50
+                     hover:text-green-300 transition-colors py-2 border-b border-transparent"
+              [routerLinkActiveOptions]="{ exact: false }">
+              Simulador
+            </a>
           </nav>
         </div>
         <button (click)="logout()" type="button"
