@@ -22,6 +22,7 @@ export class HexMapEditor implements OnInit {
   readonly maxPlayers = input(3);
   readonly availableThreats = input<{ id: string; name: string; imageUrl: string }[]>([]);
   readonly amenazaCounts = model<Record<string, number>>({});
+  readonly allowedTools = input<EditorTool[] | null>(null);
 
   /* Editor state */
   readonly tool = signal<EditorTool>('hex');
@@ -45,12 +46,19 @@ export class HexMapEditor implements OnInit {
 
   readonly dotColors = DOT_COLORS;
   readonly markerTypes = MARKER_TYPES;
-  readonly tools: { id: EditorTool; label: string }[] = [
+  private readonly allTools: { id: EditorTool; label: string }[] = [
     { id: 'hex', label: 'HEX' },
     { id: 'dot', label: 'DOT' },
     { id: 'deploy', label: 'DEPLOY' },
     { id: 'erase', label: 'BORRAR' },
   ];
+
+  readonly tools = computed(() => {
+    const allowed = this.allowedTools();
+    if (!allowed) return this.allTools;
+    const set = new Set(allowed);
+    return this.allTools.filter(t => set.has(t.id));
+  });
 
   /** All available types: built-in + shared from API */
   hexTypes = computed(() => {

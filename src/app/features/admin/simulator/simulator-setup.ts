@@ -3,8 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import type { BattleState, PlayerId } from '../../../shared/types/battle.types';
-import type { DotColor, HexCell, HexMapData } from '../../../shared/components/hex-map/hex-map.types';
-import { DEFAULT_HEX_TYPES, DOT_COLORS } from '../../../shared/components/hex-map/hex-map.types';
+import type { HexMapData } from '../../../shared/components/hex-map/hex-map.types';
+import { DEFAULT_HEX_TYPES, emptyMapData } from '../../../shared/components/hex-map/hex-map.types';
+import { HexMapEditor } from '../hex-map-editor';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
@@ -25,7 +26,7 @@ type Source = 'scenario' | 'custom';
 
 @Component({
   selector: 'app-simulator-setup',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, HexMapEditor],
   template: `
     <div class="min-h-screen p-6 md:p-10 max-w-3xl mx-auto">
 
@@ -117,24 +118,14 @@ type Source = 'scenario' | 'custom';
           }
 
           @if (source() === 'custom') {
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-[9px] tracking-[0.2em] text-green-500/50 mb-2 uppercase">Ancho (cols)</label>
-                <input type="number" min="10" max="30" [(ngModel)]="customCols"
-                  class="w-full px-3 py-2 text-sm bg-green-500/5 border border-green-500/20 text-green-300
-                         focus:border-green-400/50 focus:outline-none" />
-              </div>
-              <div>
-                <label class="block text-[9px] tracking-[0.2em] text-green-500/50 mb-2 uppercase">Alto (filas)</label>
-                <input type="number" min="10" max="30" [(ngModel)]="customRows"
-                  class="w-full px-3 py-2 text-sm bg-green-500/5 border border-green-500/20 text-green-300
-                         focus:border-green-400/50 focus:outline-none" />
-              </div>
-            </div>
             <div class="text-[9px] text-green-500/35 tracking-wider leading-relaxed">
-              Tablero rectangular con Hexes de los 5 Colores distribuidos aleatoriamente.
+              Diseña el tablero (máx 100 Hexes). Usa HEX (obstáculos / añadir vía ghosts), DOT (colores para el Dado de Colores) y BORRAR.
               El despliegue se resolverá en la fase deploy con tirada de Dado de Colores + perímetro de 6 Hexes (Eliminación Total, setup.md).
             </div>
+            <app-hex-map-editor
+              [mapData]="customMap()"
+              (mapDataChange)="customMap.set($event)"
+              [allowedTools]="['hex', 'dot', 'erase']" />
           }
         }
 
@@ -192,7 +183,7 @@ type Source = 'scenario' | 'custom';
             <div class="text-green-500/50 uppercase tracking-[0.2em] mb-2">Resumen</div>
             <div><span class="text-green-500/50">Mapa:</span>
               <span class="text-green-300">
-                {{ source() === 'scenario' ? (selectedScenario()?.title ?? '—') : ('Custom ' + customCols + 'x' + customRows) }}
+                {{ source() === 'scenario' ? (selectedScenario()?.title ?? '—') : ('Custom · ' + customMap().hexes.length + ' hexes') }}
               </span>
             </div>
             <div><span class="text-green-500/50">P1:</span>
@@ -249,8 +240,7 @@ export class SimulatorSetup implements OnInit {
   scenarios = signal<ScenarioSummary[]>([]);
   scenarioId = '';
   scenarioOpen = signal(false);
-  customCols = 14;
-  customRows = 12;
+  customMap = signal<HexMapData>(emptyMapData());
   list1Id = '';
   list2Id = '';
   list1Alias = signal('');
@@ -292,7 +282,7 @@ export class SimulatorSetup implements OnInit {
 
   canAdvance(): boolean {
     if (this.step() === 1) {
-      return this.source() === 'scenario' ? !!this.scenarioId : this.customCols > 0 && this.customRows > 0;
+      return this.source() === 'scenario' ? !!this.scenarioId : this.customMap().hexes.length > 100;
     }
     if (this.step() === 2) {
       return !!this.list1Alias() && !!this.list2Alias();
@@ -405,21 +395,12 @@ export class SimulatorSetup implements OnInit {
         deployments: src.deployments ?? [],
       };
     }
-    return this.buildRectangularMap(this.customCols, this.customRows);
-  }
-
-  private buildRectangularMap(cols: number, rows: number): HexMapData {
-    const hexes: HexCell[] = [];
-    const palette: DotColor[] = DOT_COLORS.map(d => d.id);
-    for (let col = 0; col < cols; col++) {
-      for (let row = 0; row < rows; row++) {
-        const q = col;
-        const r = row - Math.floor(col / 2);
-        const dot = palette[Math.floor(Math.random() * palette.length)];
-        hexes.push({ q, r, typeId: 'normal', dot });
-      }
-    }
-    return { hexTypes: [...DEFAULT_HEX_TYPES], hexes, deployments: [] };
+    const m = this.customMap();
+    return {
+      hexTypes: m.hexTypes.length ? m.hexTypes : [...DEFAULT_HEX_TYPES],
+      hexes: m.hexes,
+      deployments: [],
+    };
   }
 
   private buildInitialSnapshot(hexMap: HexMapData): BattleState {
