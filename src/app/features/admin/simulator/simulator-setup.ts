@@ -66,7 +66,7 @@ type Source = 'scenario' | 'custom';
               [class.text-green-400]="source() === 'scenario'"
               [class.border-green-500\\/20]="source() !== 'scenario'"
               [class.text-green-500\\/50]="source() !== 'scenario'">
-              Escenario existente
+              Escenarios
             </button>
             <button type="button" (click)="source.set('custom')"
               class="flex-1 py-3 text-[10px] tracking-[0.2em] uppercase border transition-all cursor-pointer"
@@ -75,7 +75,7 @@ type Source = 'scenario' | 'custom';
               [class.text-green-400]="source() === 'custom'"
               [class.border-green-500\\/20]="source() !== 'custom'"
               [class.text-green-500\\/50]="source() !== 'custom'">
-              Eliminación total (custom)
+              Eliminación total
             </button>
           </div>
 
@@ -119,13 +119,20 @@ type Source = 'scenario' | 'custom';
 
           @if (source() === 'custom') {
             <div class="text-[9px] text-green-500/35 tracking-wider leading-relaxed">
-              Diseña el tablero (máx 100 Hexes). Usa HEX (obstáculos / añadir vía ghosts), DOT (colores para el Dado de Colores) y BORRAR.
+              Diseña el tablero (100 Hexes). Usa HEX (obstáculos / añadir vía ghosts), DOT (colores para el Dado de Colores) y BORRAR.
               El despliegue se resolverá en la fase deploy con tirada de Dado de Colores + perímetro de 6 Hexes (Eliminación Total, setup.md).
             </div>
             <app-hex-map-editor
               [mapData]="customMap()"
               (mapDataChange)="customMap.set($event)"
-              [allowedTools]="['hex', 'dot', 'erase']" />
+              [allowedTools]="['hex', 'dot', 'erase']"
+              [showAutoDots]="true" />
+
+            @if (customMissing(); as m) {
+              <div class="text-[9px] text-yellow-400/70 tracking-wider">
+                > Falta: {{ m }}
+              </div>
+            }
           }
         }
 
@@ -280,9 +287,24 @@ export class SimulatorSetup implements OnInit {
     return s === 1 ? 'Mapa' : s === 2 ? 'Listas' : 'Confirmar';
   }
 
+  readonly customMissing = computed<string | null>(() => {
+    if (this.source() !== 'custom') return null;
+    const m = this.customMap();
+    const parts: string[] = [];
+    if (m.hexes.length !== 100) parts.push(`coloca 100 Hexes (ahora ${m.hexes.length})`);
+    const counts: Record<string, number> = { green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
+    for (const h of m.hexes) if (h.dot) counts[h.dot] = (counts[h.dot] ?? 0) + 1;
+    const bad = Object.entries(counts).filter(([, n]) => n !== 20);
+    if (bad.length) {
+      const detail = bad.map(([c, n]) => `${c}:${n}`).join(' ');
+      parts.push(`20 Hexes de cada color (${detail}) — usa AUTO DOTS`);
+    }
+    return parts.length ? parts.join(' · ') : null;
+  });
+
   canAdvance(): boolean {
     if (this.step() === 1) {
-      return this.source() === 'scenario' ? !!this.scenarioId : this.customMap().hexes.length > 100;
+      return this.source() === 'scenario' ? !!this.scenarioId : !this.customMissing();
     }
     if (this.step() === 2) {
       return !!this.list1Alias() && !!this.list2Alias();

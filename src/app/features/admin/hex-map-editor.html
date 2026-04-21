@@ -92,6 +92,16 @@
     </div>
     }
 
+    @if (showAutoDots()) {
+    <div class="flex flex-col gap-1.5">
+      <span class="tool-label">Dots</span>
+      <button (click)="autoDots()" type="button" class="tool-btn active"
+        data-tooltip="Distribuye 20 Hexes de cada uno de los 5 colores aleatoriamente (setup.md)">
+        AUTO DOTS
+      </button>
+    </div>
+    }
+
     @if (tool() === 'deploy') {
     <div class="flex flex-col gap-1.5">
       <span class="tool-label">Tipo Marcador</span>

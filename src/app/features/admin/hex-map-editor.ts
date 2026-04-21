@@ -23,6 +23,7 @@ export class HexMapEditor implements OnInit {
   readonly availableThreats = input<{ id: string; name: string; imageUrl: string }[]>([]);
   readonly amenazaCounts = model<Record<string, number>>({});
   readonly allowedTools = input<EditorTool[] | null>(null);
+  readonly showAutoDots = input(false);
 
   /* Editor state */
   readonly tool = signal<EditorTool>('hex');
@@ -272,6 +273,25 @@ export class HexMapEditor implements OnInit {
     }
     return counts;
   });
+
+  autoDots(): void {
+    const data = this.mapData();
+    const palette: DotColor[] = DOT_COLORS.map(d => d.id);
+    const perColor = 20;
+    const pool: DotColor[] = [];
+    for (const c of palette) for (let i = 0; i < perColor; i++) pool.push(c);
+    pool.sort(() => Math.random() - 0.5);
+    const shuffledHexes = [...data.hexes].sort(() => Math.random() - 0.5);
+    const assignment = new Map<string, DotColor>();
+    for (let i = 0; i < Math.min(shuffledHexes.length, pool.length); i++) {
+      assignment.set(`${shuffledHexes[i].q},${shuffledHexes[i].r}`, pool[i]);
+    }
+    const hexes = data.hexes.map(h => {
+      const color = assignment.get(`${h.q},${h.r}`);
+      return color ? { ...h, dot: color } : { ...h, dot: undefined };
+    });
+    this.mapData.set({ ...data, hexes });
+  }
 
   private eraseHex(q: number, r: number, data: HexMapData): void {
     this.mapData.set({
