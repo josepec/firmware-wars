@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
@@ -30,11 +31,16 @@ const COLOR_HEX: Record<DotColor, string> = Object.fromEntries(
   DOT_COLORS.map(c => [c.id, c.hex]),
 ) as Record<DotColor, string>;
 
+function rollPptDie(): PptHand {
+  const faces: PptHand[] = ['r', 'p', 's'];
+  return faces[Math.floor(Math.random() * faces.length)];
+}
+
 @Component({
   selector: 'app-simulator-play',
-  imports: [RouterLink, HexMap],
+  imports: [RouterLink, HexMap, NgTemplateOutlet],
   template: `
-    <div class="min-h-screen p-6 md:p-10 max-w-6xl mx-auto">
+    <div class="min-h-screen p-6 md:p-8 max-w-[1400px] mx-auto">
 
       <div class="mb-6 flex items-center justify-between">
         <a routerLink="/admin/simulator"
@@ -57,16 +63,30 @@ const COLOR_HEX: Record<DotColor, string> = Object.fromEntries(
       }
 
       @if (report(); as r) {
+        <!-- Header común ─────────────────────────────────── -->
         <div class="text-[10px] tracking-[0.3em] text-green-500/50 mb-1">// PARTIDA</div>
         <h1 class="text-lg tracking-[0.15em] text-green-400 font-bold uppercase mb-2"
             style="font-family: 'Orbitron', monospace;">{{ r.title }}</h1>
-        <div class="text-[10px] tracking-[0.2em] text-green-500/50 mb-6">
+        <div class="text-[10px] tracking-[0.2em] text-green-500/50 mb-4">
           FASE: <span class="text-green-300">{{ currentState().phase }}</span>
           &middot; Ronda <span class="text-green-300">{{ currentState().turn }}</span>
+          @if (subPhaseLabel(); as lbl) {
+            &middot; <span class="text-cyan-300">{{ lbl }}</span>
+          }
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-          <div class="border border-green-500/15 bg-black/40 p-2">
+        <!-- Layout 3 columnas: P1 · Map · P2 ───────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-4 items-start">
+
+          <!-- Panel P1 (izquierda) -->
+          <div class="transition-all duration-300"
+               [class.opacity-100]="panelState(1) !== 'hidden'"
+               [class.opacity-30]="panelState(1) === 'waiting'">
+            <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 1, r: r }"></ng-container>
+          </div>
+
+          <!-- Map -->
+          <div class="border border-green-500/15 bg-black/40 p-2 lg:order-none">
             <app-hex-map [mapData]="displayMap()" [size]="28"
                          [interactive]="canPickHex()"
                          [selectable]="selectableHexes()"
@@ -75,205 +95,199 @@ const COLOR_HEX: Record<DotColor, string> = Object.fromEntries(
                          (hexClicked)="onHexClick($event)" />
           </div>
 
-          <aside class="border border-green-500/15 p-4 space-y-4">
-            <div class="text-[10px] tracking-[0.2em] text-green-400/80 uppercase">Panel de fase</div>
+          <!-- Panel P2 (derecha) -->
+          <div class="transition-all duration-300"
+               [class.opacity-100]="panelState(2) !== 'hidden'"
+               [class.opacity-30]="panelState(2) === 'waiting'">
+            <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 2, r: r }"></ng-container>
+          </div>
+        </div>
 
-            @if (currentState().phase === 'deploy') {
-              @if (!deployStarter()) {
-                @if (subPhase() === 'criterion') {
-                  <div class="space-y-3">
-                    <div class="text-[9px] tracking-wider text-green-500/60">
-                      Criterio inicial (setup.md): Programador más Junior; si hay conflicto, PPT.
-                      Cada jugador indica quién es el Junior o pide PPT directamente.
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                      <!-- P1 column -->
-                      <div class="border border-green-500/15 p-2 space-y-1">
-                        <div class="text-[9px] tracking-[0.2em] uppercase text-green-300">
-                          {{ r.player1Alias }}
-                        </div>
-                        @if (choiceP1(); as c) {
-                          <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
-                          <button type="button" (click)="resetChoice(1)"
-                            class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
-                            cambiar
-                          </button>
-                        } @else {
-                          <button type="button" (click)="onCriterionPick(1, 'junior-1')"
-                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
-                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                            {{ r.player1Alias }} es Junior
-                          </button>
-                          <button type="button" (click)="onCriterionPick(1, 'junior-2')"
-                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
-                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                            {{ r.player2Alias }} es Junior
-                          </button>
-                          <button type="button" (click)="onCriterionPick(1, 'ppt')"
-                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
-                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                            PPT
-                          </button>
-                        }
-                      </div>
-                      <!-- P2 column -->
-                      <div class="border border-green-500/15 p-2 space-y-1">
-                        <div class="text-[9px] tracking-[0.2em] uppercase text-green-300">
-                          {{ r.player2Alias }}
-                        </div>
-                        @if (choiceP2(); as c) {
-                          <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
-                          <button type="button" (click)="resetChoice(2)"
-                            class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
-                            cambiar
-                          </button>
-                        } @else {
-                          <button type="button" (click)="onCriterionPick(2, 'junior-1')"
-                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
-                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                            {{ r.player1Alias }} es Junior
-                          </button>
-                          <button type="button" (click)="onCriterionPick(2, 'junior-2')"
-                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
-                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                            {{ r.player2Alias }} es Junior
-                          </button>
-                          <button type="button" (click)="onCriterionPick(2, 'ppt')"
-                            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
-                                   text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                            PPT
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                } @else if (subPhase() === 'ppt-p1' || subPhase() === 'ppt-p2') {
-                  <div class="space-y-3">
-                    <div class="text-[9px] tracking-[0.2em] uppercase text-yellow-400/80">
-                      Protocolo PPT
-                    </div>
-                    <div class="text-[9px] tracking-wider text-green-500/60">
-                      {{ subPhase() === 'ppt-p1' ? r.player1Alias : r.player2Alias }} elige en secreto.
-                      El otro jugador no debe mirar.
-                    </div>
-                    <div class="flex gap-2">
-                      @for (h of pptHands; track h) {
-                        <button type="button" (click)="onPptPick(subPhase() === 'ppt-p1' ? 1 : 2, h)"
-                          class="flex-1 py-3 text-[10px] tracking-[0.2em] uppercase
-                                 border border-green-500/20 text-green-500/60
-                                 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-                          {{ pptLabel(h) }}
-                        </button>
-                      }
-                    </div>
-                    @if (subPhase() === 'ppt-p2' && pptP1()) {
-                      <div class="text-[8px] text-green-500/30 tracking-wider">
-                        ✓ {{ r.player1Alias }} ya eligió (oculto).
-                      </div>
-                    }
-                  </div>
-                } @else if (subPhase() === 'ppt-reveal') {
-                  <div class="space-y-3">
-                    <div class="text-[9px] tracking-[0.2em] uppercase text-yellow-400/80">
-                      PPT · Empate
-                    </div>
-                    <div class="text-[9px] tracking-wider text-green-500/60">
-                      {{ r.player1Alias }}: <span class="text-cyan-300">{{ pptLabel(pptP1()!) }}</span>
-                      &middot;
-                      {{ r.player2Alias }}: <span class="text-cyan-300">{{ pptLabel(pptP2()!) }}</span>
-                    </div>
-                    <button type="button" (click)="repeatPpt()"
-                      class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
-                             bg-green-500/10 border border-green-500/30 text-green-400
-                             hover:bg-green-500/20 cursor-pointer">
-                      Re-tirar PPT
-                    </button>
-                  </div>
-                }
-              } @else if (activeDeployer(); as p) {
-                <div class="space-y-3">
-                  <div class="text-[9px] tracking-wider text-green-500/50">
-                    Despliegue · Turno de
-                    <span class="text-cyan-300">P{{ p }} · {{ aliasFor(p) }}</span>
-                  </div>
-                  <div class="text-[9px] text-green-500/40 tracking-wider">
-                    {{ remainingFor(1) }} / {{ totalFor(1) }} de P1 ·
-                    {{ remainingFor(2) }} / {{ totalFor(2) }} de P2 pendientes
-                  </div>
-
-                  @if (nextBotName(); as bn) {
-                    <div class="text-[10px] text-green-300 tracking-wider">
-                      Próximo bot: <span class="text-cyan-300">{{ bn }}</span>
-                    </div>
-                  }
-
-                  @if (!pendingRoll()) {
-                    <button type="button" (click)="rollColorDice()"
-                      class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
-                             bg-green-500/10 border border-green-500/30 text-green-400
-                             hover:bg-green-500/20 cursor-pointer">
-                      Tirar Dado de Colores
-                    </button>
-                  } @else {
-                    <div class="border border-green-500/20 p-3 space-y-2">
-                      <div class="flex items-center gap-2 text-[10px] tracking-wider text-green-500/60">
-                        Salió:
-                        <span class="w-4 h-4 inline-block border border-green-500/30"
-                              [style.background]="colorHex(pendingRoll()!)"></span>
-                        <span class="text-green-300 uppercase">{{ pendingRoll() }}</span>
-                      </div>
-                      @if (selectableHexes()!.size > 0) {
-                        <div class="text-[9px] tracking-wider text-green-500/50">
-                          Click en un hex resaltado para desplegar.
-                          Perímetro de seguridad: ≥ {{ DEPLOY_PERIMETER }} hexes a bots enemigos.
-                        </div>
-                      } @else {
-                        <div class="text-[9px] tracking-wider text-yellow-400/70">
-                          Sin hexes válidos para este color. Re-tirar.
-                        </div>
-                      }
-                      <button type="button" (click)="rerollColorDice()"
-                        class="w-full px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
-                               border border-green-500/20 text-green-500/60
-                               hover:text-green-400 cursor-pointer">
-                        Re-tirar
-                      </button>
-                    </div>
-                  }
-
-                  @if (saveError()) {
-                    <div class="text-[9px] text-red-400/80 tracking-wider">> {{ saveError() }}</div>
-                  }
-                </div>
-              } @else {
-                <div class="space-y-3">
-                  <div class="text-[10px] text-green-300 tracking-wider">
-                    ✓ Despliegue completado.
-                  </div>
-                  <div class="text-[9px] text-yellow-400/70 tracking-wider">
-                    Fase INIT (PPT + orden de activación) pendiente de integrar.
-                  </div>
-                </div>
-              }
-            } @else {
-              <div class="text-[9px] tracking-wider text-yellow-400/70">
-                Fase {{ currentState().phase }} pendiente de integrar con el BattleEngine.
-              </div>
-            }
-
-            <div class="pt-3 border-t border-green-500/10 space-y-2">
-              <button type="button" (click)="finish()" [disabled]="finishing()"
-                class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
-                       bg-red-500/10 border border-red-500/30 text-red-400
-                       hover:bg-red-500/20 transition-all
-                       disabled:opacity-40 cursor-pointer">
-                @if (finishing()) { CERRANDO... } @else { Cerrar partida }
-              </button>
-            </div>
-          </aside>
+        <!-- Resumen general y acciones comunes ──────────────── -->
+        <div class="mt-4 border border-green-500/15 p-3 flex flex-wrap items-center gap-4
+                    text-[9px] tracking-wider text-green-500/50">
+          <span>
+            <span class="text-green-500/40">P1 desplegados:</span>
+            <span class="text-green-300 ml-1">{{ totalFor(1) - remainingFor(1) }} / {{ totalFor(1) }}</span>
+          </span>
+          <span class="text-green-500/20">|</span>
+          <span>
+            <span class="text-green-500/40">P2 desplegados:</span>
+            <span class="text-green-300 ml-1">{{ totalFor(2) - remainingFor(2) }} / {{ totalFor(2) }}</span>
+          </span>
+          @if (saveError()) {
+            <span class="text-red-400/80 ml-auto">> {{ saveError() }}</span>
+          } @else {
+            <span class="ml-auto"></span>
+          }
+          <button type="button" (click)="finish()" [disabled]="finishing()"
+            class="px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
+                   bg-red-500/10 border border-red-500/30 text-red-400
+                   hover:bg-red-500/20 transition-all
+                   disabled:opacity-40 cursor-pointer">
+            @if (finishing()) { CERRANDO... } @else { Cerrar partida }
+          </button>
         </div>
       }
     </div>
+
+    <!-- ─────────── Template de panel por jugador ─────────── -->
+    <ng-template #panelTpl let-p let-r="r">
+      <div class="border p-3 space-y-3 bg-black/40"
+           [class.border-cyan-400\\/40]="isActive(p)"
+           [class.border-green-500\\/15]="!isActive(p)">
+        <div class="text-[10px] tracking-[0.2em] uppercase flex items-center gap-2"
+             [class.text-cyan-300]="isActive(p)"
+             [class.text-green-500\\/50]="!isActive(p)">
+          <span class="inline-block w-2 h-2 rounded-full"
+                [class.bg-cyan-400]="isActive(p)"
+                [class.bg-green-500\\/30]="!isActive(p)"></span>
+          P{{ p }} · {{ p === 1 ? r.player1Alias : r.player2Alias }}
+        </div>
+
+        @if (currentState().phase === 'deploy') {
+          <!-- Subfase 'criterion' ─────────────────────── -->
+          @if (subPhase() === 'criterion') {
+            @if (choiceFor(p); as c) {
+              <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
+              <button type="button" (click)="resetChoice(p)"
+                class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
+                cambiar
+              </button>
+            } @else {
+              <div class="text-[8px] tracking-wider text-green-500/40">Elige criterio:</div>
+              <button type="button" (click)="onCriterionPick(p, 'junior-1')"
+                class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                       text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                {{ r.player1Alias }} es Junior
+              </button>
+              <button type="button" (click)="onCriterionPick(p, 'junior-2')"
+                class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                       text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                {{ r.player2Alias }} es Junior
+              </button>
+              <button type="button" (click)="onCriterionPick(p, 'ppt')"
+                class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+                       text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
+                PPT
+              </button>
+            }
+          }
+
+          <!-- Subfase PPT: tirada ─────────────────────── -->
+          @else if (subPhase() === 'ppt-p1' || subPhase() === 'ppt-p2') {
+            @if (isActive(p)) {
+              <div class="text-[9px] tracking-wider text-yellow-400/80">
+                Dado PPT — tira en secreto.
+              </div>
+              <button type="button" (click)="rollPpt(p)"
+                class="w-full py-3 text-[10px] tracking-[0.2em] uppercase
+                       bg-green-500/10 border border-green-500/30 text-green-400
+                       hover:bg-green-500/20 cursor-pointer">
+                Tirar Dado PPT
+              </button>
+            } @else if (pptFor(p)) {
+              <div class="text-[9px] tracking-wider text-green-500/40">✓ Ya tiró (oculto).</div>
+            } @else {
+              <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse">
+                Esperando tirada del rival...
+              </div>
+            }
+          }
+
+          <!-- Subfase PPT: reveal (empate) ─────────────── -->
+          @else if (subPhase() === 'ppt-reveal') {
+            <div class="text-[9px] tracking-wider text-yellow-400/80">
+              PPT · Empate
+            </div>
+            <div class="text-[10px] text-cyan-300 tracking-wider">
+              {{ pptLabel(pptFor(p)!) }}
+            </div>
+            @if (p === 1) {
+              <button type="button" (click)="repeatPpt()"
+                class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+                       bg-green-500/10 border border-green-500/30 text-green-400
+                       hover:bg-green-500/20 cursor-pointer">
+                Re-tirar PPT
+              </button>
+            }
+          }
+
+          <!-- Subfase 'done': despliegue por turnos ─────── -->
+          @else if (subPhase() === 'done') {
+            @if (isActive(p) && activeDeployer() === p) {
+              <div class="text-[9px] tracking-wider text-green-500/50">
+                Tu turno. Pendientes: <span class="text-green-300">{{ remainingFor(p) }}</span>
+              </div>
+
+              @if (nextBotName(); as bn) {
+                <div class="text-[10px] text-green-300 tracking-wider">
+                  Próximo bot: <span class="text-cyan-300">{{ bn }}</span>
+                </div>
+              }
+
+              @if (!pendingRoll()) {
+                <button type="button" (click)="rollColorDice()"
+                  class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+                         bg-green-500/10 border border-green-500/30 text-green-400
+                         hover:bg-green-500/20 cursor-pointer">
+                  Tirar Dado de Colores
+                </button>
+              } @else {
+                <div class="border border-green-500/20 p-2 space-y-2">
+                  <div class="flex items-center gap-2 text-[10px] tracking-wider text-green-500/60">
+                    Salió:
+                    <span class="w-4 h-4 inline-block border border-green-500/30"
+                          [style.background]="colorHex(pendingRoll()!)"></span>
+                    <span class="text-green-300 uppercase">{{ pendingRoll() }}</span>
+                  </div>
+                  @if (selectableHexes()!.size > 0) {
+                    <div class="text-[9px] tracking-wider text-green-500/50">
+                      Click en un hex resaltado. Perímetro ≥ {{ DEPLOY_PERIMETER }} a enemigos.
+                    </div>
+                  } @else {
+                    <div class="text-[9px] tracking-wider text-yellow-400/70">
+                      Sin hexes válidos. Re-tirar.
+                    </div>
+                  }
+                  <button type="button" (click)="rerollColorDice()"
+                    class="w-full px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
+                           border border-green-500/20 text-green-500/60
+                           hover:text-green-400 cursor-pointer">
+                    Re-tirar
+                  </button>
+                </div>
+              }
+            } @else if (remainingFor(p) === 0 && totalFor(p) > 0) {
+              <div class="text-[9px] tracking-wider text-green-500/40">
+                ✓ Todos desplegados.
+              </div>
+            } @else if (!activeDeployer()) {
+              <div class="text-[9px] tracking-wider text-green-500/40">
+                ✓ Despliegue completado.
+              </div>
+            } @else {
+              <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse">
+                Esperando...
+              </div>
+              <div class="text-[9px] tracking-wider text-green-500/30">
+                Pendientes: {{ remainingFor(p) }} / {{ totalFor(p) }}
+              </div>
+            }
+
+            @if (isActive(p) && activeDeployer() === null && remainingFor(1) + remainingFor(2) === 0) {
+              <div class="text-[9px] text-yellow-400/70 tracking-wider pt-2 border-t border-green-500/10">
+                Fase INIT (PPT iniciativa + upgrade rondas 3/5) pendiente.
+              </div>
+            }
+          }
+        } @else {
+          <div class="text-[9px] tracking-wider text-yellow-400/70">
+            Fase {{ currentState().phase }} pendiente.
+          </div>
+        }
+      </div>
+    </ng-template>
   `,
 })
 export class SimulatorPlay implements OnInit {
@@ -282,6 +296,7 @@ export class SimulatorPlay implements OnInit {
   private readonly router = inject(Router);
 
   readonly DEPLOY_PERIMETER = DEPLOY_PERIMETER;
+  readonly pptHands: PptHand[] = ['r', 'p', 's'];
 
   report = signal<BattleReport | null>(null);
   events = signal<BattleEvent[]>([]);
@@ -293,9 +308,6 @@ export class SimulatorPlay implements OnInit {
   deployStarter = signal<PlayerId | null>(null);
   pendingRoll = signal<DotColor | null>(null);
 
-  readonly pptHands: PptHand[] = ['r', 'p', 's'];
-
-  /* Criterion phase: each player picks who is Junior or requests PPT */
   choiceP1 = signal<CriterionChoice | null>(null);
   choiceP2 = signal<CriterionChoice | null>(null);
   pptP1 = signal<PptHand | null>(null);
@@ -323,10 +335,6 @@ export class SimulatorPlay implements OnInit {
     }
     return replayTo(r.initialSnapshot, this.events(), this.events().length);
   });
-
-  readonly deployedBots = computed(() =>
-    this.currentState().bots.filter(b => b.q !== -999),
-  );
 
   readonly displayMap = computed<HexMapData>(() => {
     const s = this.currentState();
@@ -406,10 +414,6 @@ export class SimulatorPlay implements OnInit {
     this.loading.set(false);
   }
 
-  aliasFor(p: PlayerId): string {
-    return this.report()?.[p === 1 ? 'player1Alias' : 'player2Alias'] ?? `P${p}`;
-  }
-
   totalFor(p: PlayerId): number {
     return this.currentState().bots.filter(b => b.playerId === p).length;
   }
@@ -419,6 +423,99 @@ export class SimulatorPlay implements OnInit {
   }
 
   colorHex(c: DotColor): string { return COLOR_HEX[c]; }
+
+  /* ── Panel visibility helpers ───────────────────── */
+
+  isActive(p: PlayerId): boolean {
+    const sp = this.subPhase();
+    if (sp === 'criterion') return !this.choiceFor(p);
+    if (sp === 'ppt-p1') return p === 1;
+    if (sp === 'ppt-p2') return p === 2;
+    if (sp === 'ppt-reveal') return true;
+    if (sp === 'done') return this.activeDeployer() === p;
+    return false;
+  }
+
+  /** 'active' | 'waiting' | 'hidden' */
+  panelState(p: PlayerId): 'active' | 'waiting' | 'hidden' {
+    const sp = this.subPhase();
+    if (sp === 'criterion') return 'active';
+    if (sp === 'ppt-reveal') return 'active';
+    if (sp === 'ppt-p1') return p === 1 ? 'active' : 'waiting';
+    if (sp === 'ppt-p2') return p === 2 ? 'active' : 'waiting';
+    // done
+    const deployer = this.activeDeployer();
+    if (!deployer) return 'active';
+    return deployer === p ? 'active' : 'waiting';
+  }
+
+  subPhaseLabel(): string | null {
+    switch (this.subPhase()) {
+      case 'criterion': return 'Criterio de inicio';
+      case 'ppt-p1': return 'Dado PPT · P1';
+      case 'ppt-p2': return 'Dado PPT · P2';
+      case 'ppt-reveal': return 'PPT · Revelación';
+      case 'done': return this.activeDeployer() ? 'Despliegue' : null;
+    }
+  }
+
+  choiceFor(p: PlayerId): CriterionChoice | null {
+    return (p === 1 ? this.choiceP1 : this.choiceP2)();
+  }
+
+  pptFor(p: PlayerId): PptHand | null {
+    return (p === 1 ? this.pptP1 : this.pptP2)();
+  }
+
+  /* ── Criterio ───────────────────────────────────── */
+
+  choiceLabel(c: CriterionChoice, p1Alias: string, p2Alias: string): string {
+    if (c === 'junior-1') return `${p1Alias} es Junior`;
+    if (c === 'junior-2') return `${p2Alias} es Junior`;
+    return 'PPT';
+  }
+
+  resetChoice(player: PlayerId): void {
+    (player === 1 ? this.choiceP1 : this.choiceP2).set(null);
+  }
+
+  onCriterionPick(player: PlayerId, choice: CriterionChoice): void {
+    (player === 1 ? this.choiceP1 : this.choiceP2).set(choice);
+    const c1 = this.choiceP1();
+    const c2 = this.choiceP2();
+    if (c1 && c2 && c1 === c2 && (c1 === 'junior-1' || c1 === 'junior-2')) {
+      this.deployStarter.set(c1 === 'junior-1' ? 1 : 2);
+    }
+  }
+
+  /* ── Dado PPT ───────────────────────────────────── */
+
+  pptLabel(h: PptHand): string {
+    return h === 'r' ? 'Piedra' : h === 'p' ? 'Papel' : 'Tijera';
+  }
+
+  rollPpt(player: PlayerId): void {
+    const hand = rollPptDie();
+    (player === 1 ? this.pptP1 : this.pptP2).set(hand);
+    const a = this.pptP1();
+    const b = this.pptP2();
+    if (!a || !b) return;
+    const winner = this.resolvePpt(a, b);
+    if (winner !== null) this.deployStarter.set(winner);
+  }
+
+  repeatPpt(): void {
+    this.pptP1.set(null);
+    this.pptP2.set(null);
+  }
+
+  private resolvePpt(a: PptHand, b: PptHand): PlayerId | null {
+    if (a === b) return null;
+    const beats: Record<PptHand, PptHand> = { r: 's', s: 'p', p: 'r' };
+    return beats[a] === b ? 1 : 2;
+  }
+
+  /* ── Dado de Colores ────────────────────────────── */
 
   rollColorDice(): void {
     this.pendingRoll.set(rollDadoColores());
@@ -495,49 +592,6 @@ export class SimulatorPlay implements OnInit {
       if (ok) out.add(k);
     }
     return out;
-  }
-
-  choiceLabel(c: CriterionChoice, p1Alias: string, p2Alias: string): string {
-    if (c === 'junior-1') return `${p1Alias} es Junior`;
-    if (c === 'junior-2') return `${p2Alias} es Junior`;
-    return 'PPT';
-  }
-
-  resetChoice(player: PlayerId): void {
-    (player === 1 ? this.choiceP1 : this.choiceP2).set(null);
-  }
-
-  onCriterionPick(player: PlayerId, choice: CriterionChoice): void {
-    (player === 1 ? this.choiceP1 : this.choiceP2).set(choice);
-    const c1 = this.choiceP1();
-    const c2 = this.choiceP2();
-    if (c1 && c2 && c1 === c2 && (c1 === 'junior-1' || c1 === 'junior-2')) {
-      this.deployStarter.set(c1 === 'junior-1' ? 1 : 2);
-    }
-  }
-
-  pptLabel(h: PptHand): string {
-    return h === 'r' ? 'Piedra' : h === 'p' ? 'Papel' : 'Tijera';
-  }
-
-  onPptPick(player: PlayerId, hand: PptHand): void {
-    (player === 1 ? this.pptP1 : this.pptP2).set(hand);
-    const a = this.pptP1();
-    const b = this.pptP2();
-    if (!a || !b) return;
-    const winner = this.resolvePpt(a, b);
-    if (winner !== null) this.deployStarter.set(winner);
-  }
-
-  repeatPpt(): void {
-    this.pptP1.set(null);
-    this.pptP2.set(null);
-  }
-
-  private resolvePpt(a: PptHand, b: PptHand): PlayerId | null {
-    if (a === b) return null;
-    const beats: Record<PptHand, PptHand> = { r: 's', s: 'p', p: 'r' };
-    return beats[a] === b ? 1 : 2;
   }
 
   async finish(): Promise<void> {
