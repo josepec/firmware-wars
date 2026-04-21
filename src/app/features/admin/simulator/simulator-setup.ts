@@ -3,8 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import type { BattleState, PlayerId } from '../../../shared/types/battle.types';
+import { hexKey } from '../../../shared/types/battle.types';
 import type { HexCell, HexMapData } from '../../../shared/components/hex-map/hex-map.types';
-import { DEFAULT_HEX_TYPES, hexKey } from '../../../shared/components/hex-map/hex-map.types';
+import { DEFAULT_HEX_TYPES } from '../../../shared/components/hex-map/hex-map.types';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
