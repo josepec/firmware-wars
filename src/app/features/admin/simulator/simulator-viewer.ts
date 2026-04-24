@@ -50,12 +50,25 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       return `PPT ganador P${p['winner']} · orden: ${(p['activationOrder'] as string[] ?? []).map(id => name(id)).join(' → ')}`;
     case 'upgrade':
       return `Upgrade → V${p['version']}`;
-    case 'boot_energy_rolled':
-      return `Energía tirada: ${p['energy']}`;
-    case 'boot_numbers_rolled':
-      return `Numbers: [${(p['numbers'] as number[] ?? []).join(', ')}]`;
-    case 'boot_operations_rolled':
-      return `Operaciones: [${(p['operations'] as string[] ?? []).join(', ')}]`;
+    case 'boot_energy_rolled': {
+      const chosen = p['chosen'];
+      const dice = (p['dice'] as number[] ?? []).join('+');
+      const total = p['total'];
+      const energy = p['energy'];
+      const overflow = p['overflow'] ? ' · OVERFLOW' : '';
+      return `getEnergy(${chosen}) → [${dice}] = ${total} · almacenado ${energy}${overflow}`;
+    }
+    case 'boot_numbers_rolled': {
+      const rolled = (p['rolled'] as number[] ?? []).join(', ');
+      const nums = (p['numbers'] as number[] ?? []).join(', ');
+      return `getNumbers() tira [${rolled}] → numbers: [${nums}]`;
+    }
+    case 'boot_operations_rolled': {
+      const ops = (p['operations'] as string[] ?? []).join(', ');
+      const slots = p['slots'];
+      const bugs = p['bugs'];
+      return `Operaciones (${slots} slots, ${bugs} bugs): [${ops}]`;
+    }
     case 'compile_committed':
       return `Programa compilado (${((p['program'] as { operations?: unknown[] })?.operations?.length ?? 0)} ops)`;
     case 'operation_resolved':

@@ -107,6 +107,14 @@
           Iniciar INIT
         </button>
       }
+      @if (currentState().phase === 'init' && !bootStarted() && activationOrderNames().length > 0) {
+        <button type="button" (click)="startBoot()"
+          class="px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase
+                 bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
+                 hover:bg-cyan-500/20 cursor-pointer">
+          Iniciar BOOT
+        </button>
+      }
 
       @if (saveError()) {
         <span class="text-red-400/80 ml-auto">> {{ saveError() }}</span>
@@ -304,7 +312,7 @@
           }"></ng-container>
         }
       }
-    } @else if (currentState().phase === 'init') {
+    } @else if (currentState().phase === 'init' || currentState().phase === 'boot') {
       <div class="text-[9px] tracking-wider text-green-500/60">
         Iniciativa:
         <span [class.text-cyan-300]="currentState().cpuPriority === p"
@@ -312,9 +320,24 @@
           {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
         </span>
       </div>
-      <div class="text-[9px] tracking-wider text-yellow-400/70 pt-2 border-t border-green-500/10">
-        Fase BOOT pendiente.
-      </div>
+
+      @if (nextBootBot(); as bb) {
+        @if (bb.playerId === p) {
+          <ng-container *ngTemplateOutlet="bootPanelTpl; context: { $implicit: bb }"></ng-container>
+        } @else {
+          <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
+            Rival en BOOT · {{ bb.name }}
+          </div>
+        }
+      } @else if (bootComplete()) {
+        <div class="text-[9px] tracking-wider text-cyan-300 pt-2 border-t border-green-500/10">
+          ✓ BOOT completado. COMPILE pendiente.
+        </div>
+      } @else if (!bootStarted()) {
+        <div class="text-[9px] tracking-wider text-yellow-400/70 pt-2 border-t border-green-500/10">
+          Inicia la fase BOOT.
+        </div>
+      }
     } @else {
       <div class="text-[9px] tracking-wider text-yellow-400/70">
         Fase {{ currentState().phase }} pendiente.
@@ -397,4 +420,43 @@
       </button>
     }
   }
+</ng-template>
+
+<ng-template #bootPanelTpl let-bot>
+  <div class="pt-2 border-t border-green-500/10 space-y-2">
+    <div class="text-[9px] tracking-[0.2em] text-cyan-300 uppercase">
+      BOOT · {{ bot.name }} (V{{ bot.version }})
+    </div>
+    <div class="text-[9px] text-green-500/60">
+      ❤ {{ bot.life }}/{{ bot.maxLife }} · max ⚡ {{ bot.maxEnergy }} · MAX_NUMBERS {{ bot.maxNumbers }}
+      · slots {{ bot.maxOperations - bot.bugs }}/{{ bot.maxOperations }}
+      @if (bot.bugs > 0) { <span class="text-red-400">· 🐛 {{ bot.bugs }}</span> }
+    </div>
+
+    @if (bootRollingFor() === bot.id) {
+      <div class="flex items-center gap-2 py-2">
+        <span class="dice-spin text-3xl">🎲</span>
+        <span class="text-green-500/40 italic text-[10px]">arrancando...</span>
+      </div>
+    } @else {
+      <div class="text-[9px] text-green-500/50">getEnergy(n) · elige n dados d6:</div>
+      <div class="flex gap-2">
+        <button type="button" (click)="bootRollFor(bot.id, 1)"
+          class="flex-1 py-2 text-[10px] tracking-wider uppercase
+                 bg-green-500/10 border border-green-500/30 text-green-400
+                 hover:bg-green-500/20 cursor-pointer">1d6</button>
+        <button type="button" (click)="bootRollFor(bot.id, 2)"
+          class="flex-1 py-2 text-[10px] tracking-wider uppercase
+                 bg-green-500/10 border border-green-500/30 text-green-400
+                 hover:bg-green-500/20 cursor-pointer">2d6</button>
+        <button type="button" (click)="bootRollFor(bot.id, 3)"
+          class="flex-1 py-2 text-[10px] tracking-wider uppercase
+                 bg-green-500/10 border border-green-500/30 text-green-400
+                 hover:bg-green-500/20 cursor-pointer">3d6</button>
+      </div>
+      <div class="text-[8px] tracking-wider text-green-500/40">
+        Si la suma supera MAX_ENERGY, el exceso se pierde y se añade un BUG.
+      </div>
+    }
+  </div>
 </ng-template>

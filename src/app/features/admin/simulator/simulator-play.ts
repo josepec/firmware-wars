@@ -14,6 +14,7 @@ import {
 } from '../../../shared/types/battle.types';
 import { rollDadoColores } from './engine/dice';
 import { replayTo } from './engine/replay';
+import { rollBoot } from './simulator-boot';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -73,6 +74,9 @@ export class SimulatorPlay implements OnInit {
   initPptP1 = signal<PptHand | null>(null);
   initPptP2 = signal<PptHand | null>(null);
   rollingInitPpt = signal<PlayerId | null>(null);
+
+  bootStarted = signal(false);
+  bootRollingFor = signal<string | null>(null);
 
   readonly subPhase = computed<DeploySubPhase>(() => {
     if (this.deployStarter()) return 'done';
@@ -172,6 +176,11 @@ export class SimulatorPlay implements OnInit {
     if (!r) return null;
     const aliasFor = (p: PlayerId) => p === 1 ? r.player1Alias : r.player2Alias;
 
+    const bootBot = this.nextBootBot();
+    if (bootBot) {
+      return { player: bootBot.playerId, alias: aliasFor(bootBot.playerId), sub: `BOOT · ${bootBot.name}` };
+    }
+
     if (this.initStarted() && this.currentState().phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: 'INIT · Tira Dado PPT' };
@@ -210,6 +219,50 @@ export class SimulatorPlay implements OnInit {
     const b = this.initPptP2();
     if (!a || !b) return null;
     return resolvePpt(a, b);
+  });
+
+  readonly bootedThisTurn = computed<Set<string>>(() => {
+    const turn = this.currentState().turn;
+    const set = new Set<string>();
+    for (const ev of this.events()) {
+      if (ev.kind === 'boot_operations_rolled' && ev.turn === turn && ev.botId) {
+        set.add(ev.botId);
+      }
+    }
+    return set;
+  });
+
+  readonly nextBootBot = computed<BattleBot | null>(() => {
+    const s = this.currentState();
+    const inBoot = s.phase === 'boot' || (s.phase === 'init' && this.bootStarted());
+    if (!inBoot) return null;
+    const booted = this.bootedThisTurn();
+    for (const id of s.activationOrder) {
+      const b = s.bots.find(x => x.id === id);
+      if (!b || b.destroyed) continue;
+      if (!booted.has(id)) return b;
+    }
+    return null;
+  });
+
+  readonly bootComplete = computed(() => {
+    const s = this.currentState();
+    return s.phase === 'boot' && this.nextBootBot() === null;
+  });
+
+  readonly lastBootEvents = computed<BattleEvent[] | null>(() => {
+    const rolling = this.bootRollingFor();
+    if (rolling) return null;
+    const s = this.currentState();
+    const booted = this.bootedThisTurn();
+    if (booted.size === 0) return null;
+    const lastId = [...booted][booted.size - 1];
+    const evs = this.events();
+    return evs.filter(
+      e => e.botId === lastId && e.turn === s.turn &&
+        (e.kind === 'boot_energy_rolled' || e.kind === 'boot_numbers_rolled' ||
+         e.kind === 'boot_operations_rolled' || (e.kind === 'bug_added' && e.phase === 'boot')),
+    );
   });
 
   ngOnInit() {
@@ -269,6 +322,10 @@ export class SimulatorPlay implements OnInit {
           this.initPptP2.set(null);
           break;
         }
+        case 'boot_energy_rolled': {
+          this.bootStarted.set(true);
+          break;
+        }
       }
     }
   }
@@ -303,14 +360,18 @@ export class SimulatorPlay implements OnInit {
   }
 
   isActive(p: PlayerId): boolean {
-    if (this.initStarted() && this.currentState().phase === 'deploy') {
+    const phase = this.currentState().phase;
+    const bootBot = this.nextBootBot();
+    if (bootBot) return bootBot.playerId === p;
+    if (phase === 'boot') return true;
+    if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return p === 1;
       if (isp === 'ppt-p2') return p === 2;
       if (isp === 'ppt-result') return true;
       return false;
     }
-    if (this.currentState().phase === 'init') return true;
+    if (phase === 'init') return true;
     const sp = this.subPhase();
     if (sp === 'criterion') return !this.choiceFor(p);
     if (sp === 'ppt-p1') return p === 1;
@@ -321,13 +382,17 @@ export class SimulatorPlay implements OnInit {
   }
 
   panelState(p: PlayerId): 'active' | 'waiting' | 'hidden' {
-    if (this.initStarted() && this.currentState().phase === 'deploy') {
+    const phase = this.currentState().phase;
+    const bootBot = this.nextBootBot();
+    if (bootBot) return bootBot.playerId === p ? 'active' : 'waiting';
+    if (phase === 'boot') return 'active';
+    if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return p === 1 ? 'active' : 'waiting';
       if (isp === 'ppt-p2') return p === 2 ? 'active' : 'waiting';
       return 'active';
     }
-    if (this.currentState().phase === 'init') return 'active';
+    if (phase === 'init') return 'active';
     const sp = this.subPhase();
     if (sp === 'criterion') return 'active';
     if (sp === 'ppt-result') return 'active';
@@ -339,7 +404,11 @@ export class SimulatorPlay implements OnInit {
   }
 
   subPhaseLabel(): string | null {
-    if (this.initStarted() && this.currentState().phase === 'deploy') {
+    const phase = this.currentState().phase;
+    const bootBot = this.nextBootBot();
+    if (bootBot) return `BOOT · ${bootBot.name} (P${bootBot.playerId})`;
+    if (phase === 'boot') return 'BOOT · Completado';
+    if (this.initStarted() && phase === 'deploy') {
       switch (this.initSubPhase()) {
         case 'ppt-p1': return 'INIT · Dado PPT · P1';
         case 'ppt-p2': return 'INIT · Dado PPT · P2';
@@ -347,7 +416,7 @@ export class SimulatorPlay implements OnInit {
         default: return 'INIT';
       }
     }
-    if (this.currentState().phase === 'init') return 'Iniciativa resuelta';
+    if (phase === 'init') return 'Iniciativa resuelta';
     switch (this.subPhase()) {
       case 'criterion': return 'Criterio de inicio';
       case 'ppt-p1': return 'Dado PPT · P1';
@@ -477,6 +546,22 @@ export class SimulatorPlay implements OnInit {
     this.initStarted.set(false);
     this.initPptP1.set(null);
     this.initPptP2.set(null);
+  }
+
+  startBoot(): void {
+    this.bootStarted.set(true);
+  }
+
+  async bootRollFor(botId: string, chosen: 1 | 2 | 3): Promise<void> {
+    if (this.bootRollingFor()) return;
+    const bot = this.currentState().bots.find(b => b.id === botId);
+    if (!bot) return;
+    this.bootRollingFor.set(botId);
+    await this.animateDelay();
+    const s = this.currentState();
+    const result = rollBoot(bot, chosen, s.turn, s.currentActivationIdx);
+    await this.appendEvents(result.events);
+    this.bootRollingFor.set(null);
   }
 
   activationOrderNames(): string[] {
