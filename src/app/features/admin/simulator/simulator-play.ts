@@ -320,6 +320,7 @@ export class SimulatorPlay implements OnInit {
           this.initStarted.set(false);
           this.initPptP1.set(null);
           this.initPptP2.set(null);
+          this.bootStarted.set(true);
           break;
         }
         case 'boot_energy_rolled': {
@@ -537,15 +538,17 @@ export class SimulatorPlay implements OnInit {
       if (i < wBots.length) order.push(wBots[i]);
       if (i < lBots.length) order.push(lBots[i]);
     }
-    await this.appendEvents([{
+    const ok = await this.appendEvents([{
       turn: 1, activation: 0, phase: 'init',
       timestamp: new Date().toISOString(),
       kind: 'init_ppt',
       payload: { winner, activationOrder: order },
     }]);
+    if (!ok) return;
     this.initStarted.set(false);
     this.initPptP1.set(null);
     this.initPptP2.set(null);
+    this.bootStarted.set(true);
   }
 
   startBoot(): void {
@@ -616,9 +619,9 @@ export class SimulatorPlay implements OnInit {
     this.pendingRoll.set(null);
   }
 
-  private async appendEvents(newEvs: BattleEvent[]): Promise<void> {
+  private async appendEvents(newEvs: BattleEvent[]): Promise<boolean> {
     const r = this.report();
-    if (!r) return;
+    if (!r) return false;
     this.saveError.set(null);
     const prev = this.events();
     this.events.set([...prev, ...newEvs]);
@@ -630,11 +633,16 @@ export class SimulatorPlay implements OnInit {
       });
       if (!resp.ok) {
         this.events.set(prev);
-        this.saveError.set(`No se pudo guardar (${resp.status}). Reintenta.`);
+        let detail = '';
+        try { detail = (await resp.text()).slice(0, 200); } catch { /* ignore */ }
+        this.saveError.set(`No se pudo guardar (${resp.status})${detail ? ' · ' + detail : ''}. Reintenta.`);
+        return false;
       }
+      return true;
     } catch (e) {
       this.events.set(prev);
       this.saveError.set(String(e));
+      return false;
     }
   }
 

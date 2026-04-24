@@ -45,7 +45,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'ppt_starter_set':
       return `Inicia el despliegue P${p['starter']}`;
     case 'color_rolled':
-      return `Dado de colores → ${p['color']}`;
+      return `Tira Dado de colores → ${p['color']}`;
     case 'init_ppt':
       return `PPT ganador P${p['winner']} · orden: ${(p['activationOrder'] as string[] ?? []).map(id => name(id)).join(' → ')}`;
     case 'upgrade':

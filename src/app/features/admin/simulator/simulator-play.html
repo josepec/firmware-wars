@@ -40,6 +40,13 @@
       }
     </div>
 
+    @if (saveError()) {
+      <div class="mb-4 border border-red-500/50 bg-red-500/10 px-4 py-3 text-[10px] tracking-wider text-red-300">
+        <div class="text-[9px] tracking-[0.3em] uppercase text-red-400 mb-1">⚠ Error al guardar</div>
+        <div>{{ saveError() }}</div>
+      </div>
+    }
+
     <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-4 items-start">
 
       <div class="transition-all duration-300"
@@ -107,20 +114,8 @@
           Iniciar INIT
         </button>
       }
-      @if (currentState().phase === 'init' && !bootStarted() && activationOrderNames().length > 0) {
-        <button type="button" (click)="startBoot()"
-          class="px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase
-                 bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
-                 hover:bg-cyan-500/20 cursor-pointer">
-          Iniciar BOOT
-        </button>
-      }
 
-      @if (saveError()) {
-        <span class="text-red-400/80 ml-auto">> {{ saveError() }}</span>
-      } @else {
-        <span class="ml-auto"></span>
-      }
+      <span class="ml-auto"></span>
       <button type="button" (click)="finish()" [disabled]="finishing()"
         class="px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
                bg-red-500/10 border border-red-500/30 text-red-400
