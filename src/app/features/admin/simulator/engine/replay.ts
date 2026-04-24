@@ -182,6 +182,10 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'operation_resolved':
     case 'debug_action':
+    case 'criterion_chosen':
+    case 'ppt_rolled':
+    case 'ppt_starter_set':
+    case 'color_rolled':
       break;
   }
 }

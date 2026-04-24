@@ -88,6 +88,10 @@ export interface BattleState {
 
 export type BattleEventKind =
   | 'deployed'
+  | 'criterion_chosen'
+  | 'ppt_rolled'
+  | 'ppt_starter_set'
+  | 'color_rolled'
   | 'init_ppt'
   | 'upgrade'
   | 'boot_energy_rolled'
