@@ -1,5 +1,5 @@
 import { JsonPipe, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import { HexMap } from '../../../shared/components/hex-map/hex-map';
@@ -15,6 +15,7 @@ import {
 import { rollDadoColores } from './engine/dice';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
+import { SimulatorBotCard, type FunctionEntry } from './simulator-bot-card';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -36,7 +37,7 @@ import {
 
 @Component({
   selector: 'app-simulator-play',
-  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe],
+  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard],
   templateUrl: './simulator-play.html',
   styleUrl: './simulator-play.scss',
 })
@@ -77,6 +78,11 @@ export class SimulatorPlay implements OnInit {
 
   bootStarted = signal(false);
   bootRollingFor = signal<string | null>(null);
+
+  functionsMap = signal<Map<string, FunctionEntry>>(new Map());
+  selectedBotIdx = signal<Record<PlayerId, number>>({ 1: 0, 2: 0 });
+  expandedAttackVersion = signal<Record<string, 1 | 2 | 3 | null>>({});
+  manualBotSelectionFor = signal<Set<PlayerId>>(new Set());
 
   readonly subPhase = computed<DeploySubPhase>(() => {
     if (this.deployStarter()) return 'done';
@@ -265,9 +271,105 @@ export class SimulatorPlay implements OnInit {
     );
   });
 
+  readonly botsByPlayer = computed<Record<PlayerId, BattleBot[]>>(() => {
+    const bots = this.currentState().bots;
+    return {
+      1: bots.filter(b => b.playerId === 1),
+      2: bots.filter(b => b.playerId === 2),
+    };
+  });
+
+  selectedBotFor(p: PlayerId): BattleBot | null {
+    const list = this.botsByPlayer()[p];
+    if (list.length === 0) return null;
+    const idx = this.selectedBotIdx()[p];
+    return list[Math.max(0, Math.min(list.length - 1, idx))] ?? null;
+  }
+
+  totalBotsFor(p: PlayerId): number {
+    return this.botsByPlayer()[p].length;
+  }
+
+  selectedBotIdxFor(p: PlayerId): number {
+    return this.selectedBotIdx()[p];
+  }
+
+  expandedVersionFor(botId: string): 1 | 2 | 3 | null {
+    return this.expandedAttackVersion()[botId] ?? null;
+  }
+
+  onBotPrev(p: PlayerId): void {
+    const total = this.botsByPlayer()[p].length;
+    if (total <= 1) return;
+    const cur = this.selectedBotIdx()[p];
+    this.selectedBotIdx.update(s => ({ ...s, [p]: (cur - 1 + total) % total }));
+    this.manualBotSelectionFor.update(s => new Set(s).add(p));
+  }
+
+  onBotNext(p: PlayerId): void {
+    const total = this.botsByPlayer()[p].length;
+    if (total <= 1) return;
+    const cur = this.selectedBotIdx()[p];
+    this.selectedBotIdx.update(s => ({ ...s, [p]: (cur + 1) % total }));
+    this.manualBotSelectionFor.update(s => new Set(s).add(p));
+  }
+
+  toggleAttackVersion(botId: string, v: 1 | 2 | 3): void {
+    this.expandedAttackVersion.update(s => {
+      const cur = s[botId] ?? null;
+      return { ...s, [botId]: cur === v ? null : v };
+    });
+  }
+
+  bootResultsFor(botId: string): { energy?: BattleEvent; numbers?: BattleEvent; ops?: BattleEvent; bug?: BattleEvent } {
+    const turn = this.currentState().turn;
+    const evs = this.events();
+    const out: { energy?: BattleEvent; numbers?: BattleEvent; ops?: BattleEvent; bug?: BattleEvent } = {};
+    for (const e of evs) {
+      if (e.botId !== botId || e.turn !== turn) continue;
+      if (e.kind === 'boot_energy_rolled') out.energy = e;
+      else if (e.kind === 'boot_numbers_rolled') out.numbers = e;
+      else if (e.kind === 'boot_operations_rolled') out.ops = e;
+      else if (e.kind === 'bug_added' && e.phase === 'boot') out.bug = e;
+    }
+    return out;
+  }
+
+  constructor() {
+    effect(() => {
+      const bb = this.nextBootBot();
+      if (!bb) return;
+      const manual = this.manualBotSelectionFor();
+      if (manual.has(bb.playerId)) return;
+      const list = this.botsByPlayer()[bb.playerId];
+      const idx = list.findIndex(b => b.id === bb.id);
+      if (idx >= 0 && this.selectedBotIdx()[bb.playerId] !== idx) {
+        this.selectedBotIdx.update(s => ({ ...s, [bb.playerId]: idx }));
+      }
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      const turn = this.currentState().turn;
+      void turn;
+      this.manualBotSelectionFor.set(new Set());
+    }, { allowSignalWrites: true });
+  }
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.load(id);
+    this.loadFunctions();
+  }
+
+  private async loadFunctions(): Promise<void> {
+    try {
+      const resp = await fetch(`${API_URL}/api/functions`, { headers: this.auth.authHeaders() });
+      if (!resp.ok) return;
+      const list = (await resp.json()) as FunctionEntry[];
+      const map = new Map<string, FunctionEntry>();
+      for (const f of list) map.set(f.id, f);
+      this.functionsMap.set(map);
+    } catch { /* ignore — bot card just won't show attack details */ }
   }
 
   async load(id: string): Promise<void> {

@@ -27,8 +27,20 @@ const PHASE_LABEL: Record<Phase, string> = {
   finished: 'FIN',
 };
 
-const PPT_EMOJI: Record<string, string> = { r: '✊', p: '✋', s: '✌' };
-const PPT_LABEL: Record<string, string> = { r: 'Piedra', p: 'Papel', s: 'Tijera' };
+const PPT_EMOJI: Record<string, string> = {
+  r: '✊', p: '✋', s: '✌',
+  rock: '✊', paper: '✋', scissors: '✌',
+};
+const PPT_LABEL: Record<string, string> = {
+  r: 'Piedra', p: 'Papel', s: 'Tijera',
+  rock: 'Piedra', paper: 'Papel', scissors: 'Tijera',
+};
+
+const CRITERION_LABEL: Record<string, string> = {
+  'junior-1': 'P1 es Junior',
+  'junior-2': 'P2 es Junior',
+  'ppt': 'PPT',
+};
 
 function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
   const p = ev.payload ?? {};
@@ -36,16 +48,20 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
   switch (ev.kind) {
     case 'deployed':
       return `Despliega en (${p['q']}, ${p['r']})`;
-    case 'criterion_chosen':
-      return `Criterio elegido: ${p['criterion'] ?? '?'}`;
+    case 'criterion_chosen': {
+      const choice = (p['choice'] ?? p['criterion']) as string | undefined;
+      return `Criterio elegido: ${choice ? (CRITERION_LABEL[choice] ?? choice) : '?'}`;
+    }
     case 'ppt_rolled': {
-      const face = p['face'] as string;
-      return `Tira PPT → ${PPT_EMOJI[face] ?? ''} ${PPT_LABEL[face] ?? face}`;
+      const hand = (p['hand'] ?? p['face']) as string | undefined;
+      const ctx = p['context'] === 'init' ? 'INIT · ' : '';
+      if (!hand) return `${ctx}Tira PPT → ?`;
+      return `${ctx}Tira PPT → ${PPT_EMOJI[hand] ?? ''} ${PPT_LABEL[hand] ?? hand}`;
     }
     case 'ppt_starter_set':
-      return `Inicia el despliegue P${p['starter']}`;
+      return `Empieza el despliegue P${p['starter']}${p['reason'] ? ' (' + p['reason'] + ')' : ''}`;
     case 'color_rolled':
-      return `Tira Dado de colores → ${p['color']}`;
+      return `Tira Dado de colores → ${p['color']}${p['player'] ? ' (P' + p['player'] + ')' : ''}`;
     case 'init_ppt':
       return `PPT ganador P${p['winner']} · orden: ${(p['activationOrder'] as string[] ?? []).map(id => name(id)).join(' → ')}`;
     case 'upgrade':
@@ -282,11 +298,18 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
                     [class.text-green-300]="i < index()"
                     [class.border-green-500\\/10]="i >= index()"
                     [class.text-green-500\\/40]="i >= index()">
-                  <div class="flex items-baseline gap-1.5">
-                    <span class="text-green-500/50 text-[9px]">T{{ ev.turn }}.{{ ev.activation }}</span>
-                    <span class="text-[8px] uppercase tracking-wider text-cyan-500/60">{{ shortPhase(ev.phase) }}</span>
-                    @if (ev.botId; as bid) {
-                      <span class="text-[9px] text-green-500/60">· {{ botName(bid) }}</span>
+                  <div class="flex flex-wrap items-baseline gap-1.5">
+                    <span class="text-green-500/50 text-[9px] tracking-wider">{{ turnLabel(ev) }}</span>
+                    <span class="text-[8px] uppercase tracking-[0.15em] text-cyan-400/70 px-1 border border-cyan-500/20">
+                      {{ phaseLabelOf(ev.phase) }}
+                    </span>
+                    @if (actorOf(ev); as a) {
+                      <span class="text-[9px]"
+                            [class.text-cyan-300]="a.player === 1"
+                            [class.text-fuchsia-300]="a.player === 2"
+                            [class.text-green-500\\/60]="!a.player">
+                        {{ a.text }}
+                      </span>
                     }
                   </div>
                   <div class="text-[10px] mt-0.5">{{ describe(ev) }}</div>
@@ -420,5 +443,33 @@ export class SimulatorViewer implements OnInit {
       run: 'RUN', debug: 'DBG', end: 'END', finished: 'FIN',
     };
     return map[phase] ?? phase;
+  }
+
+  phaseLabelOf(phase: Phase): string {
+    return PHASE_LABEL[phase] ?? phase;
+  }
+
+  turnLabel(ev: BattleEvent): string {
+    if (ev.turn === 0) return 'Setup';
+    return `R${ev.turn}.${ev.activation}`;
+  }
+
+  actorOf(ev: BattleEvent): { text: string; player: PlayerId | null } | null {
+    const r = this.report();
+    if (ev.botId) {
+      const bot = this.currentState().bots.find(b => b.id === ev.botId)
+        ?? r?.initialSnapshot.bots.find(b => b.id === ev.botId);
+      if (bot) {
+        return { text: `${bot.name} · P${bot.playerId}`, player: bot.playerId };
+      }
+      return { text: ev.botId, player: null };
+    }
+    const p = ev.payload ?? {};
+    const pid = (p['player'] ?? p['starter'] ?? p['winner']) as PlayerId | undefined;
+    if (pid === 1 || pid === 2) {
+      const alias = r ? (pid === 1 ? r.player1Alias : r.player2Alias) : '';
+      return { text: `P${pid}${alias ? ' · ' + alias : ''}`, player: pid };
+    }
+    return null;
   }
 }
