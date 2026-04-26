@@ -112,6 +112,7 @@ export type BattleEventKind =
   | 'debug_action'
   | 'turn_ended'
   | 'round_ended'
+  | 'phase_changed'
   | 'victory';
 
 export interface BattleEvent {

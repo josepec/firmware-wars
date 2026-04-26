@@ -168,17 +168,38 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
           <div class="space-y-1">
             @for (v of versions; track v) {
               @if (attacksForVersion(v).length > 0) {
-                <div class="border border-green-500/15">
+                <div class="border transition-all"
+                     [class.border-orange-500\\/20]="bot().version === v && v === 1"
+                     [class.border-violet-500\\/20]="bot().version === v && v === 2"
+                     [class.border-cyan-500\\/20]="bot().version === v && v === 3"
+                     [class.border-green-500\\/10]="bot().version !== v"
+                     [class.opacity-30]="bot().version !== v">
                   <button type="button" (click)="versionToggled.emit(v)"
                     class="w-full px-2 py-1 flex items-center justify-between text-[10px]
                            hover:bg-green-500/5 cursor-pointer"
-                    [class.bg-green-500\\/10]="expandedVersion() === v"
-                    [class.text-cyan-300]="bot().version === v">
-                    <span class="tracking-wider">
-                      V{{ v }}
-                      @if (bot().version === v) { <span class="text-[8px] text-cyan-400/70">· activa</span> }
+                    [class.bg-orange-500\\/5]="expandedVersion() === v && v === 1"
+                    [class.bg-violet-500\\/5]="expandedVersion() === v && v === 2"
+                    [class.bg-cyan-500\\/5]="expandedVersion() === v && v === 3">
+                    <span class="tracking-wider flex items-center gap-1.5">
+                      <span [class.text-orange-300]="bot().version === v && v === 1"
+                            [class.text-violet-300]="bot().version === v && v === 2"
+                            [class.text-cyan-300]="bot().version === v && v === 3"
+                            [class.text-green-500\\/40]="bot().version !== v">V{{ v }}</span>
+                      @if (bot().version === v) {
+                        <span class="text-[7px] tracking-[0.15em] border px-1 py-px"
+                              [class.border-orange-500\\/30]="v === 1"
+                              [class.text-orange-400\\/60]="v === 1"
+                              [class.border-violet-500\\/30]="v === 2"
+                              [class.text-violet-400\\/60]="v === 2"
+                              [class.border-cyan-500\\/30]="v === 3"
+                              [class.text-cyan-400\\/60]="v === 3">ACTIVA</span>
+                      }
                     </span>
-                    <span class="text-[9px] text-green-500/50">
+                    <span class="text-[9px]"
+                          [class.text-orange-400\\/30]="bot().version === v && v === 1"
+                          [class.text-violet-400\\/30]="bot().version === v && v === 2"
+                          [class.text-cyan-400\\/30]="bot().version === v && v === 3"
+                          [class.text-green-500\\/25]="bot().version !== v">
                       {{ expandedVersion() === v ? '▼' : '▶' }}
                     </span>
                   </button>

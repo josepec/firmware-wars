@@ -314,13 +314,56 @@
         }
       } @else if (bootComplete()) {
         <div class="text-[9px] tracking-wider text-cyan-300 pt-2 border-t border-green-500/10">
-          ✓ BOOT completado. COMPILE pendiente.
+          ✓ BOOT completado.
         </div>
+        @if (p === 1) {
+          <button type="button" (click)="advanceToCompile()"
+            class="w-full mt-2 px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+                   bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
+                   hover:bg-cyan-500/20 cursor-pointer">
+            Continuar a COMPILE →
+          </button>
+        }
       } @else if (!bootStarted()) {
         <div class="text-[9px] tracking-wider text-yellow-400/70 pt-2 border-t border-green-500/10">
           Inicia la fase BOOT.
         </div>
       }
+
+    } @else if (currentState().phase === 'compile') {
+      <div class="text-[9px] tracking-wider text-green-500/60">
+        Iniciativa:
+        <span [class.text-cyan-300]="currentState().cpuPriority === p"
+              [class.text-green-500\/40]="currentState().cpuPriority !== p">
+          {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
+        </span>
+      </div>
+
+      @if (nextCompileBot(); as cb) {
+        @if (cb.playerId === p) {
+          <app-compile-editor
+            [bot]="cb"
+            [functionsMap]="functionsMap()"
+            (committed)="onCompileCommit(cb.id, $event)" />
+        } @else {
+          <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
+            Rival compilando · {{ cb.name }}
+          </div>
+        }
+      } @else {
+        <div class="text-[9px] tracking-wider text-cyan-300 pt-2 border-t border-green-500/10">
+          ✓ COMPILE completado.
+        </div>
+        @if (p === 1) {
+          <button type="button" (click)="advanceToRun()"
+            class="w-full mt-2 px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+                   bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
+                   hover:bg-cyan-500/20 cursor-pointer">
+            Iniciar RUN →
+          </button>
+        }
+      }
+
     } @else {
       <div class="text-[9px] tracking-wider text-yellow-400/70">
         Fase {{ currentState().phase }} pendiente.

@@ -10,11 +10,13 @@ import {
   type BattleEvent,
   type BattleReport,
   type BattleState,
+  type CompiledProgram,
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { rollDadoColores } from './engine/dice';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
+import { CompileEditor } from './simulator-compile-editor';
 import { SimulatorBotCard, type FunctionEntry } from './simulator-bot-card';
 import {
   ANIM_KEY,
@@ -38,7 +40,7 @@ import {
 
 @Component({
   selector: 'app-simulator-play',
-  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard],
+  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard, CompileEditor],
   templateUrl: './simulator-play.html',
   styleUrl: './simulator-play.scss',
 })
@@ -189,6 +191,11 @@ export class SimulatorPlay implements OnInit {
       return { player: bootBot.playerId, alias: aliasFor(bootBot.playerId), sub: `BOOT · ${bootBot.name}` };
     }
 
+    const compileBot = this.nextCompileBot();
+    if (compileBot) {
+      return { player: compileBot.playerId, alias: aliasFor(compileBot.playerId), sub: `COMPILE · ${compileBot.name}` };
+    }
+
     if (this.initStarted() && this.currentState().phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: 'INIT · Tira Dado PPT' };
@@ -256,6 +263,32 @@ export class SimulatorPlay implements OnInit {
   readonly bootComplete = computed(() => {
     const s = this.currentState();
     return s.phase === 'boot' && this.nextBootBot() === null;
+  });
+
+  readonly compiledThisTurn = computed<Set<string>>(() => {
+    const turn = this.currentState().turn;
+    const set = new Set<string>();
+    for (const ev of this.events()) {
+      if (ev.kind === 'compile_committed' && ev.turn === turn && ev.botId) set.add(ev.botId);
+    }
+    return set;
+  });
+
+  readonly nextCompileBot = computed<BattleBot | null>(() => {
+    const s = this.currentState();
+    if (s.phase !== 'compile') return null;
+    const compiled = this.compiledThisTurn();
+    for (const id of s.activationOrder) {
+      const b = s.bots.find(x => x.id === id);
+      if (!b || b.destroyed) continue;
+      if (!compiled.has(id)) return b;
+    }
+    return null;
+  });
+
+  readonly compileComplete = computed(() => {
+    const s = this.currentState();
+    return s.phase === 'compile' && this.nextCompileBot() === null;
   });
 
   readonly lastBootEvents = computed<BattleEvent[] | null>(() => {
@@ -502,6 +535,10 @@ export class SimulatorPlay implements OnInit {
     const bootBot = this.nextBootBot();
     if (bootBot) return bootBot.playerId === p;
     if (phase === 'boot') return true;
+    if (phase === 'compile') {
+      const cb = this.nextCompileBot();
+      return cb ? cb.playerId === p : true;
+    }
     if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return p === 1;
@@ -524,6 +561,11 @@ export class SimulatorPlay implements OnInit {
     const bootBot = this.nextBootBot();
     if (bootBot) return bootBot.playerId === p ? 'active' : 'waiting';
     if (phase === 'boot') return 'active';
+    if (phase === 'compile') {
+      const cb = this.nextCompileBot();
+      if (!cb) return 'active';
+      return cb.playerId === p ? 'active' : 'waiting';
+    }
     if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return p === 1 ? 'active' : 'waiting';
@@ -546,6 +588,9 @@ export class SimulatorPlay implements OnInit {
     const bootBot = this.nextBootBot();
     if (bootBot) return `BOOT · ${bootBot.name} (P${bootBot.playerId})`;
     if (phase === 'boot') return 'BOOT · Completado';
+    const compileBot = this.nextCompileBot();
+    if (compileBot) return `COMPILE · ${compileBot.name} (P${compileBot.playerId})`;
+    if (phase === 'compile') return 'COMPILE · Completado';
     if (this.initStarted() && phase === 'deploy') {
       switch (this.initSubPhase()) {
         case 'ppt-p1': return 'INIT · Dado PPT · P1';
@@ -710,6 +755,37 @@ export class SimulatorPlay implements OnInit {
 
   startBoot(): void {
     this.bootStarted.set(true);
+  }
+
+  async advanceToCompile(): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: 0, phase: 'compile',
+      timestamp: new Date().toISOString(),
+      kind: 'phase_changed',
+      payload: { from: 'boot', to: 'compile' },
+    }]);
+  }
+
+  async onCompileCommit(botId: string, program: CompiledProgram): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'compile',
+      timestamp: new Date().toISOString(),
+      botId,
+      kind: 'compile_committed',
+      payload: { program },
+    }]);
+  }
+
+  async advanceToRun(): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: 0, phase: 'run',
+      timestamp: new Date().toISOString(),
+      kind: 'phase_changed',
+      payload: { from: 'compile', to: 'run' },
+    }]);
   }
 
   async bootRollFor(botId: string, chosen: 1 | 2 | 3): Promise<void> {
