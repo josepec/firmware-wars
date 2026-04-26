@@ -90,6 +90,7 @@ export type BattleEventKind =
   | 'deployed'
   | 'criterion_chosen'
   | 'ppt_rolled'
+  | 'ppt_tie'
   | 'ppt_starter_set'
   | 'color_rolled'
   | 'init_ppt'

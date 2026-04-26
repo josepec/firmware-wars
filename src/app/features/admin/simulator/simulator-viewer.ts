@@ -13,19 +13,21 @@ import type {
   PlayerId,
 } from '../../../shared/types/battle.types';
 import { replayTo } from './engine/replay';
+import { SimulatorBotCard, type FunctionEntry } from './simulator-bot-card';
+import { PHASE_LABEL } from './simulator-play.utils';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
-const PHASE_LABEL: Record<Phase, string> = {
-  deploy: 'DESPLIEGUE',
-  init: 'INIT · PPT',
-  boot: 'BOOT',
-  compile: 'COMPILE',
-  run: 'RUN',
-  debug: 'DEBUG',
-  end: 'END',
-  finished: 'FIN',
-};
+const BOT_COLORS = [
+  '#22d3ee', '#a78bfa', '#f472b6', '#fb923c',
+  '#facc15', '#4ade80', '#60a5fa', '#f87171',
+];
+
+function colorForBotId(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return BOT_COLORS[h % BOT_COLORS.length];
+}
 
 const PPT_EMOJI: Record<string, string> = {
   r: '✊', p: '✋', s: '✌',
@@ -54,16 +56,25 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     }
     case 'ppt_rolled': {
       const hand = (p['hand'] ?? p['face']) as string | undefined;
-      const ctx = p['context'] === 'init' ? 'INIT · ' : '';
-      if (!hand) return `${ctx}Tira PPT → ?`;
-      return `${ctx}Tira PPT → ${PPT_EMOJI[hand] ?? ''} ${PPT_LABEL[hand] ?? hand}`;
+      if (!hand) return `Tira PPT → ?`;
+      return `Tira PPT → ${PPT_EMOJI[hand] ?? ''} ${PPT_LABEL[hand] ?? hand}`;
+    }
+    case 'ppt_tie': {
+      const hands = p['hands'] as { 1?: string; 2?: string } | undefined;
+      const a = hands?.[1] ?? '';
+      return `Empate · ambos sacaron ${PPT_EMOJI[a] ?? ''} ${PPT_LABEL[a] ?? a}. Re-tirar.`;
     }
     case 'ppt_starter_set':
       return `Empieza el despliegue P${p['starter']}${p['reason'] ? ' (' + p['reason'] + ')' : ''}`;
     case 'color_rolled':
       return `Tira Dado de colores → ${p['color']}${p['player'] ? ' (P' + p['player'] + ')' : ''}`;
-    case 'init_ppt':
-      return `PPT ganador P${p['winner']} · orden: ${(p['activationOrder'] as string[] ?? []).map(id => name(id)).join(' → ')}`;
+    case 'init_ppt': {
+      const order = (p['activationOrder'] as string[] ?? []).map(id => {
+        const b = bots.find(x => x.id === id);
+        return b ? `P${b.playerId}` : '?';
+      }).join(' → ');
+      return `PPT ganador P${p['winner']} · orden: ${order}`;
+    }
     case 'upgrade':
       return `Upgrade → V${p['version']}`;
     case 'boot_energy_rolled': {
@@ -124,7 +135,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
 
 @Component({
   selector: 'app-simulator-viewer',
-  imports: [RouterLink, DatePipe, HexMap],
+  imports: [RouterLink, DatePipe, HexMap, SimulatorBotCard],
   template: `
     <div class="min-h-screen p-6 md:p-10 max-w-7xl mx-auto">
 
@@ -195,52 +206,28 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
               <app-hex-map [mapData]="displayMap()" [size]="28" />
             </div>
 
-            <!-- Bots -->
+            <!-- Bot cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               @for (pid of [1, 2]; track pid) {
-                <div class="border p-3"
-                     [class.border-cyan-500\\/30]="pid === 1"
-                     [class.bg-cyan-500\\/5]="pid === 1"
-                     [class.border-fuchsia-500\\/30]="pid === 2"
-                     [class.bg-fuchsia-500\\/5]="pid === 2">
+                <div>
                   <div class="text-[9px] tracking-[0.3em] uppercase mb-2"
                        [class.text-cyan-400]="pid === 1"
                        [class.text-fuchsia-400]="pid === 2">
                     P{{ pid }} · {{ aliasOf(pid) }}
                   </div>
-                  <div class="space-y-2">
-                    @for (b of botsOf(pid); track b.id) {
-                      <div class="border border-white/10 bg-black/40 px-2 py-1.5 text-[10px]"
-                           [class.opacity-40]="b.destroyed">
-                        <div class="flex items-center justify-between">
-                          <span class="font-bold text-green-300">{{ b.name }}</span>
-                          <span class="text-[9px] text-green-500/50">V{{ b.version }}</span>
-                        </div>
-                        <div class="flex gap-3 text-[9px] text-green-500/70 mt-0.5">
-                          <span>❤ {{ b.life }}/{{ b.maxLife }}</span>
-                          <span>⚡ {{ b.energy }}/{{ b.maxEnergy }}</span>
-                          <span>🛡 {{ b.shield }}/{{ b.maxShield }}</span>
-                          @if (b.bugs > 0) { <span class="text-red-400">🐛 {{ b.bugs }}</span> }
-                          @if (b.destroyed) { <span class="text-red-500">✖ destruido</span> }
-                        </div>
-                        @if (b.numbers.length > 0) {
-                          <div class="text-[9px] text-green-500/60 mt-0.5">
-                            numbers: [{{ b.numbers.join(', ') }}]
-                          </div>
-                        }
-                        @if (b.pendingOperations.length > 0) {
-                          <div class="text-[9px] text-green-500/60">
-                            ops: [{{ b.pendingOperations.join(', ') }}]
-                          </div>
-                        }
-                        @if (b.compiledProgram) {
-                          <div class="text-[9px] text-cyan-400/80">
-                            compilado: {{ b.compiledProgram.operations.length }} op(s)
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
+                  @if (selectedBotForView(pid); as sb) {
+                    <app-simulator-bot-card
+                      [bot]="sb"
+                      [index]="selectedBotIdxFor(pid)"
+                      [totalBots]="totalBotsFor(pid)"
+                      [playerId]="$any(pid)"
+                      [active]="false"
+                      [expandedVersion]="expandedVersionFor(sb.id)"
+                      [functionsMap]="functionsMap()"
+                      (prev)="onBotPrev(pid)"
+                      (next)="onBotNext(pid)"
+                      (versionToggled)="toggleAttackVersion(sb.id, $event)" />
+                  }
                 </div>
               }
             </div>
@@ -300,16 +287,34 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
                     [class.text-green-500\\/40]="i >= index()">
                   <div class="flex flex-wrap items-baseline gap-1.5">
                     <span class="text-green-500/50 text-[9px] tracking-wider">{{ turnLabel(ev) }}</span>
-                    <span class="text-[8px] uppercase tracking-[0.15em] text-cyan-400/70 px-1 border border-cyan-500/20">
+                    <span class="text-[8px] uppercase tracking-[0.15em] px-1 border"
+                          [class.text-cyan-400\\/80]="ev.phase === 'deploy' || ev.phase === 'init'"
+                          [class.border-cyan-500\\/30]="ev.phase === 'deploy' || ev.phase === 'init'"
+                          [class.text-amber-300\\/80]="ev.phase === 'boot'"
+                          [class.border-amber-500\\/30]="ev.phase === 'boot'"
+                          [class.text-violet-300\\/80]="ev.phase === 'compile'"
+                          [class.border-violet-500\\/30]="ev.phase === 'compile'"
+                          [class.text-red-300\\/80]="ev.phase === 'run'"
+                          [class.border-red-500\\/30]="ev.phase === 'run'"
+                          [class.text-green-300\\/80]="ev.phase === 'debug' || ev.phase === 'end' || ev.phase === 'finished'"
+                          [class.border-green-500\\/30]="ev.phase === 'debug' || ev.phase === 'end' || ev.phase === 'finished'">
                       {{ phaseLabelOf(ev.phase) }}
                     </span>
                     @if (actorOf(ev); as a) {
-                      <span class="text-[9px]"
-                            [class.text-cyan-300]="a.player === 1"
-                            [class.text-fuchsia-300]="a.player === 2"
-                            [class.text-green-500\\/60]="!a.player">
-                        {{ a.text }}
-                      </span>
+                      @if (a.player) {
+                        <span class="text-[9px] font-bold"
+                              [class.text-cyan-300]="a.player === 1"
+                              [class.text-fuchsia-300]="a.player === 2">
+                          P{{ a.player }}@if (a.alias) { · {{ a.alias }} }
+                        </span>
+                      }
+                      @if (a.botName && a.botColor) {
+                        <span class="text-[9px] px-1 border"
+                              [style.color]="a.botColor"
+                              [style.borderColor]="a.botColor + '55'">
+                          {{ a.botName }}
+                        </span>
+                      }
                     }
                   </div>
                   <div class="text-[10px] mt-0.5">{{ describe(ev) }}</div>
@@ -331,6 +336,9 @@ export class SimulatorViewer implements OnInit {
   error = signal<string | null>(null);
   index = signal(0);
   playing = signal(false);
+  selectedBotIdx = signal<Record<PlayerId, number>>({ 1: 0, 2: 0 });
+  expandedAttackVersion = signal<Record<string, 1 | 2 | 3 | null>>({});
+  functionsMap = signal<Map<string, FunctionEntry>>(new Map());
   private playTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly currentState = computed<BattleState>(() => {
@@ -379,6 +387,68 @@ export class SimulatorViewer implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.load(id);
+    this.loadFunctions();
+  }
+
+  private async loadFunctions(): Promise<void> {
+    try {
+      const resp = await fetch('/assets/data/tables/attack-functions.json');
+      if (!resp.ok) return;
+      const raw = await resp.json() as Array<{
+        'Función': string; 'V.~': string; 'Rango~': string; 'Daño~': string;
+        'Energía~': string; 'Coste~': string; 'Efectos': string;
+      }>;
+      const map = new Map<string, FunctionEntry>();
+      for (const r of raw) {
+        const name = r['Función'].replace(/`/g, '');
+        map.set(name, {
+          id: name, func_name: name, func_type: 'attack',
+          version: r['V.~'], range: r['Rango~'], damage: r['Daño~'],
+          energy: r['Energía~'], cost: r['Coste~'], effects: r['Efectos'],
+        });
+      }
+      this.functionsMap.set(map);
+    } catch { /* ignore */ }
+  }
+
+  selectedBotForView(pid: number): BattleBot | null {
+    const list = this.botsOf(pid);
+    if (list.length === 0) return null;
+    const idx = this.selectedBotIdx()[pid as PlayerId] ?? 0;
+    return list[Math.max(0, Math.min(list.length - 1, idx))] ?? null;
+  }
+
+  selectedBotIdxFor(pid: number): number {
+    return this.selectedBotIdx()[pid as PlayerId] ?? 0;
+  }
+
+  totalBotsFor(pid: number): number {
+    return this.botsOf(pid).length;
+  }
+
+  expandedVersionFor(botId: string): 1 | 2 | 3 | null {
+    return this.expandedAttackVersion()[botId] ?? null;
+  }
+
+  onBotPrev(pid: number): void {
+    const total = this.totalBotsFor(pid);
+    if (total <= 1) return;
+    const cur = this.selectedBotIdxFor(pid);
+    this.selectedBotIdx.update(s => ({ ...s, [pid]: (cur - 1 + total) % total }));
+  }
+
+  onBotNext(pid: number): void {
+    const total = this.totalBotsFor(pid);
+    if (total <= 1) return;
+    const cur = this.selectedBotIdxFor(pid);
+    this.selectedBotIdx.update(s => ({ ...s, [pid]: (cur + 1) % total }));
+  }
+
+  toggleAttackVersion(botId: string, v: 1 | 2 | 3): void {
+    this.expandedAttackVersion.update(s => {
+      const cur = s[botId] ?? null;
+      return { ...s, [botId]: cur === v ? null : v };
+    });
   }
 
   async load(id: string): Promise<void> {
@@ -454,22 +524,27 @@ export class SimulatorViewer implements OnInit {
     return `R${ev.turn}.${ev.activation}`;
   }
 
-  actorOf(ev: BattleEvent): { text: string; player: PlayerId | null } | null {
+  actorOf(ev: BattleEvent): { player: PlayerId | null; alias: string; botName: string | null; botColor: string | null } | null {
     const r = this.report();
+    let bot: BattleBot | undefined;
     if (ev.botId) {
-      const bot = this.currentState().bots.find(b => b.id === ev.botId)
+      bot = this.currentState().bots.find(b => b.id === ev.botId)
         ?? r?.initialSnapshot.bots.find(b => b.id === ev.botId);
-      if (bot) {
-        return { text: `${bot.name} · P${bot.playerId}`, player: bot.playerId };
-      }
-      return { text: ev.botId, player: null };
     }
-    const p = ev.payload ?? {};
-    const pid = (p['player'] ?? p['starter'] ?? p['winner']) as PlayerId | undefined;
-    if (pid === 1 || pid === 2) {
-      const alias = r ? (pid === 1 ? r.player1Alias : r.player2Alias) : '';
-      return { text: `P${pid}${alias ? ' · ' + alias : ''}`, player: pid };
+    let pid: PlayerId | null = null;
+    if (bot) pid = bot.playerId;
+    else {
+      const p = ev.payload ?? {};
+      const fromPayload = (p['player'] ?? p['starter'] ?? p['winner']) as PlayerId | undefined;
+      if (fromPayload === 1 || fromPayload === 2) pid = fromPayload;
     }
-    return null;
+    if (pid === null && !bot) return null;
+    const alias = pid && r ? (pid === 1 ? r.player1Alias : r.player2Alias) : '';
+    return {
+      player: pid,
+      alias,
+      botName: bot?.name ?? null,
+      botColor: bot ? colorForBotId(bot.id) : null,
+    };
   }
 }

@@ -24,6 +24,7 @@ import {
   DEPLOY_PERIMETER,
   choiceLabel,
   computeValidDeployHexes,
+  phaseLabel,
   pptEmoji,
   pptLabel,
   resolvePpt,
@@ -51,6 +52,7 @@ export class SimulatorPlay implements OnInit {
   readonly pptLabel = pptLabel;
   readonly pptEmoji = pptEmoji;
   readonly choiceLabel = choiceLabel;
+  readonly phaseLabel = phaseLabel;
 
   report = signal<BattleReport | null>(null);
   events = signal<BattleEvent[]>([]);
@@ -353,6 +355,18 @@ export class SimulatorPlay implements OnInit {
       void turn;
       this.manualBotSelectionFor.set(new Set());
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      if (
+        this.deployComplete() &&
+        !!this.deployStarter() &&
+        !this.bootStarted() &&
+        this.currentState().phase === 'deploy' &&
+        !this.events().some(e => e.kind === 'init_ppt')
+      ) {
+        void this.resolveInit(this.deployStarter()!);
+      }
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit() {
@@ -363,11 +377,32 @@ export class SimulatorPlay implements OnInit {
 
   private async loadFunctions(): Promise<void> {
     try {
-      const resp = await fetch(`${API_URL}/api/functions`, { headers: this.auth.authHeaders() });
+      const resp = await fetch('/assets/data/tables/attack-functions.json');
       if (!resp.ok) return;
-      const list = (await resp.json()) as FunctionEntry[];
+      const raw = await resp.json() as Array<{
+        'Función': string;
+        'V.~': string;
+        'Rango~': string;
+        'Daño~': string;
+        'Energía~': string;
+        'Coste~': string;
+        'Efectos': string;
+      }>;
       const map = new Map<string, FunctionEntry>();
-      for (const f of list) map.set(f.id, f);
+      for (const r of raw) {
+        const name = r['Función'].replace(/`/g, '');
+        map.set(name, {
+          id: name,
+          func_name: name,
+          func_type: 'attack',
+          version: r['V.~'],
+          range: r['Rango~'],
+          damage: r['Daño~'],
+          energy: r['Energía~'],
+          cost: r['Coste~'],
+          effects: r['Efectos'],
+        });
+      }
       this.functionsMap.set(map);
     } catch { /* ignore — bot card just won't show attack details */ }
   }
@@ -580,6 +615,16 @@ export class SimulatorPlay implements OnInit {
       kind: 'ppt_rolled',
       payload: { player, hand, context: 'deploy' as PptContext },
     }]);
+    const a = this.pptP1();
+    const b = this.pptP2();
+    if (a && b && resolvePpt(a, b) === null) {
+      await this.appendEvents([{
+        turn: 0, activation: 0, phase: 'deploy',
+        timestamp: new Date().toISOString(),
+        kind: 'ppt_tie',
+        payload: { hands: { 1: a, 2: b }, context: 'deploy' as PptContext },
+      }]);
+    }
   }
 
   repeatPpt(): void {
@@ -612,11 +657,21 @@ export class SimulatorPlay implements OnInit {
     this.rollingInitPpt.set(null);
     (player === 1 ? this.initPptP1 : this.initPptP2).set(hand);
     await this.appendEvents([{
-      turn: 0, activation: 0, phase: 'deploy',
+      turn: 1, activation: 0, phase: 'init',
       timestamp: new Date().toISOString(),
       kind: 'ppt_rolled',
       payload: { player, hand, context: 'init' as PptContext },
     }]);
+    const a = this.initPptP1();
+    const b = this.initPptP2();
+    if (a && b && resolvePpt(a, b) === null) {
+      await this.appendEvents([{
+        turn: 1, activation: 0, phase: 'init',
+        timestamp: new Date().toISOString(),
+        kind: 'ppt_tie',
+        payload: { hands: { 1: a, 2: b }, context: 'init' as PptContext },
+      }]);
+    }
   }
 
   repeatInitPpt(): void {

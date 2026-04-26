@@ -13,6 +13,29 @@ export interface FunctionEntry {
   effects: string;
 }
 
+const RANGE_TYPES: Record<string, { name: string; description: string }> = {
+  LR: {
+    name: 'Línea recta',
+    description: 'El ataque se propaga directo desde el atacante. Si un obstáculo o un Bot ocupa la trayectoria, la línea de visión se interrumpe.',
+  },
+  SLDV: {
+    name: 'Sin línea de visión',
+    description: 'Ignora la línea de visión. El objetivo debe seguir dentro del rango de distancia.',
+  },
+  'R(n)': {
+    name: 'Rango (área)',
+    description: 'n determina el número de casillas afectadas desde el punto de impacto. Afecta a todos los Bots a esa distancia.',
+  },
+};
+
+function rangeInfo(range: string): { abbr: string; name: string; description: string }[] {
+  const out: { abbr: string; name: string; description: string }[] = [];
+  if (/\(LR\)/.test(range)) out.push({ abbr: 'LR', ...RANGE_TYPES['LR'] });
+  if (/\(SLDV\)/.test(range)) out.push({ abbr: 'SLDV', ...RANGE_TYPES['SLDV'] });
+  if (/\(R\(\d+\)\)/.test(range)) out.push({ abbr: 'R(n)', ...RANGE_TYPES['R(n)'] });
+  return out;
+}
+
 @Component({
   selector: 'app-simulator-bot-card',
   template: `
@@ -52,31 +75,31 @@ export interface FunctionEntry {
         <div>
           <div class="text-[8px] tracking-[0.25em] uppercase text-green-500/50 mb-1.5">VARIABLES</div>
           <div class="grid grid-cols-2 gap-1.5">
-            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between">
-              <span class="text-green-500/60">VIDA</span>
+            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between items-baseline">
+              <span class="text-[8px] tracking-[0.25em] text-green-500/55 uppercase">LIFE</span>
               <span class="font-bold"
                     [class.text-green-300]="bot().life === bot().maxLife"
                     [class.text-yellow-300]="bot().life < bot().maxLife && bot().life > bot().maxLife / 2"
                     [class.text-red-400]="bot().life <= bot().maxLife / 2 && bot().life > 0">
-                {{ bot().life }}/{{ bot().maxLife }}
+                {{ bot().life }}<span class="text-green-500/40">/{{ bot().maxLife }}</span>
               </span>
             </div>
-            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between">
-              <span class="text-green-500/60">⚡ ENERGÍA</span>
-              <span class="text-cyan-300 font-bold">{{ bot().energy }}/{{ bot().maxEnergy }}</span>
+            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between items-baseline">
+              <span class="text-[8px] tracking-[0.25em] text-green-500/55 uppercase">ENERGY</span>
+              <span class="text-cyan-300 font-bold">{{ bot().energy }}<span class="text-green-500/40">/{{ bot().maxEnergy }}</span></span>
             </div>
-            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between">
-              <span class="text-green-500/60">🛡 ESCUDO</span>
-              <span class="font-bold">{{ bot().shield }}/{{ bot().maxShield }}</span>
+            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between items-baseline">
+              <span class="text-[8px] tracking-[0.25em] text-green-500/55 uppercase">SHIELD</span>
+              <span class="font-bold text-green-300">{{ bot().shield }}<span class="text-green-500/40">/{{ bot().maxShield }}</span></span>
             </div>
-            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between">
-              <span class="text-green-500/60">MOV</span>
-              <span class="font-bold">{{ bot().maxMovement }}</span>
+            <div class="border border-green-500/15 bg-black/40 px-2 py-1 flex justify-between items-baseline">
+              <span class="text-[8px] tracking-[0.25em] text-green-500/55 uppercase">MOVEMENT</span>
+              <span class="font-bold text-green-300">{{ bot().maxMovement }}</span>
             </div>
           </div>
           @if (bot().bugs > 0) {
             <div class="mt-1.5 border border-red-500/30 bg-red-500/5 px-2 py-1 flex justify-between text-[10px]">
-              <span class="text-red-400/70">🐛 BUGS</span>
+              <span class="text-[8px] tracking-[0.25em] text-red-400/70 uppercase">BUGS</span>
               <span class="text-red-300 font-bold">{{ bot().bugs }}</span>
             </div>
           }
@@ -104,7 +127,7 @@ export interface FunctionEntry {
         @if (bot().pendingOperations.length > 0) {
           <div>
             <div class="text-[8px] tracking-[0.25em] uppercase text-green-500/50 mb-1.5">
-              OPERACIONES (sin compilar)
+              OPERATIONS (sin compilar)
             </div>
             <div class="flex flex-wrap gap-1">
               @for (op of bot().pendingOperations; track $index) {
@@ -140,7 +163,7 @@ export interface FunctionEntry {
         <!-- Attacks (collapsible per version) -->
         <div>
           <div class="text-[8px] tracking-[0.25em] uppercase text-green-500/50 mb-1.5">
-            FUNCIONES DE ATAQUE
+            ATTACK FUNCTIONS
           </div>
           <div class="space-y-1">
             @for (v of versions; track v) {
@@ -160,22 +183,53 @@ export interface FunctionEntry {
                     </span>
                   </button>
                   @if (expandedVersion() === v) {
-                    <div class="border-t border-green-500/15 p-2 space-y-1.5">
+                    <div class="border-t border-green-500/15 p-2 space-y-2">
                       @for (fn of attacksForVersion(v); track $index) {
                         @if (fn) {
-                          <div class="border border-green-500/10 bg-black/40 p-1.5">
-                            <div class="text-[10px] font-bold text-orange-300">{{ fn.func_name }}()</div>
-                            <div class="text-[9px] text-green-500/70 mt-0.5 space-x-2">
-                              @if (fn.range) { <span>Rango: <span class="text-green-300">{{ fn.range }}</span></span> }
-                              @if (fn.damage) { <span>· Daño: <span class="text-red-300">{{ fn.damage }}</span></span> }
-                              @if (fn.energy) { <span>· ⚡ <span class="text-cyan-300">{{ fn.energy }}</span></span> }
+                          <div class="border bg-black/40 p-2"
+                               [class.border-orange-500\\/30]="v === 1"
+                               [class.border-violet-500\\/30]="v === 2"
+                               [class.border-cyan-500\\/30]="v === 3">
+                            <div class="font-bold mb-1.5"
+                                 [class.text-orange-300]="v === 1"
+                                 [class.text-violet-300]="v === 2"
+                                 [class.text-cyan-300]="v === 3"
+                                 style="font-family: 'Orbitron', monospace;">
+                              {{ fn.func_name }}
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 mb-1.5">
+                              <div class="bg-black/50 border border-green-500/10 p-1 text-center">
+                                <div class="text-green-500/45 text-[7px] tracking-widest">RANGO</div>
+                                <div class="text-[10px] font-bold text-green-300">{{ fn.range || '—' }}</div>
+                              </div>
+                              <div class="bg-black/50 border border-green-500/10 p-1 text-center">
+                                <div class="text-green-500/45 text-[7px] tracking-widest">DAÑO</div>
+                                <div class="text-[10px] font-bold text-green-300">{{ fn.damage || '—' }}</div>
+                              </div>
+                              <div class="bg-black/50 border border-green-500/10 p-1 text-center">
+                                <div class="text-green-500/45 text-[7px] tracking-widest">ENERGÍA</div>
+                                <div class="text-[10px] font-bold text-green-300">{{ fn.energy || '—' }}</div>
+                              </div>
+                              <div class="bg-black/50 border border-green-500/10 p-1 text-center">
+                                <div class="text-green-500/45 text-[7px] tracking-widest">COSTE</div>
+                                <div class="text-[10px] font-bold text-green-300">{{ fn.cost || '—' }}</div>
+                              </div>
                             </div>
                             @if (fn.effects) {
-                              <div class="text-[9px] text-green-500/55 mt-0.5">{{ fn.effects }}</div>
+                              <div class="text-[7px] tracking-wider text-green-500/50 mb-0.5 uppercase">Efectos</div>
+                              <div class="text-[10px] text-green-400/85 leading-relaxed">{{ stripBackticks(fn.effects) }}</div>
+                            }
+                            @for (ri of rangeInfoOf(fn.range); track ri.abbr) {
+                              <div class="mt-1.5 pt-1.5 border-t border-green-500/10">
+                                <div class="text-[8px] tracking-wider text-green-500/50 uppercase">
+                                  {{ ri.abbr }} — {{ ri.name }}
+                                </div>
+                                <div class="text-[9px] text-green-400/55 leading-relaxed">{{ ri.description }}</div>
+                              </div>
                             }
                           </div>
                         } @else {
-                          <div class="text-[9px] text-green-500/30 italic">slot vacío</div>
+                          <div class="text-[9px] text-green-500/30 italic px-1">slot vacío</div>
                         }
                       }
                     </div>
@@ -217,5 +271,13 @@ export class SimulatorBotCard {
     if (v === 1) return b.attacks.v1.map(a => (a ? map.get(a.functionId) ?? null : null));
     if (v === 2) return b.attacks.v2.map(a => (a ? map.get(a.functionId) ?? null : null));
     return b.attacks.v3 ? [map.get(b.attacks.v3.functionId) ?? null] : [];
+  }
+
+  rangeInfoOf(range: string): { abbr: string; name: string; description: string }[] {
+    return rangeInfo(range);
+  }
+
+  stripBackticks(s: string): string {
+    return (s ?? '').replace(/`/g, '');
   }
 }

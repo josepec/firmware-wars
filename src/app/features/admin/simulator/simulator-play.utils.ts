@@ -6,9 +6,25 @@ import {
   hexKey,
   type BattleBot,
   type BattleState,
+  type Phase,
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { hexDistance } from './engine/pathfinding';
+
+export const PHASE_LABEL: Record<Phase, string> = {
+  deploy: 'DESPLIEGUE',
+  init: 'INICIO DE RONDA',
+  boot: 'BOOT',
+  compile: 'COMPILE',
+  run: 'RUN',
+  debug: 'DEBUG',
+  end: 'END',
+  finished: 'FIN',
+};
+
+export function phaseLabel(phase: Phase): string {
+  return PHASE_LABEL[phase] ?? phase;
+}
 
 export const API_URL = 'https://firmware-wars-api.josepec.eu';
 export const DEPLOY_PERIMETER = 6;

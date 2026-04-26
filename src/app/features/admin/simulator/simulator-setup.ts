@@ -1,11 +1,14 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AdminAuth } from '../../../core/services/admin-auth';
+import { DataService, type PointDefinition } from '../../../core/services/data';
 import type { BattleBot, BattleState, PlayerId } from '../../../shared/types/battle.types';
 import type { HexMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { DEFAULT_HEX_TYPES, emptyMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { HexMapEditor } from '../hex-map-editor';
+import { buildBaseStats, computeBotStats, type BotPoint } from './simulator-stats';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
@@ -16,19 +19,19 @@ interface ScenarioSummary {
   updated_at: string;
 }
 
-interface AttackFnRef { name: string; version?: number }
-interface RawListBot {
+interface SavedListBot {
   name: string;
-  attackFunctions?: {
-    v1?: (AttackFnRef | null)[];
-    v2?: (AttackFnRef | null)[];
-    v3?: AttackFnRef | null;
+  points: BotPoint[];
+  attackFunctions: {
+    v1: (string | null)[];
+    v2: (string | null)[];
+    v3: string | null;
   };
 }
 interface ListResponse {
   id: string;
   programmer: string;
-  bots: RawListBot[];
+  bots: SavedListBot[];
 }
 
 type Source = 'scenario' | 'custom';
@@ -250,6 +253,7 @@ type Source = 'scenario' | 'custom';
 export class SimulatorSetup implements OnInit {
   private readonly auth = inject(AdminAuth);
   private readonly router = inject(Router);
+  private readonly data = inject(DataService);
 
   step = signal<1 | 2 | 3>(1);
   source = signal<Source>('scenario');
@@ -261,8 +265,10 @@ export class SimulatorSetup implements OnInit {
   list2Id = '';
   list1Alias = signal('');
   list2Alias = signal('');
-  list1Bots = signal<RawListBot[]>([]);
-  list2Bots = signal<RawListBot[]>([]);
+  list1Bots = signal<SavedListBot[]>([]);
+  list2Bots = signal<SavedListBot[]>([]);
+  baseStats = signal<Record<string, number>>({});
+  points = signal<PointDefinition[]>([]);
   list1Loading = signal(false);
   list2Loading = signal(false);
   list1Error = signal<string | null>(null);
@@ -280,6 +286,13 @@ export class SimulatorSetup implements OnInit {
 
   ngOnInit() {
     this.loadScenarios();
+    forkJoin({
+      vars: this.data.getInitialBotVariables(),
+      pts: this.data.getPoints(),
+    }).subscribe(({ vars, pts }) => {
+      this.baseStats.set(buildBaseStats(vars));
+      this.points.set(pts);
+    });
   }
 
   async loadScenarios(): Promise<void> {
@@ -462,23 +475,26 @@ export class SimulatorSetup implements OnInit {
     };
   }
 
-  private toBattleBot(raw: RawListBot, playerId: PlayerId, idx: number): BattleBot {
-    const v1 = (raw.attackFunctions?.v1 ?? []).map(a => a ? { functionId: a.name } : null);
-    const v2 = (raw.attackFunctions?.v2 ?? []).map(a => a ? { functionId: a.name } : null);
-    const v3raw = raw.attackFunctions?.v3 ?? null;
-    const v3 = v3raw ? { functionId: v3raw.name } : null;
+  private toBattleBot(raw: SavedListBot, playerId: PlayerId, idx: number): BattleBot {
+    const v1 = (raw.attackFunctions?.v1 ?? []).map(name => name ? { functionId: name } : null);
+    const v2 = (raw.attackFunctions?.v2 ?? []).map(name => name ? { functionId: name } : null);
+    const v3name = raw.attackFunctions?.v3 ?? null;
+    const v3 = v3name ? { functionId: v3name } : null;
+
+    const stats = computeBotStats(this.baseStats(), this.points(), raw.points ?? [], 1);
+
     return {
       id: `p${playerId}-${idx}`,
       playerId,
       name: raw.name || `Bot ${idx + 1}`,
       q: -999,
       r: -999,
-      life: 5, maxLife: 5,
-      energy: 0, maxEnergy: 3,
-      shield: 0, maxShield: 3,
-      maxMovement: 2,
-      maxNumbers: 3,
-      maxOperations: 3,
+      life: stats.maxLife, maxLife: stats.maxLife,
+      energy: 0, maxEnergy: stats.maxEnergy,
+      shield: 0, maxShield: stats.maxShield,
+      maxMovement: stats.maxMovement,
+      maxNumbers: stats.maxNumbers,
+      maxOperations: stats.maxOperations,
       version: 1,
       bugs: 0,
       numbers: [],
