@@ -10,14 +10,25 @@ import {
   type BattleEvent,
   type BattleReport,
   type BattleState,
+  type CompiledOperation,
   type CompiledProgram,
   type PlayerId,
 } from '../../../shared/types/battle.types';
-import { rollDadoColores } from './engine/dice';
+import { evaluate, rollD6, rollDadoColores, rollOperationDie } from './engine/dice';
+import { reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
 import { SimulatorBotCard, type FunctionEntry } from './simulator-bot-card';
+import { SimulatorRunPanel } from './simulator-run-panel';
+import {
+  computeAttackTargets,
+  findClosestEnemyOf,
+  fnEnergyCost,
+  initialRunState,
+  parseDamage,
+  type RunState,
+} from './simulator-run.utils';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -40,7 +51,7 @@ import {
 
 @Component({
   selector: 'app-simulator-play',
-  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard, CompileEditor],
+  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard, CompileEditor, SimulatorRunPanel],
   templateUrl: './simulator-play.html',
   styleUrl: './simulator-play.scss',
 })
@@ -82,6 +93,8 @@ export class SimulatorPlay implements OnInit {
 
   bootStarted = signal(false);
   bootRollingFor = signal<string | null>(null);
+
+  runState = signal<RunState>(initialRunState);
 
   functionsMap = signal<Map<string, FunctionEntry>>(new Map());
   selectedBotIdx = signal<Record<PlayerId, number>>({ 1: 0, 2: 0 });
@@ -162,6 +175,21 @@ export class SimulatorPlay implements OnInit {
   });
 
   readonly selectableHexes = computed<Set<string> | null>(() => {
+    const rs = this.runState();
+    if (rs.botId && rs.pendingFn) {
+      const bot = this.currentState().bots.find(b => b.id === rs.botId);
+      if (!bot) return null;
+      if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
+        const dist = rs.pendingFn.moveDistance ?? 0;
+        const maxByEnergy = Math.min(dist, bot.energy);
+        if (maxByEnergy <= 0) return new Set();
+        return reachableHexes(bot.q, bot.r, maxByEnergy, this.currentState().hexMap, this.currentState().bots, bot.id);
+      }
+      if (rs.step === 'picking-target' && rs.pendingFn.type === 'attack') {
+        return computeAttackTargets(bot, rs.pendingFn, this.currentState().bots, this.currentState().hexMap, this.functionsMap());
+      }
+    }
+
     const color = this.pendingRoll();
     if (!color) return null;
     const deployer = this.activeDeployer();
@@ -171,6 +199,9 @@ export class SimulatorPlay implements OnInit {
 
   readonly highlightedHexes = computed<Set<string> | null>(() => this.selectableHexes());
   readonly highlightColor = computed<string>(() => {
+    const rs = this.runState();
+    if (rs.step === 'picking-hex') return '#3b82f6';
+    if (rs.step === 'picking-target') return '#ef4444';
     const c = this.pendingRoll();
     return c ? COLOR_HEX[c] : '#3b82f6';
   });
@@ -194,6 +225,11 @@ export class SimulatorPlay implements OnInit {
     const compileBot = this.nextCompileBot();
     if (compileBot) {
       return { player: compileBot.playerId, alias: aliasFor(compileBot.playerId), sub: `COMPILE · ${compileBot.name}` };
+    }
+
+    const runBot = this.currentRunBot();
+    if (runBot) {
+      return { player: runBot.playerId, alias: aliasFor(runBot.playerId), sub: `RUN · ${runBot.name}` };
     }
 
     if (this.initStarted() && this.currentState().phase === 'deploy') {
@@ -277,18 +313,34 @@ export class SimulatorPlay implements OnInit {
   readonly nextCompileBot = computed<BattleBot | null>(() => {
     const s = this.currentState();
     if (s.phase !== 'compile') return null;
+    const idx = s.currentActivationIdx;
+    const slotId = s.activationOrder[idx];
+    if (!slotId) return null;
+    const slotBot = s.bots.find(b => b.id === slotId);
+    if (!slotBot) return null;
+    const playerId = slotBot.playerId;
+    // One bot per slot: if any bot compiled at this activation index this turn → null → triggers RUN
+    const compiledAtSlot = this.events().some(
+      e => e.kind === 'compile_committed' && e.turn === s.turn && e.activation === idx,
+    );
+    if (compiledAtSlot) return null;
+    // Return the selected eligible (not yet compiled this turn) bot for this player
     const compiled = this.compiledThisTurn();
-    for (const id of s.activationOrder) {
-      const b = s.bots.find(x => x.id === id);
-      if (!b || b.destroyed) continue;
-      if (!compiled.has(id)) return b;
-    }
-    return null;
+    const selected = this.selectedBotFor(playerId);
+    if (selected && !selected.destroyed && !compiled.has(selected.id)) return selected;
+    return s.bots.find(b => b.playerId === playerId && !b.destroyed && !compiled.has(b.id)) ?? null;
   });
 
-  readonly compileComplete = computed(() => {
-    const s = this.currentState();
-    return s.phase === 'compile' && this.nextCompileBot() === null;
+  readonly currentRunBot = computed<BattleBot | null>(() => {
+    const id = this.runState().botId;
+    if (!id) return null;
+    return this.currentState().bots.find(b => b.id === id) ?? null;
+  });
+
+  readonly currentRunOp = computed<CompiledOperation | null>(() => {
+    const bot = this.currentRunBot();
+    if (!bot?.compiledProgram) return null;
+    return bot.compiledProgram.operations[this.runState().opIdx] ?? null;
   });
 
   readonly lastBootEvents = computed<BattleEvent[] | null>(() => {
@@ -356,6 +408,22 @@ export class SimulatorPlay implements OnInit {
     });
   }
 
+  botsAvailableForCompile(p: PlayerId): BattleBot[] {
+    const s = this.currentState();
+    if (s.phase !== 'compile') return [];
+    const compiled = this.compiledThisTurn();
+    return s.bots.filter(b => b.playerId === p && !b.destroyed && !compiled.has(b.id));
+  }
+
+  selectBotForCompile(p: PlayerId, botId: string): void {
+    const list = this.botsByPlayer()[p];
+    const idx = list.findIndex(b => b.id === botId);
+    if (idx >= 0) {
+      this.selectedBotIdx.update(s => ({ ...s, [p]: idx }));
+      this.manualBotSelectionFor.update(s => new Set(s).add(p));
+    }
+  }
+
   bootResultsFor(botId: string): { energy?: BattleEvent; numbers?: BattleEvent; ops?: BattleEvent; bug?: BattleEvent } {
     const turn = this.currentState().turn;
     const evs = this.events();
@@ -398,6 +466,51 @@ export class SimulatorPlay implements OnInit {
         !this.events().some(e => e.kind === 'init_ppt')
       ) {
         void this.resolveInit(this.deployStarter()!);
+      }
+    }, { allowSignalWrites: true });
+
+    // Auto-arranque RUN: cuando entramos en phase 'run' y no hay bot activo, inicia
+    effect(() => {
+      const s = this.currentState();
+      if (s.phase !== 'run') return;
+      if (this.runState().botId !== null) return;
+      if (s.activationOrder.length === 0) return;
+      void this.beginRunForActiveBot();
+    }, { allowSignalWrites: true });
+
+    // Auto-transition BOOT → COMPILE (todos los bots booted → primer bot a COMPILE)
+    effect(() => {
+      const s = this.currentState();
+      if (s.phase !== 'boot') return;
+      if (this.nextBootBot() !== null) return;
+      // Avoid re-firing: only emit if no compile phase_changed for this turn yet
+      const alreadyTransitioned = this.events().some(
+        e => e.kind === 'phase_changed' && e.turn === s.turn
+          && (e.payload as Record<string, unknown>)['to'] === 'compile',
+      );
+      if (alreadyTransitioned) return;
+      void this.advanceToCompile();
+    }, { allowSignalWrites: true });
+
+    // Auto-transition COMPILE → RUN (bot actual ya commit-eó → arranca su RUN)
+    effect(() => {
+      const s = this.currentState();
+      if (s.phase !== 'compile') return;
+      if (this.nextCompileBot() !== null) return;
+      // Bot at currentActivationIdx has compiled. Auto-advance to RUN.
+      void this.advanceToRun();
+    }, { allowSignalWrites: true });
+
+    // Auto-focus en el bot que está corriendo / compilando
+    effect(() => {
+      const cb = this.nextCompileBot() ?? this.currentRunBot();
+      if (!cb) return;
+      const manual = this.manualBotSelectionFor();
+      if (manual.has(cb.playerId)) return;
+      const list = this.botsByPlayer()[cb.playerId];
+      const idx = list.findIndex(b => b.id === cb.id);
+      if (idx >= 0 && this.selectedBotIdx()[cb.playerId] !== idx) {
+        this.selectedBotIdx.update(s => ({ ...s, [cb.playerId]: idx }));
       }
     }, { allowSignalWrites: true });
   }
@@ -539,6 +652,10 @@ export class SimulatorPlay implements OnInit {
       const cb = this.nextCompileBot();
       return cb ? cb.playerId === p : true;
     }
+    if (phase === 'run' || phase === 'end') {
+      const rb = this.currentRunBot();
+      return rb ? rb.playerId === p : true;
+    }
     if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return p === 1;
@@ -566,6 +683,11 @@ export class SimulatorPlay implements OnInit {
       if (!cb) return 'active';
       return cb.playerId === p ? 'active' : 'waiting';
     }
+    if (phase === 'run' || phase === 'end') {
+      const rb = this.currentRunBot();
+      if (!rb) return 'active';
+      return rb.playerId === p ? 'active' : 'waiting';
+    }
     if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return p === 1 ? 'active' : 'waiting';
@@ -591,6 +713,10 @@ export class SimulatorPlay implements OnInit {
     const compileBot = this.nextCompileBot();
     if (compileBot) return `COMPILE · ${compileBot.name} (P${compileBot.playerId})`;
     if (phase === 'compile') return 'COMPILE · Completado';
+    const runBot = this.currentRunBot();
+    if (runBot) return `RUN · ${runBot.name} (P${runBot.playerId})`;
+    if (phase === 'run') return 'RUN';
+    if (phase === 'end') return 'END · ronda completada';
     if (this.initStarted() && phase === 'deploy') {
       switch (this.initSubPhase()) {
         case 'ppt-p1': return 'INIT · Dado PPT · P1';
@@ -788,6 +914,440 @@ export class SimulatorPlay implements OnInit {
     }]);
   }
 
+  // --- RUN phase handlers ---
+
+  async beginRunForActiveBot(): Promise<void> {
+    const s = this.currentState();
+    if (s.phase !== 'run') return;
+    const idx = s.currentActivationIdx;
+    // Find the bot that was actually compiled at this activation slot (player may have chosen freely)
+    const compileEv = [...this.events()].reverse().find(
+      e => e.kind === 'compile_committed' && e.turn === s.turn && e.activation === idx,
+    );
+    const id = compileEv?.botId ?? s.activationOrder[idx];
+    const bot = s.bots.find(b => b.id === id);
+    if (!bot || bot.destroyed) {
+      this.runState.set({ ...initialRunState, botId: null });
+      await this.finishBotRun(id);
+      return;
+    }
+    const program = bot.compiledProgram?.operations ?? [];
+    if (program.length === 0) {
+      this.runState.set({ ...initialRunState, botId: id, step: 'bot-done' });
+      return;
+    }
+    this.runState.set({ ...initialRunState, botId: id, opIdx: 0, step: 'idle' });
+  }
+
+  async resolveCurrentOp(): Promise<void> {
+    const op = this.currentRunOp();
+    const bot = this.currentRunBot();
+    if (!op || !bot) return;
+    if (op.kind === 'IF' || op.kind === 'IF_ELSE') return this.resolveIfLike(op, bot);
+    if (op.kind === 'FOR') return this.resolveFor(op, bot);
+    if (op.kind === 'TRY_CATCH') return this.resolveTryCatch(op, bot);
+    if (op.kind === 'WHILE') {
+      // WHILE not yet supported in MVP — skip with a BUG to advance
+      await this.appendEvents([{
+        turn: this.currentState().turn, activation: this.currentState().currentActivationIdx,
+        phase: 'run', timestamp: new Date().toISOString(), botId: bot.id,
+        kind: 'bug_added', payload: { count: 1, reason: 'while-not-supported' },
+      }]);
+      this.runState.update(s => ({ ...s, step: 'op-done' }));
+      return;
+    }
+  }
+
+  private async resolveIfLike(op: CompiledOperation, bot: BattleBot): Promise<void> {
+    this.runState.update(s => ({ ...s, step: 'rolling' }));
+    await this.animateDelay();
+    const opFace = rollOperationDie(bot.version);
+    // Intercept offered BEFORE d6 roll — opponent substitutes their own number as the d6
+    const interceptBot = this.findInterceptBot(bot);
+    if (interceptBot) {
+      this.runState.update(s => ({ ...s, opFace, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
+      return;
+    }
+    const d6 = rollD6();
+    this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
+  }
+
+  async pickNumber(n: number): Promise<void> {
+    const rs = this.runState();
+    const op = this.currentRunOp();
+    const bot = this.currentRunBot();
+    if (!op || !bot || rs.step !== 'picking-number' || !rs.opFace || rs.d6 === null) return;
+
+    if (op.kind === 'FOR') {
+      // FOR: pickedNumber + d6 → diff
+      const diff = Math.abs(rs.d6 - n);
+      const s = this.currentState();
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: new Date().toISOString(), botId: bot.id,
+        kind: 'operation_resolved',
+        payload: { opIdx: rs.opIdx, kind: 'FOR', d6: rs.d6, picked: n, diff },
+      }]);
+      if (diff === 0 || diff > 3) {
+        await this.appendEvents([{
+          turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+          timestamp: new Date().toISOString(), botId: bot.id,
+          kind: 'bug_added', payload: { count: 1, reason: 'infinite-loop' },
+        }]);
+        this.runState.update(st => ({ ...st, pickedNumber: n, step: 'op-done', condResult: false }));
+        return;
+      }
+      this.runState.update(st => ({
+        ...st, pickedNumber: n, forRemaining: diff, branch: 'primary',
+        pendingFn: op.primary, condResult: true, step: 'evaluated',
+      }));
+      // Trigger first iteration
+      await this.executePendingFn();
+      return;
+    }
+
+    // IF / IF_ELSE
+    const condResult = evaluate(rs.d6, n, rs.opFace);
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: new Date().toISOString(), botId: bot.id,
+      kind: 'operation_resolved',
+      payload: { opIdx: rs.opIdx, kind: op.kind, opFace: rs.opFace, d6: rs.d6, picked: n, condResult },
+    }]);
+    if (condResult) {
+      this.runState.update(st => ({
+        ...st, pickedNumber: n, condResult, branch: 'primary',
+        pendingFn: op.primary, step: 'evaluated',
+      }));
+      await this.executePendingFn();
+    } else if (op.kind === 'IF_ELSE' && op.secondary) {
+      this.runState.update(st => ({
+        ...st, pickedNumber: n, condResult, branch: 'secondary',
+        pendingFn: op.secondary!, step: 'evaluated',
+      }));
+      await this.executePendingFn();
+    } else {
+      this.runState.update(st => ({ ...st, pickedNumber: n, condResult, step: 'op-done' }));
+    }
+  }
+
+  private async executePendingFn(): Promise<void> {
+    const rs = this.runState();
+    const fn = rs.pendingFn;
+    const bot = this.currentRunBot();
+    if (!fn || !bot) return;
+    if (fn.type === 'shield') {
+      const s = this.currentState();
+      const cost = 2;
+      if (bot.energy < cost) {
+        const lifeLoss = cost - bot.energy;
+        await this.appendEvents([{
+          turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+          timestamp: new Date().toISOString(), botId: bot.id,
+          kind: 'overload', payload: { lifeLoss, reason: 'shield' },
+        }]);
+        if (bot.life - lifeLoss <= 0) {
+          await this.appendEvents([{
+            turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+            timestamp: new Date().toISOString(), botId: bot.id,
+            kind: 'destroyed', payload: {},
+          }]);
+        }
+      } else {
+        await this.appendEvents([{
+          turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+          timestamp: new Date().toISOString(), botId: bot.id,
+          kind: 'shield_up', payload: { energyCost: cost, amount: 1 },
+        }]);
+      }
+      await this.afterFnExecuted();
+      return;
+    }
+    if (fn.type === 'move') {
+      // Pre-check: if no energy at all, OVERLOAD with full requested cost
+      if (bot.energy <= 0) {
+        await this.applyOverload(bot, fn.moveDistance ?? 0, 'move');
+        await this.afterFnExecuted();
+        return;
+      }
+      this.runState.update(s => ({ ...s, step: 'picking-hex' }));
+      return;
+    }
+    if (fn.type === 'attack') {
+      const targets = computeAttackTargets(bot, fn, this.currentState().bots, this.currentState().hexMap, this.functionsMap());
+      if (targets.size === 0) {
+        const s = this.currentState();
+        await this.appendEvents([{
+          turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+          timestamp: new Date().toISOString(), botId: bot.id,
+          kind: 'bug_added', payload: { count: 1, reason: 'no-targets-in-range' },
+        }]);
+        await this.afterFnExecuted();
+        return;
+      }
+      this.runState.update(s => ({ ...s, step: 'picking-target' }));
+      return;
+    }
+  }
+
+  private async applyOverload(bot: BattleBot, requestedCost: number, reason: string): Promise<void> {
+    const s = this.currentState();
+    const lifeLoss = Math.max(0, requestedCost - bot.energy);
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: new Date().toISOString(), botId: bot.id,
+      kind: 'overload', payload: { lifeLoss, reason },
+    }]);
+    if (bot.life - lifeLoss <= 0) {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: new Date().toISOString(), botId: bot.id,
+        kind: 'destroyed', payload: {},
+      }]);
+    }
+  }
+
+  async pickRunHex(q: number, r: number): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn || fn.type !== 'move') return;
+    const requested = fn.moveDistance ?? 0;
+    const cost = requested; // move(n) cuesta n
+    const s = this.currentState();
+    if (bot.energy < cost) {
+      await this.applyOverload(bot, cost, 'move');
+    } else {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: new Date().toISOString(), botId: bot.id,
+        kind: 'move', payload: { toQ: q, toR: r, energyCost: cost },
+      }]);
+    }
+    await this.afterFnExecuted();
+  }
+
+  async pickRunTarget(targetId: string): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn || fn.type !== 'attack') return;
+    const target = this.currentState().bots.find(b => b.id === targetId);
+    if (!target) return;
+    const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : undefined;
+    const cost = fnEnergyCost(fn, this.functionsMap());
+    const damage = parseDamage(entry?.damage);
+    const s = this.currentState();
+    if (bot.energy < cost) {
+      await this.applyOverload(bot, cost, 'attack');
+    } else {
+      const shieldConsumed = Math.min(target.shield, damage);
+      const dealt = Math.max(0, damage - shieldConsumed);
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: new Date().toISOString(), botId: bot.id,
+        kind: 'attack_hit',
+        payload: { targetId, damage: dealt, shieldConsumed, energyCost: cost, functionId: fn.attackFunctionId },
+      }]);
+      if (target.life - dealt <= 0) {
+        await this.appendEvents([{
+          turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+          timestamp: new Date().toISOString(), botId: targetId,
+          kind: 'destroyed', payload: {},
+        }]);
+      }
+    }
+    await this.afterFnExecuted();
+  }
+
+  private async afterFnExecuted(): Promise<void> {
+    const rs = this.runState();
+    if (rs.forRemaining > 1) {
+      // Check energy before next FOR iteration — insufficient → OVERLOAD + stop loop
+      const iterBot = this.currentRunBot();
+      const iterFn = rs.pendingFn;
+      if (iterBot && iterFn) {
+        const cost = fnEnergyCost(iterFn, this.functionsMap());
+        if (iterBot.energy < cost) {
+          await this.applyOverload(iterBot, cost, 'for-loop-iteration');
+          this.runState.update(s => ({ ...s, step: 'op-done', forRemaining: 0, pendingFn: null }));
+          const winner = this.checkVictory();
+          if (winner) {
+            const st = this.currentState();
+            await this.appendEvents([{
+              turn: st.turn, activation: st.currentActivationIdx, phase: 'finished',
+              timestamp: new Date().toISOString(), kind: 'victory', payload: { winner },
+            }]);
+          }
+          return;
+        }
+      }
+      this.runState.update(s => ({ ...s, forRemaining: s.forRemaining - 1, step: 'evaluated' }));
+      await this.executePendingFn();
+      return;
+    }
+    // Op done
+    this.runState.update(s => ({ ...s, step: 'op-done', forRemaining: 0, pendingFn: null }));
+    // Check victory after each function
+    const winner = this.checkVictory();
+    if (winner) {
+      const s = this.currentState();
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'finished',
+        timestamp: new Date().toISOString(),
+        kind: 'victory', payload: { winner },
+      }]);
+    }
+  }
+
+  private checkVictory(): PlayerId | null {
+    const bots = this.currentState().bots;
+    const p1Alive = bots.some(b => b.playerId === 1 && !b.destroyed);
+    const p2Alive = bots.some(b => b.playerId === 2 && !b.destroyed);
+    if (p1Alive && !p2Alive) return 1;
+    if (!p1Alive && p2Alive) return 2;
+    return null;
+  }
+
+  private async resolveFor(__op: CompiledOperation, bot: BattleBot): Promise<void> {
+    this.runState.update(s => ({ ...s, step: 'rolling' }));
+    await this.animateDelay();
+    // Intercept offered BEFORE d6 roll
+    const interceptBot = this.findInterceptBot(bot);
+    if (interceptBot) {
+      this.runState.update(s => ({ ...s, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
+      return;
+    }
+    const d6 = rollD6();
+    this.runState.update(s => ({ ...s, d6, step: 'picking-number' }));
+  }
+
+  private findInterceptBot(activeBot: BattleBot): BattleBot | null {
+    const bots = this.currentState().bots.filter(
+      b => !b.destroyed && !b.hasInterceptedThisTurn && b.numbers.length > 0,
+    );
+    return findClosestEnemyOf(activeBot.q, activeBot.r, activeBot.playerId, bots);
+  }
+
+  canIntercept(p: PlayerId): boolean {
+    const rs = this.runState();
+    if (!rs.interceptBotId) return false;
+    const bot = this.currentState().bots.find(b => b.id === rs.interceptBotId);
+    return bot?.playerId === p;
+  }
+
+  getInterceptBot(): BattleBot | null {
+    const id = this.runState().interceptBotId;
+    if (!id) return null;
+    return this.currentState().bots.find(b => b.id === id) ?? null;
+  }
+
+  async skipIntercept(): Promise<void> {
+    const rs = this.runState();
+    if (rs.interceptBotId) {
+      const s = this.currentState();
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: new Date().toISOString(), botId: rs.interceptBotId,
+        kind: 'intercept',
+        payload: { interceptorId: rs.interceptBotId, skipped: true },
+      }]);
+    }
+    const d6 = rollD6();
+    this.runState.update(s => ({ ...s, d6, step: 'picking-number', interceptBotId: null }));
+  }
+
+  beginIntercept(): void {
+    this.runState.update(s => ({ ...s, step: 'intercept-picking' }));
+  }
+
+  async pickInterceptNumber(n: number): Promise<void> {
+    const rs = this.runState();
+    if (!rs.interceptBotId) return;
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: new Date().toISOString(), botId: rs.interceptBotId,
+      kind: 'intercept',
+      payload: { interceptorId: rs.interceptBotId, substituteD6: n },
+    }]);
+    this.runState.update(st => ({ ...st, d6: n, step: 'picking-number', interceptBotId: null }));
+  }
+
+  private async resolveTryCatch(op: CompiledOperation, bot: BattleBot): Promise<void> {
+    // TRY: execute primary if energy/possible; else CATCH (if any). Both fail → BUG.
+    const primaryCost = fnEnergyCost(op.primary, this.functionsMap());
+    if (bot.energy >= primaryCost) {
+      // Execute primary directly without condition check
+      this.runState.update(s => ({ ...s, branch: 'primary', pendingFn: op.primary, step: 'evaluated', condResult: true }));
+      await this.executePendingFn();
+      return;
+    }
+    if (op.secondary) {
+      const secCost = fnEnergyCost(op.secondary, this.functionsMap());
+      if (bot.energy >= secCost) {
+        this.runState.update(s => ({ ...s, branch: 'secondary', pendingFn: op.secondary!, step: 'evaluated', condResult: false }));
+        await this.executePendingFn();
+        return;
+      }
+    }
+    // Critical Exception
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: new Date().toISOString(), botId: bot.id,
+      kind: 'bug_added', payload: { count: 1, reason: 'critical-exception' },
+    }]);
+    this.runState.update(st => ({ ...st, step: 'op-done' }));
+  }
+
+  async advanceOp(): Promise<void> {
+    const bot = this.currentRunBot();
+    if (!bot) return;
+    const program = bot.compiledProgram?.operations ?? [];
+    const nextIdx = this.runState().opIdx + 1;
+    if (nextIdx >= program.length) {
+      this.runState.update(s => ({ ...s, step: 'bot-done' }));
+      return;
+    }
+    this.runState.set({
+      ...initialRunState, botId: bot.id, opIdx: nextIdx, step: 'idle',
+    });
+  }
+
+  async finishBotRun(_botId?: string): Promise<void> {
+    const bot = this.currentRunBot();
+    const s = this.currentState();
+    if (s.status === 'finished') {
+      this.runState.set(initialRunState);
+      return;
+    }
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'end',
+      timestamp: new Date().toISOString(), botId: bot?.id ?? _botId,
+      kind: 'turn_ended', payload: {},
+    }]);
+    this.runState.set(initialRunState);
+    const after = this.currentState();
+    if (after.currentActivationIdx >= after.activationOrder.length) {
+      // Round ended — wait for INIT of next round (handled separately)
+      await this.appendEvents([{
+        turn: after.turn, activation: 0, phase: 'end',
+        timestamp: new Date().toISOString(),
+        kind: 'round_ended', payload: { nextTurn: after.turn + 1 },
+      }]);
+    } else {
+      // Next bot starts its COMPILE
+      await this.appendEvents([{
+        turn: after.turn, activation: after.currentActivationIdx, phase: 'compile',
+        timestamp: new Date().toISOString(),
+        kind: 'phase_changed',
+        payload: { from: 'end', to: 'compile' },
+      }]);
+    }
+  }
+
   async bootRollFor(botId: string, chosen: 1 | 2 | 3): Promise<void> {
     if (this.bootRollingFor()) return;
     const bot = this.currentState().bots.find(b => b.id === botId);
@@ -833,6 +1393,24 @@ export class SimulatorPlay implements OnInit {
   }
 
   async onHexClick(coord: { q: number; r: number }): Promise<void> {
+    const rs = this.runState();
+    if (rs.botId && rs.step === 'picking-hex') {
+      const valid = this.selectableHexes();
+      if (!valid?.has(hexKey(coord.q, coord.r))) return;
+      await this.pickRunHex(coord.q, coord.r);
+      return;
+    }
+    if (rs.botId && rs.step === 'picking-target') {
+      const target = this.currentState().bots.find(
+        b => !b.destroyed && b.q === coord.q && b.r === coord.r,
+      );
+      if (!target) return;
+      const valid = this.selectableHexes();
+      if (!valid?.has(hexKey(coord.q, coord.r))) return;
+      await this.pickRunTarget(target.id);
+      return;
+    }
+
     const color = this.pendingRoll();
     const deployer = this.activeDeployer();
     if (!color || !deployer) return;

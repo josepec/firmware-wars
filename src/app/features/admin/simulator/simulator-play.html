@@ -1,402 +1,426 @@
 <div class="min-h-screen p-6 md:p-8 max-w-[1400px] mx-auto">
 
   <div class="mb-6 flex items-center justify-between">
-    <a routerLink="/admin/simulator"
-      class="text-[10px] tracking-[0.2em] text-green-500/50 hover:text-green-300">
+    <a routerLink="/admin/simulator" class="text-[10px] tracking-[0.2em] text-green-500/50 hover:text-green-300">
       ← Volver
     </a>
     <div class="flex items-center gap-4">
-      <label class="flex items-center gap-2 text-[10px] tracking-[0.2em] text-green-500/60 cursor-pointer select-none">
-        <input type="checkbox" [checked]="animationEnabled()"
-               (change)="toggleAnimation($any($event.target).checked)"
-               class="accent-cyan-400" />
-        Animar tiradas
-      </label>
       @if (report(); as r) {
-        <div class="text-[10px] tracking-[0.2em] text-green-500/50">
-          {{ r.player1Alias }} vs {{ r.player2Alias }}
-        </div>
+      <div class="text-[10px] tracking-[0.2em] text-green-500/50">
+        {{ r.player1Alias }} vs {{ r.player2Alias }}
+      </div>
       }
     </div>
   </div>
 
   @if (loading()) {
-    <div class="text-[10px] tracking-[0.2em] text-green-500/40 animate-pulse">> LOADING...</div>
+  <div class="text-[10px] tracking-[0.2em] text-green-500/40 animate-pulse">> LOADING...</div>
   }
 
   @if (error()) {
-    <div class="text-[10px] tracking-[0.2em] text-red-400/80">> {{ error() }}</div>
+  <div class="text-[10px] tracking-[0.2em] text-red-400/80">> {{ error() }}</div>
   }
 
   @if (report(); as r) {
-    <div class="text-[10px] tracking-[0.3em] text-green-500/50 mb-1">// PARTIDA</div>
-    <h1 class="text-lg tracking-[0.15em] text-green-400 font-bold uppercase mb-2"
-        style="font-family: 'Orbitron', monospace;">{{ r.title }}</h1>
-    <div class="text-[10px] tracking-[0.2em] text-green-500/50 mb-4">
-      FASE: <span class="text-green-300">{{ phaseLabel(currentState().phase) }}</span>
-      &middot; Ronda <span class="text-green-300">{{ currentState().turn }}</span>
-      @if (subPhaseLabel(); as lbl) {
-        &middot; <span class="text-cyan-300">{{ lbl }}</span>
-      }
-    </div>
-
-    @if (saveError()) {
-      <div class="mb-4 border border-red-500/50 bg-red-500/10 px-4 py-3 text-[10px] tracking-wider text-red-300">
-        <div class="text-[9px] tracking-[0.3em] uppercase text-red-400 mb-1">⚠ Error al guardar</div>
-        <div>{{ saveError() }}</div>
-      </div>
+  <div class="text-[10px] tracking-[0.3em] text-green-500/50 mb-1">// PARTIDA</div>
+  <h1 class="text-lg tracking-[0.15em] text-green-400 font-bold uppercase mb-2"
+    style="font-family: 'Orbitron', monospace;">{{ r.title }}</h1>
+  <div class="text-[10px] tracking-[0.2em] text-green-500/50 mb-4">
+    FASE: <span class="text-green-300">{{ phaseLabel(currentState().phase) }}</span>
+    &middot; Ronda <span class="text-green-300">{{ currentState().turn }}</span>
+    @if (subPhaseLabel(); as lbl) {
+    &middot; <span class="text-cyan-300">{{ lbl }}</span>
     }
+  </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-4 items-start">
+  @if (saveError()) {
+  <div class="mb-4 border border-red-500/50 bg-red-500/10 px-4 py-3 text-[10px] tracking-wider text-red-300">
+    <div class="text-[9px] tracking-[0.3em] uppercase text-red-400 mb-1">⚠ Error al guardar</div>
+    <div>{{ saveError() }}</div>
+  </div>
+  }
 
-      <div class="transition-all duration-300 space-y-3"
-           [class.opacity-100]="panelState(1) !== 'hidden'"
-           [class.opacity-30]="panelState(1) === 'waiting'">
-        <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 1, r: r }"></ng-container>
-        <ng-container *ngTemplateOutlet="botStackTpl; context: { $implicit: 1 }"></ng-container>
-      </div>
+  <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-4 items-start">
 
-      <div class="space-y-2 lg:order-none">
-        @if (turnBanner(); as tb) {
-          <div class="border px-4 py-3 text-center transition-all"
-               [class.border-cyan-400\/60]="tb.player === 1"
-               [class.bg-cyan-500\/10]="tb.player === 1"
-               [class.border-fuchsia-400\/60]="tb.player === 2"
-               [class.bg-fuchsia-500\/10]="tb.player === 2">
-            <div class="text-[9px] tracking-[0.3em] uppercase"
-                 [class.text-cyan-300\/70]="tb.player === 1"
-                 [class.text-fuchsia-300\/70]="tb.player === 2">
-              TURNO
-            </div>
-            <div class="text-base tracking-[0.15em] uppercase font-bold"
-                 style="font-family: 'Orbitron', monospace;"
-                 [class.text-cyan-300]="tb.player === 1"
-                 [class.text-fuchsia-300]="tb.player === 2">
-              P{{ tb.player }} · {{ tb.alias }}
-            </div>
-            @if (tb.sub) {
-              <div class="text-[10px] tracking-[0.2em] text-green-500/60 mt-1">{{ tb.sub }}</div>
-            }
-          </div>
-        }
-        <div class="border border-green-500/15 bg-black/40 p-2">
-          <app-hex-map [mapData]="displayMap()" [size]="28"
-                       [interactive]="canPickHex()"
-                       [selectable]="selectableHexes()"
-                       [highlightedHexes]="highlightedHexes()"
-                       [highlightColor]="highlightColor()"
-                       (hexClicked)="onHexClick($event)" />
+    <div class="transition-all duration-300 space-y-3"
+      [class.opacity-30]="panelState(1) === 'waiting'">
+      <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 1, r: r }"></ng-container>
+      <ng-container *ngTemplateOutlet="botStackTpl; context: { $implicit: 1 }"></ng-container>
+    </div>
+
+    <div class="space-y-2 lg:order-none">
+      @if (turnBanner(); as tb) {
+      <div class="border px-4 py-3 text-center transition-all" [class.border-cyan-400\/60]="tb.player === 1"
+        [class.bg-cyan-500\/10]="tb.player === 1" [class.border-fuchsia-400\/60]="tb.player === 2"
+        [class.bg-fuchsia-500\/10]="tb.player === 2">
+        <div class="text-[9px] tracking-[0.3em] uppercase" [class.text-cyan-300\/70]="tb.player === 1"
+          [class.text-fuchsia-300\/70]="tb.player === 2">
+          TURNO
         </div>
+        <div class="text-base tracking-[0.15em] uppercase font-bold" style="font-family: 'Orbitron', monospace;"
+          [class.text-cyan-300]="tb.player === 1" [class.text-fuchsia-300]="tb.player === 2">
+          P{{ tb.player }} · {{ tb.alias }}
+        </div>
+        @if (tb.sub) {
+        <div class="text-[10px] tracking-[0.2em] text-green-500/60 mt-1">{{ tb.sub }}</div>
+        }
       </div>
-
-      <div class="transition-all duration-300 space-y-3"
-           [class.opacity-100]="panelState(2) !== 'hidden'"
-           [class.opacity-30]="panelState(2) === 'waiting'">
-        <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 2, r: r }"></ng-container>
-        <ng-container *ngTemplateOutlet="botStackTpl; context: { $implicit: 2 }"></ng-container>
+      }
+      <div class="border border-green-500/15 bg-black/40 p-2">
+        <app-hex-map [mapData]="displayMap()" [size]="28" [interactive]="canPickHex()" [selectable]="selectableHexes()"
+          [highlightedHexes]="highlightedHexes()" [highlightColor]="highlightColor()"
+          (hexClicked)="onHexClick($event)" />
       </div>
     </div>
 
-    <div class="mt-4 border border-green-500/15 p-3 flex flex-wrap items-center gap-4
+    <div class="transition-all duration-300 space-y-3"
+      [class.opacity-30]="panelState(2) === 'waiting'">
+      <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 2, r: r }"></ng-container>
+      <ng-container *ngTemplateOutlet="botStackTpl; context: { $implicit: 2 }"></ng-container>
+    </div>
+  </div>
+
+  <div class="mt-4 border border-green-500/15 p-3 flex flex-wrap items-center gap-4
                 text-[9px] tracking-wider text-green-500/50">
-      <span>
-        <span class="text-green-500/40">P1 desplegados:</span>
-        <span class="text-green-300 ml-1">{{ totalFor(1) - remainingFor(1) }} / {{ totalFor(1) }}</span>
-      </span>
-      <span class="text-green-500/20">|</span>
-      <span>
-        <span class="text-green-500/40">P2 desplegados:</span>
-        <span class="text-green-300 ml-1">{{ totalFor(2) - remainingFor(2) }} / {{ totalFor(2) }}</span>
-      </span>
-      <span class="ml-auto"></span>
-      <button type="button" (click)="finish()" [disabled]="finishing()"
-        class="px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
+    <span>
+      <span class="text-green-500/40">P1 desplegados:</span>
+      <span class="text-green-300 ml-1">{{ totalFor(1) - remainingFor(1) }} / {{ totalFor(1) }}</span>
+    </span>
+    <span class="text-green-500/20">|</span>
+    <span>
+      <span class="text-green-500/40">P2 desplegados:</span>
+      <span class="text-green-300 ml-1">{{ totalFor(2) - remainingFor(2) }} / {{ totalFor(2) }}</span>
+    </span>
+    <span class="ml-auto"></span>
+    <button type="button" (click)="finish()" [disabled]="finishing()" class="px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
                bg-red-500/10 border border-red-500/30 text-red-400
                hover:bg-red-500/20 transition-all
                disabled:opacity-40 cursor-pointer">
-        @if (finishing()) { CERRANDO... } @else { Cerrar partida }
-      </button>
-    </div>
+      @if (finishing()) { CERRANDO... } @else { Cerrar partida }
+    </button>
+  </div>
 
-    <details class="mt-3 border border-green-500/15 bg-black/40">
-      <summary class="px-3 py-2 text-[10px] tracking-[0.2em] text-green-500/60 uppercase cursor-pointer
+  <details class="mt-3 border border-green-500/15 bg-black/40">
+    <summary class="px-3 py-2 text-[10px] tracking-[0.2em] text-green-500/60 uppercase cursor-pointer
                       hover:text-green-400">
-        Log de eventos ({{ events().length }})
-      </summary>
-      <div class="max-h-64 overflow-y-auto px-3 py-2 space-y-1 text-[9px] tracking-wider font-mono">
-        @if (events().length === 0) {
-          <div class="text-green-500/30">(sin eventos)</div>
-        }
-        @for (ev of recentEvents(); track $index) {
-          <div class="text-green-500/70">
-            <span class="text-green-500/40">[{{ ev.phase }}·r{{ ev.turn }}]</span>
-            <span class="text-cyan-400">{{ ev.kind }}</span>
-            @if (ev.botId) { <span class="text-green-500/50"> {{ ev.botId }}</span> }
-            <span class="text-green-500/40"> · {{ ev.payload | json }}</span>
-          </div>
-        }
+      Log de eventos ({{ events().length }})
+    </summary>
+    <div class="max-h-64 overflow-y-auto px-3 py-2 space-y-1 text-[9px] tracking-wider font-mono">
+      @if (events().length === 0) {
+      <div class="text-green-500/30">(sin eventos)</div>
+      }
+      @for (ev of recentEvents(); track $index) {
+      <div class="text-green-500/70">
+        <span class="text-green-500/40">[{{ ev.phase }}·r{{ ev.turn }}]</span>
+        <span class="text-cyan-400">{{ ev.kind }}</span>
+        @if (ev.botId) { <span class="text-green-500/50"> {{ ev.botId }}</span> }
+        <span class="text-green-500/40"> · {{ ev.payload | json }}</span>
       </div>
-    </details>
+      }
+    </div>
+  </details>
 
-    @if (currentState().phase === 'init' && activationOrderNames().length > 0) {
-      <div class="mt-3 border border-cyan-500/25 bg-cyan-500/5 p-3">
-        <div class="text-[10px] tracking-[0.2em] text-cyan-300 uppercase mb-2">
-          Orden de activación
-        </div>
-        <div class="flex flex-wrap gap-2 text-[9px] tracking-wider">
-          @for (n of activationOrderNames(); track $index) {
-            <span class="px-2 py-1 border border-green-500/20 text-green-300">
-              {{ $index + 1 }}. {{ n }}
-            </span>
-          }
-        </div>
-      </div>
-    }
+  @if (currentState().phase === 'init' && activationOrderNames().length > 0) {
+  <div class="mt-3 border border-cyan-500/25 bg-cyan-500/5 p-3">
+    <div class="text-[10px] tracking-[0.2em] text-cyan-300 uppercase mb-2">
+      Orden de activación
+    </div>
+    <div class="flex flex-wrap gap-2 text-[9px] tracking-wider">
+      @for (n of activationOrderNames(); track $index) {
+      <span class="px-2 py-1 border border-green-500/20 text-green-300">
+        {{ $index + 1 }}. {{ n }}
+      </span>
+      }
+    </div>
+  </div>
+  }
   }
 </div>
 
 <ng-template #panelTpl let-p let-r="r">
-  <div class="border p-3 space-y-3 bg-black/40"
-       [class.border-cyan-400\/40]="isActive(p)"
-       [class.border-green-500\/15]="!isActive(p)">
-    <div class="text-[10px] tracking-[0.2em] uppercase flex items-center gap-2"
-         [class.text-cyan-300]="isActive(p)"
-         [class.text-green-500\/50]="!isActive(p)">
-      <span class="inline-block w-2 h-2 rounded-full"
-            [class.bg-cyan-400]="isActive(p)"
-            [class.bg-green-500\/30]="!isActive(p)"></span>
+  <div class="border p-3 space-y-3 transition-all"
+       [class.border-green-500\/60]="isActive(p)"
+       [class.bg-green-500\/5]="isActive(p)"
+       [class.border-green-500\/20]="!isActive(p)"
+       [class.bg-black\/40]="!isActive(p)">
+    <div class="text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 text-green-400">
+      <span class="inline-block w-2 h-2 rounded-full bg-green-500/60"></span>
       P{{ p }} · {{ p === 1 ? r.player1Alias : r.player2Alias }}
     </div>
 
     @if (currentState().phase === 'deploy') {
 
-      @if (subPhase() === 'criterion') {
-        @if (choiceFor(p); as c) {
-          <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
-          <button type="button" (click)="resetChoice(p)"
-            class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
-            cambiar
-          </button>
-        } @else {
-          <div class="text-[8px] tracking-wider text-green-500/40">Elige criterio:</div>
-          <button type="button" (click)="onCriterionPick(p, 'junior-1')"
-            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+    @if (subPhase() === 'criterion') {
+    @if (choiceFor(p); as c) {
+    <div class="text-[9px] text-cyan-300 tracking-wider">✓ {{ choiceLabel(c, r.player1Alias, r.player2Alias) }}</div>
+    <button type="button" (click)="resetChoice(p)"
+      class="text-[8px] text-green-500/40 hover:text-green-300 tracking-wider cursor-pointer">
+      cambiar
+    </button>
+    } @else {
+    <div class="text-[8px] tracking-wider text-green-500/40">Elige criterio:</div>
+    <button type="button" (click)="onCriterionPick(p, 'junior-1')" class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
                    text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-            {{ r.player1Alias }} es Junior
-          </button>
-          <button type="button" (click)="onCriterionPick(p, 'junior-2')"
-            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+      {{ r.player1Alias }} es Junior
+    </button>
+    <button type="button" (click)="onCriterionPick(p, 'junior-2')" class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
                    text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-            {{ r.player2Alias }} es Junior
-          </button>
-          <button type="button" (click)="onCriterionPick(p, 'ppt')"
-            class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
+      {{ r.player2Alias }} es Junior
+    </button>
+    <button type="button" (click)="onCriterionPick(p, 'ppt')" class="w-full text-left px-2 py-1 text-[9px] border border-green-500/15
                    text-green-500/60 hover:border-green-400/50 hover:text-green-400 cursor-pointer">
-            PPT
-          </button>
-        }
-      }
+      PPT
+    </button>
+    }
+    }
 
-      @else if (subPhase() === 'ppt-p1' || subPhase() === 'ppt-p2') {
-        <ng-container *ngTemplateOutlet="pptRollTpl; context: {
+    @else if (subPhase() === 'ppt-p1' || subPhase() === 'ppt-p2') {
+    <ng-container *ngTemplateOutlet="pptRollTpl; context: {
           $implicit: p, ctx: 'deploy',
           rolling: rollingPpt() === p, hand: pptFor(p), active: isActive(p)
         }"></ng-container>
-      }
+    }
 
-      @else if (subPhase() === 'ppt-result') {
-        <ng-container *ngTemplateOutlet="pptResultTpl; context: {
+    @else if (subPhase() === 'ppt-result') {
+    <ng-container *ngTemplateOutlet="pptResultTpl; context: {
           $implicit: p, ctx: 'deploy',
           h1: pptFor(1), h2: pptFor(2), winner: deployPptWinner()
         }"></ng-container>
-      }
+    }
 
-      @else if (subPhase() === 'done') {
-        @if (isActive(p) && activeDeployer() === p) {
-          <div class="text-[9px] tracking-wider text-green-500/50">
-            Tu turno. Pendientes: <span class="text-green-300">{{ remainingFor(p) }}</span>
-          </div>
+    @else if (subPhase() === 'done') {
+    @if (isActive(p) && activeDeployer() === p) {
+    <div class="text-[9px] tracking-wider text-green-500/50">
+      Tu turno. Pendientes: <span class="text-green-300">{{ remainingFor(p) }}</span>
+    </div>
 
-          @if (nextBot(); as bot) {
-            <div class="text-[10px] text-green-300 tracking-wider">
-              Próximo bot:
-              <span class="text-cyan-300">P{{ bot.playerId }}·{{ bot.name }}</span>
-            </div>
-          }
+    @if (nextBot(); as bot) {
+    <div class="text-[10px] text-green-300 tracking-wider">
+      Próximo bot:
+      <span class="text-cyan-300">P{{ bot.playerId }}·{{ bot.name }}</span>
+    </div>
+    }
 
-          @if (!pendingRoll() && !rollingColor()) {
-            <button type="button" (click)="rollColorDice()"
-              class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+    @if (!pendingRoll() && !rollingColor()) {
+    <button type="button" (click)="rollColorDice()" class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
                      bg-green-500/10 border border-green-500/30 text-green-400
                      hover:bg-green-500/20 cursor-pointer">
-              Tirar Dado de Colores
-            </button>
-          } @else {
-            <div class="border border-green-500/20 p-2 space-y-2">
-              <div class="flex items-center gap-2 text-[10px] tracking-wider text-green-500/60">
-                Salió:
-                @if (rollingColor()) {
-                  <span class="w-5 h-5 inline-block border border-green-500/30 color-cycle"></span>
-                  <span class="text-green-500/40 italic">tirando...</span>
-                } @else {
-                  <span class="w-5 h-5 inline-block border border-green-500/30"
-                        [style.background]="colorHex(pendingRoll()!)"></span>
-                  <span class="text-green-300 uppercase">{{ pendingRoll() }}</span>
-                }
-              </div>
-              @if (!rollingColor()) {
-                @if (selectableHexes()!.size > 0) {
-                  <div class="text-[9px] tracking-wider text-green-500/50">
-                    Click en un hex resaltado. Perímetro ≥ {{ DEPLOY_PERIMETER }} a enemigos.
-                  </div>
-                } @else {
-                  <div class="text-[9px] tracking-wider text-yellow-400/70">
-                    Colisión lógica: sin hexes válidos con este color.
-                  </div>
-                  <button type="button" (click)="rerollColorDice()"
-                    class="w-full px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
+      Tirar Dado de Colores
+    </button>
+    } @else {
+    <div class="border border-green-500/20 p-2 space-y-2">
+      <div class="flex items-center gap-2 text-[10px] tracking-wider text-green-500/60">
+        Salió:
+        @if (rollingColor()) {
+        <span class="w-5 h-5 inline-block border border-green-500/30 color-cycle"></span>
+        <span class="text-green-500/40 italic">tirando...</span>
+        } @else {
+        <span class="w-5 h-5 inline-block border border-green-500/30"
+          [style.background]="colorHex(pendingRoll()!)"></span>
+        <span class="text-green-300 uppercase">{{ pendingRoll() }}</span>
+        }
+      </div>
+      @if (!rollingColor()) {
+      @if (selectableHexes()!.size > 0) {
+      <div class="text-[9px] tracking-wider text-green-500/50">
+        Click en un hex resaltado. Perímetro ≥ {{ DEPLOY_PERIMETER }} a enemigos.
+      </div>
+      } @else {
+      <div class="text-[9px] tracking-wider text-yellow-400/70">
+        Colisión lógica: sin hexes válidos con este color.
+      </div>
+      <button type="button" (click)="rerollColorDice()" class="w-full px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
                            border border-yellow-500/30 text-yellow-400/80
                            hover:text-yellow-300 cursor-pointer">
-                    Re-tirar (por colisión)
-                  </button>
-                }
-              }
-            </div>
-          }
-        } @else if (remainingFor(p) === 0 && totalFor(p) > 0) {
-          <div class="text-[9px] tracking-wider text-green-500/40">
-            ✓ Todos desplegados.
-          </div>
-        } @else if (!activeDeployer()) {
-          <div class="text-[9px] tracking-wider text-green-500/40">
-            ✓ Despliegue completado.
-          </div>
-        } @else {
-          <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse">
-            Esperando...
-          </div>
-          <div class="text-[9px] tracking-wider text-green-500/30">
-            Pendientes: {{ remainingFor(p) }} / {{ totalFor(p) }}
-          </div>
-        }
-
+        Re-tirar (por colisión)
+      </button>
       }
+      }
+    </div>
+    }
+    } @else if (remainingFor(p) === 0 && totalFor(p) > 0) {
+    <div class="text-[9px] tracking-wider text-green-500/40">
+      ✓ Todos desplegados.
+    </div>
+    } @else if (!activeDeployer()) {
+    <div class="text-[9px] tracking-wider text-green-500/40">
+      ✓ Despliegue completado.
+    </div>
+    } @else {
+    <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse">
+      Esperando...
+    </div>
+    <div class="text-[9px] tracking-wider text-green-500/30">
+      Pendientes: {{ remainingFor(p) }} / {{ totalFor(p) }}
+    </div>
+    }
 
-      @if (initStarted()) {
-        @if (initSubPhase() === 'ppt-p1' || initSubPhase() === 'ppt-p2') {
-          <ng-container *ngTemplateOutlet="pptRollTpl; context: {
+    }
+
+    @if (initStarted()) {
+    @if (initSubPhase() === 'ppt-p1' || initSubPhase() === 'ppt-p2') {
+    <ng-container *ngTemplateOutlet="pptRollTpl; context: {
             $implicit: p, ctx: 'init',
             rolling: rollingInitPpt() === p, hand: initPptFor(p), active: isActive(p)
           }"></ng-container>
-        } @else if (initSubPhase() === 'ppt-result') {
-          <ng-container *ngTemplateOutlet="pptResultTpl; context: {
+    } @else if (initSubPhase() === 'ppt-result') {
+    <ng-container *ngTemplateOutlet="pptResultTpl; context: {
             $implicit: p, ctx: 'init',
             h1: initPptFor(1), h2: initPptFor(2), winner: initPptWinner()
           }"></ng-container>
-        }
-      }
+    }
+    }
     } @else if (currentState().phase === 'init' || currentState().phase === 'boot') {
-      <div class="text-[9px] tracking-wider text-green-500/60">
-        Iniciativa:
-        <span [class.text-cyan-300]="currentState().cpuPriority === p"
-              [class.text-green-500\/40]="currentState().cpuPriority !== p">
-          {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
-        </span>
-      </div>
+    <div class="text-[9px] tracking-wider text-green-500/60">
+      Iniciativa:
+      <span [class.text-cyan-300]="currentState().cpuPriority === p"
+        [class.text-green-500\/40]="currentState().cpuPriority !== p">
+        {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
+      </span>
+    </div>
 
-      @if (nextBootBot(); as bb) {
-        @if (bb.playerId === p) {
-          <ng-container *ngTemplateOutlet="bootPanelTpl; context: { $implicit: bb }"></ng-container>
-        } @else {
-          <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
-            Rival en BOOT · {{ bb.name }}
-          </div>
-        }
-      } @else if (bootComplete()) {
-        <div class="text-[9px] tracking-wider text-cyan-300 pt-2 border-t border-green-500/10">
-          ✓ BOOT completado.
-        </div>
-        @if (p === 1) {
-          <button type="button" (click)="advanceToCompile()"
-            class="w-full mt-2 px-3 py-2 text-[10px] tracking-[0.2em] uppercase
-                   bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
-                   hover:bg-cyan-500/20 cursor-pointer">
-            Continuar a COMPILE →
-          </button>
-        }
-      } @else if (!bootStarted()) {
-        <div class="text-[9px] tracking-wider text-yellow-400/70 pt-2 border-t border-green-500/10">
-          Inicia la fase BOOT.
-        </div>
-      }
+    @if (nextBootBot(); as bb) {
+    @if (bb.playerId === p) {
+    <ng-container *ngTemplateOutlet="bootPanelTpl; context: { $implicit: bb }"></ng-container>
+    } @else {
+    <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
+      Rival en BOOT · {{ bb.name }}
+    </div>
+    }
+    } @else if (bootComplete()) {
+    <div class="text-[9px] tracking-wider text-cyan-300/70 pt-2 border-t border-green-500/10 animate-pulse">
+      ✓ BOOT completado · pasando a ciclo de bot…
+    </div>
+    } @else if (!bootStarted()) {
+    <div class="text-[9px] tracking-wider text-yellow-400/70 pt-2 border-t border-green-500/10">
+      Inicia la fase BOOT.
+    </div>
+    }
 
     } @else if (currentState().phase === 'compile') {
-      <div class="text-[9px] tracking-wider text-green-500/60">
-        Iniciativa:
-        <span [class.text-cyan-300]="currentState().cpuPriority === p"
-              [class.text-green-500\/40]="currentState().cpuPriority !== p">
-          {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
-        </span>
-      </div>
+    <div class="text-[9px] tracking-wider text-green-500/60">
+      Iniciativa:
+      <span [class.text-cyan-300]="currentState().cpuPriority === p"
+        [class.text-green-500\/40]="currentState().cpuPriority !== p">
+        {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
+      </span>
+    </div>
 
-      @if (nextCompileBot(); as cb) {
-        @if (cb.playerId === p) {
-          <app-compile-editor
-            [bot]="cb"
-            [functionsMap]="functionsMap()"
-            (committed)="onCompileCommit(cb.id, $event)" />
-        } @else {
-          <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
-            Rival compilando · {{ cb.name }}
-          </div>
-        }
-      } @else {
-        <div class="text-[9px] tracking-wider text-cyan-300 pt-2 border-t border-green-500/10">
-          ✓ COMPILE completado.
-        </div>
-        @if (p === 1) {
-          <button type="button" (click)="advanceToRun()"
-            class="w-full mt-2 px-3 py-2 text-[10px] tracking-[0.2em] uppercase
-                   bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
-                   hover:bg-cyan-500/20 cursor-pointer">
-            Iniciar RUN →
-          </button>
-        }
+    @if (nextCompileBot(); as cb) {
+    @if (cb.playerId === p) {
+    @let available = botsAvailableForCompile(p);
+    @if (available.length > 1) {
+    <div class="flex flex-wrap gap-1 mb-2">
+      @for (b of available; track b.id) {
+      @let isSel = cb.id === b.id;
+      <button type="button" (click)="selectBotForCompile(p, b.id)"
+        class="px-2 py-0.5 text-[9px] border border-green-500/30 text-green-400 cursor-pointer
+               hover:border-green-400/60 transition-opacity"
+        [class.opacity-30]="!isSel">
+        {{ b.name }}
+      </button>
       }
+    </div>
+    }
+    <app-compile-editor [bot]="cb" [functionsMap]="functionsMap()" (committed)="onCompileCommit(cb.id, $event)" />
+    } @else {
+    <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
+      Rival compilando · {{ cb.name }}
+    </div>
+    }
+    } @else {
+    <div class="text-[9px] tracking-wider text-cyan-300/70 pt-2 border-t border-green-500/10 animate-pulse">
+      ✓ COMPILE completado · iniciando RUN…
+    </div>
+    }
+
+    } @else if (currentState().phase === 'run' || currentState().phase === 'end') {
+    @if (currentRunBot(); as rb) {
+    @if (rb.playerId === p) {
+    <app-simulator-run-panel [bot]="rb" [state]="runState()" [functionsMap]="functionsMap()"
+      (opStarted)="resolveCurrentOp()" (numberPicked)="pickNumber($event)" (nextOp)="advanceOp()"
+      (finishRun)="finishBotRun()" />
+    } @else {
+    @if ((runState().step === 'intercept-prompt' || runState().step === 'intercept-picking') && canIntercept(p)) {
+    @let ib = getInterceptBot();
+    <div class="pt-2 border-t border-yellow-500/20 space-y-2">
+      <div class="text-[9px] tracking-[0.2em] text-yellow-400 uppercase">
+        INTERCEPTAR · {{ ib?.name }}
+      </div>
+      @if (runState().step === 'intercept-prompt') {
+      <div class="text-[8px] text-green-500/60 tracking-wider">
+        Rival declaró operación. ¿Interceptas? Elige un número de tu RAM — sustituirá al d6.
+      </div>
+      <button type="button" (click)="beginIntercept()"
+        class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+               bg-yellow-500/10 border border-yellow-500/40 text-yellow-300
+               hover:bg-yellow-500/20 cursor-pointer">
+        Interceptar
+      </button>
+      <button type="button" (click)="skipIntercept()"
+        class="w-full px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase
+               border border-green-500/20 text-green-500/40
+               hover:text-green-300 cursor-pointer">
+        No interceptar
+      </button>
+      } @else if (runState().step === 'intercept-picking') {
+      <div class="text-[8px] text-yellow-400/70 tracking-wider">Elige número para sustituir el d6:</div>
+      <div class="flex flex-wrap gap-1">
+        @for (n of ib?.numbers ?? []; track $index) {
+        <button type="button" (click)="pickInterceptNumber(n)"
+          class="w-7 h-7 border border-yellow-500/40 bg-yellow-500/10
+                 text-yellow-300 text-[11px] font-bold
+                 hover:border-yellow-400 hover:bg-yellow-500/20 cursor-pointer">
+          {{ n }}
+        </button>
+        }
+      </div>
+      }
+    </div>
+    } @else {
+    <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse pt-2 border-t border-green-500/10">
+      Rival ejecutando · {{ rb.name }}
+    </div>
+    }
+    }
+    } @else {
+    <div class="text-[9px] tracking-wider text-cyan-300 pt-2 border-t border-green-500/10">
+      Ronda completada.
+    </div>
+    }
 
     } @else {
-      <div class="text-[9px] tracking-wider text-yellow-400/70">
-        Fase {{ currentState().phase }} pendiente.
-      </div>
+    <div class="text-[9px] tracking-wider text-yellow-400/70">
+      Fase {{ currentState().phase }} pendiente.
+    </div>
     }
   </div>
 </ng-template>
 
 <ng-template #pptRollTpl let-p let-ctx="ctx" let-rolling="rolling" let-hand="hand" let-active="active">
   @if (rolling) {
-    <div class="text-[9px] tracking-wider text-yellow-400/80">
-      {{ ctx === 'init' ? 'INIT · ' : '' }}Dado PPT — tirando...
-    </div>
-    <div class="flex items-center gap-2 py-2">
-      <span class="dice-spin text-3xl">🎲</span>
-      <span class="text-green-500/40 italic">[?]</span>
-    </div>
+  <div class="text-[9px] tracking-wider text-yellow-400/80">
+    {{ ctx === 'init' ? 'INIT · ' : '' }}Dado PPT — tirando...
+  </div>
+  <div class="flex items-center gap-2 py-2">
+    <span class="dice-spin text-3xl">🎲</span>
+    <span class="text-green-500/40 italic">[?]</span>
+  </div>
   } @else if (active) {
-    <div class="text-[9px] tracking-wider text-yellow-400/80">
-      {{ ctx === 'init' ? 'INIT · ' : '' }}Dado PPT — tira en secreto.
-    </div>
-    <button type="button" (click)="ctx === 'init' ? rollInitPpt(p) : rollPpt(p)"
-      class="w-full py-3 text-[10px] tracking-[0.2em] uppercase
+  <div class="text-[9px] tracking-wider text-yellow-400/80">
+    {{ ctx === 'init' ? 'INIT · ' : '' }}Dado PPT — tira en secreto.
+  </div>
+  <button type="button" (click)="ctx === 'init' ? rollInitPpt(p) : rollPpt(p)" class="w-full py-3 text-[10px] tracking-[0.2em] uppercase
              bg-green-500/10 border border-green-500/30 text-green-400
              hover:bg-green-500/20 cursor-pointer">
-      Tirar Dado PPT
-    </button>
+    Tirar Dado PPT
+  </button>
   } @else if (hand) {
-    <div class="text-[9px] tracking-wider text-green-500/40">✓ Ya tiró (oculto).</div>
+  <div class="text-[9px] tracking-wider text-green-500/40">✓ Ya tiró (oculto).</div>
   } @else {
-    <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse">
-      Esperando tirada del rival...
-    </div>
+  <div class="text-[9px] tracking-wider text-green-500/40 animate-pulse">
+    Esperando tirada del rival...
+  </div>
   }
 </ng-template>
 
@@ -420,31 +444,28 @@
   </div>
 
   @if (winner === null) {
-    <div class="text-[10px] tracking-wider text-yellow-400 border-t border-green-500/10 pt-2">
-      ✦ Empate — re-tirar.
-    </div>
-    @if (p === 1) {
-      <button type="button" (click)="ctx === 'init' ? repeatInitPpt() : repeatPpt()"
-        class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+  <div class="text-[10px] tracking-wider text-yellow-400 border-t border-green-500/10 pt-2">
+    ✦ Empate — re-tirar.
+  </div>
+  @if (p === 1) {
+  <button type="button" (click)="ctx === 'init' ? repeatInitPpt() : repeatPpt()" class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
                bg-green-500/10 border border-green-500/30 text-green-400
                hover:bg-green-500/20 cursor-pointer">
-        Re-tirar PPT
-      </button>
-    }
+    Re-tirar PPT
+  </button>
+  }
   } @else {
-    <div class="text-[10px] tracking-wider border-t border-green-500/10 pt-2"
-         [class.text-cyan-300]="winner === p"
-         [class.text-green-500\/50]="winner !== p">
-      {{ winner === p ? '★ Ganas el PPT' : '✗ Pierdes el PPT' }}
-    </div>
-    @if (p === 1) {
-      <button type="button" (click)="ctx === 'init' ? confirmInitResult() : confirmDeployResult()"
-        class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
+  <div class="text-[10px] tracking-wider border-t border-green-500/10 pt-2" [class.text-cyan-300]="winner === p"
+    [class.text-green-500\/50]="winner !== p">
+    {{ winner === p ? '★ Ganas el PPT' : '✗ Pierdes el PPT' }}
+  </div>
+  @if (p === 1) {
+  <button type="button" (click)="ctx === 'init' ? confirmInitResult() : confirmDeployResult()" class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase
                bg-cyan-500/10 border border-cyan-500/40 text-cyan-300
                hover:bg-cyan-500/20 cursor-pointer">
-        Continuar
-      </button>
-    }
+    Continuar
+  </button>
+  }
   }
 </ng-template>
 
@@ -456,105 +477,94 @@
     </div>
 
     @if (bootRollingFor() === bot.id) {
-      <div class="flex items-center gap-2 py-2">
-        <span class="dice-spin text-3xl">🎲</span>
-        <span class="text-green-500/40 italic text-[10px]">arrancando...</span>
-      </div>
+    <div class="flex items-center gap-2 py-2">
+      <span class="dice-spin text-3xl">🎲</span>
+      <span class="text-green-500/40 italic text-[10px]">arrancando...</span>
+    </div>
     } @else if (!br.energy) {
-      <div class="text-[9px] text-green-500/60">getEnergy(n) · elige n dados d6:</div>
-      <div class="flex gap-2">
-        <button type="button" (click)="bootRollFor(bot.id, 1)"
-          class="flex-1 py-2 text-[10px] tracking-wider uppercase
+    <div class="text-[9px] text-green-500/60">getEnergy(n) · elige n dados d6:</div>
+    <div class="flex gap-2">
+      <button type="button" (click)="bootRollFor(bot.id, 1)" class="flex-1 py-2 text-[10px] tracking-wider uppercase
                  bg-green-500/10 border border-green-500/30 text-green-400
                  hover:bg-green-500/20 cursor-pointer">1d6</button>
-        <button type="button" (click)="bootRollFor(bot.id, 2)"
-          class="flex-1 py-2 text-[10px] tracking-wider uppercase
+      <button type="button" (click)="bootRollFor(bot.id, 2)" class="flex-1 py-2 text-[10px] tracking-wider uppercase
                  bg-green-500/10 border border-green-500/30 text-green-400
                  hover:bg-green-500/20 cursor-pointer">2d6</button>
-        <button type="button" (click)="bootRollFor(bot.id, 3)"
-          class="flex-1 py-2 text-[10px] tracking-wider uppercase
+      <button type="button" (click)="bootRollFor(bot.id, 3)" class="flex-1 py-2 text-[10px] tracking-wider uppercase
                  bg-green-500/10 border border-green-500/30 text-green-400
                  hover:bg-green-500/20 cursor-pointer">3d6</button>
-      </div>
-      <div class="text-[8px] tracking-wider text-green-500/40">
-        Si la suma supera MAX_ENERGY, el exceso se pierde y se añade un BUG.
-      </div>
+    </div>
+    <div class="text-[8px] tracking-wider text-green-500/40">
+      Si la suma supera MAX_ENERGY, el exceso se pierde y se añade un BUG.
+    </div>
     } @else {
-      <div class="space-y-1.5">
-        <div class="border border-green-500/15 bg-black/40 px-2 py-1.5 text-[10px]">
-          <div class="text-[8px] tracking-[0.2em] text-green-500/50 uppercase mb-0.5">
-            ⚡ getEnergy({{ $any(br.energy.payload).chosen }})
-          </div>
-          <div>
-            Dados:
-            @for (d of $any(br.energy.payload).dice; track $index) {
-              <span class="inline-block w-5 h-5 mx-0.5 text-center border border-green-500/30
-                           bg-green-500/10 text-green-300 text-[10px] leading-5 font-bold">{{ d }}</span>
-            }
-            <span class="text-green-500/50"> = {{ $any(br.energy.payload).total }}</span>
-          </div>
-          <div>
-            Almacenado:
-            <span class="text-cyan-300 font-bold">{{ $any(br.energy.payload).energy }}/{{ bot.maxEnergy }}⚡</span>
-            @if ($any(br.energy.payload).overflow) {
-              <span class="text-red-400">· OVERFLOW → +1 BUG</span>
-            }
-          </div>
+    <div class="space-y-1.5">
+      <div class="border border-green-500/15 bg-black/40 px-2 py-1.5 text-[10px]">
+        <div class="text-[8px] tracking-[0.2em] text-green-500/50 uppercase mb-0.5">
+          ⚡ getEnergy({{ $any(br.energy.payload).chosen }})
         </div>
-
-        @if (br.numbers; as nev) {
-          <div class="border border-green-500/15 bg-black/40 px-2 py-1.5 text-[10px]">
-            <div class="text-[8px] tracking-[0.2em] text-green-500/50 uppercase mb-0.5">getNumbers()</div>
-            @if ($any(nev.payload).rolled.length > 0) {
-              <div>
-                Tirada:
-                @for (n of $any(nev.payload).rolled; track $index) {
-                  <span class="inline-block w-5 h-5 mx-0.5 text-center border border-green-500/30
-                               bg-green-500/10 text-green-300 text-[10px] leading-5 font-bold">{{ n }}</span>
-                }
-              </div>
-            }
-            <div>
-              Numbers:
-              <span class="text-green-300">[{{ $any(nev.payload).numbers.join(', ') }}]</span>
-            </div>
-          </div>
-        }
-
-        @if (br.ops; as oev) {
-          <div class="border border-cyan-500/20 bg-cyan-500/5 px-2 py-1.5 text-[10px]">
-            <div class="text-[8px] tracking-[0.2em] text-cyan-400/70 uppercase mb-0.5">
-              Operaciones tiradas ({{ $any(oev.payload).slots }} slots)
-            </div>
-            <div class="flex flex-wrap gap-1">
-              @for (op of $any(oev.payload).operations; track $index) {
-                <span class="px-1.5 py-0.5 text-[9px] tracking-wider
-                             border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">{{ op }}</span>
-              }
-            </div>
-          </div>
-        }
-
-        <div class="text-[9px] tracking-wider text-green-500/50 pt-1 italic">
-          BOOT completado para {{ bot.name }}.
+        <div>
+          Dados:
+          @for (d of $any(br.energy.payload).dice; track $index) {
+          <span class="inline-block w-5 h-5 mx-0.5 text-center border border-green-500/30
+                           bg-green-500/10 text-green-300 text-[10px] leading-5 font-bold">{{ d }}</span>
+          }
+          <span class="text-green-500/50"> = {{ $any(br.energy.payload).total }}</span>
+        </div>
+        <div>
+          Almacenado:
+          <span class="text-cyan-300 font-bold">{{ $any(br.energy.payload).energy }}/{{ bot.maxEnergy }}⚡</span>
+          @if ($any(br.energy.payload).overflow) {
+          <span class="text-red-400">· OVERFLOW → +1 BUG</span>
+          }
         </div>
       </div>
+
+      @if (br.numbers; as nev) {
+      <div class="border border-green-500/15 bg-black/40 px-2 py-1.5 text-[10px]">
+        <div class="text-[8px] tracking-[0.2em] text-green-500/50 uppercase mb-0.5">getNumbers()</div>
+        @if ($any(nev.payload).rolled.length > 0) {
+        <div>
+          Tirada:
+          @for (n of $any(nev.payload).rolled; track $index) {
+          <span class="inline-block w-5 h-5 mx-0.5 text-center border border-green-500/30
+                               bg-green-500/10 text-green-300 text-[10px] leading-5 font-bold">{{ n }}</span>
+          }
+        </div>
+        }
+        <div>
+          Numbers:
+          <span class="text-green-300">[{{ $any(nev.payload).numbers.join(', ') }}]</span>
+        </div>
+      </div>
+      }
+
+      @if (br.ops; as oev) {
+      <div class="border border-cyan-500/20 bg-cyan-500/5 px-2 py-1.5 text-[10px]">
+        <div class="text-[8px] tracking-[0.2em] text-cyan-400/70 uppercase mb-0.5">
+          Operaciones tiradas ({{ $any(oev.payload).slots }} slots)
+        </div>
+        <div class="flex flex-wrap gap-1">
+          @for (op of $any(oev.payload).operations; track $index) {
+          <span class="px-1.5 py-0.5 text-[9px] tracking-wider
+                             border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">{{ op }}</span>
+          }
+        </div>
+      </div>
+      }
+
+      <div class="text-[9px] tracking-wider text-green-500/50 pt-1 italic">
+        BOOT completado para {{ bot.name }}.
+      </div>
+    </div>
     }
   </div>
 </ng-template>
 
 <ng-template #botStackTpl let-p>
   @if (selectedBotFor(p); as sb) {
-    <app-simulator-bot-card
-      [bot]="sb"
-      [index]="selectedBotIdxFor(p)"
-      [totalBots]="totalBotsFor(p)"
-      [playerId]="p"
-      [active]="isActive(p)"
-      [expandedVersion]="expandedVersionFor(sb.id)"
-      [functionsMap]="functionsMap()"
-      (prev)="onBotPrev(p)"
-      (next)="onBotNext(p)"
-      (versionToggled)="toggleAttackVersion(sb.id, $event)" />
+  <app-simulator-bot-card [bot]="sb" [index]="selectedBotIdxFor(p)" [totalBots]="totalBotsFor(p)" [playerId]="p"
+    [active]="isActive(p)" [expandedVersion]="expandedVersionFor(sb.id)" [functionsMap]="functionsMap()"
+    (prev)="onBotPrev(p)" (next)="onBotNext(p)" (versionToggled)="toggleAttackVersion(sb.id, $event)" />
   }
 </ng-template>

@@ -17,50 +17,27 @@ export function rollDice(n: number): number[] {
   return out;
 }
 
-export interface OperationFace {
-  comparator: Comparator;
-  threshold: number;
-}
+export type OperationFace = Comparator;
 
-const V1_FACES: OperationFace[] = [
-  { comparator: '==', threshold: 3 },
-  { comparator: '==', threshold: 4 },
-  { comparator: '<', threshold: 3 },
-  { comparator: '>', threshold: 4 },
-  { comparator: '!=', threshold: 3 },
-  { comparator: '!=', threshold: 4 },
-];
-
-const V2_FACES: OperationFace[] = [
-  { comparator: '<=', threshold: 2 },
-  { comparator: '<=', threshold: 3 },
-  { comparator: '>=', threshold: 4 },
-  { comparator: '>=', threshold: 5 },
-  { comparator: '!=', threshold: 3 },
-  { comparator: '!=', threshold: 4 },
-];
-
-const V3_FACES: OperationFace[] = [
-  { comparator: '<=', threshold: 3 },
-  { comparator: '<=', threshold: 4 },
-  { comparator: '>=', threshold: 3 },
-  { comparator: '>=', threshold: 4 },
-  { comparator: '!=', threshold: 2 },
-  { comparator: '!=', threshold: 5 },
-];
+// Dado de operaciones: 6 caras, una por comparador.
+// Cada versión de Bot reordena/rebalancea para favorecer comparadores más fáciles
+// según sube de versión (V3 tiene más caras "fáciles" como ≤, ≥, ≠).
+const V1_FACES: OperationFace[] = ['<', '>', '==', '==', '!=', '!='];
+const V2_FACES: OperationFace[] = ['<=', '>=', '<', '>', '==', '!='];
+const V3_FACES: OperationFace[] = ['<=', '>=', '!=', '!=', '<=', '>='];
 
 export function rollOperationDie(version: 1 | 2 | 3): OperationFace {
   const faces = version === 1 ? V1_FACES : version === 2 ? V2_FACES : V3_FACES;
   return faces[Math.floor(Math.random() * faces.length)];
 }
 
-export function evaluate(n: number, face: OperationFace): boolean {
-  switch (face.comparator) {
-    case '<': return n < face.threshold;
-    case '<=': return n <= face.threshold;
-    case '>': return n > face.threshold;
-    case '>=': return n >= face.threshold;
-    case '==': return n === face.threshold;
-    case '!=': return n !== face.threshold;
+export function evaluate(d6: number, picked: number, cmp: Comparator): boolean {
+  switch (cmp) {
+    case '<': return d6 < picked;
+    case '<=': return d6 <= picked;
+    case '>': return d6 > picked;
+    case '>=': return d6 >= picked;
+    case '==': return d6 === picked;
+    case '!=': return d6 !== picked;
   }
 }

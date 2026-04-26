@@ -11,7 +11,14 @@ function parseFnKey(key: string): CompiledOperation['primary'] {
   return { type: 'attack', attackFunctionId: key.slice(7) };
 }
 
-function needsSecondary(op: OperationKind): boolean {
+function funcSig(key: string | null): string {
+  if (!key) return '';
+  if (key.startsWith('move:')) return 'move';
+  if (key === 'shield') return 'shield';
+  return 'attack';
+}
+
+function hasSecondarySlot(op: OperationKind): boolean {
   return op === 'IF_ELSE' || op === 'TRY_CATCH';
 }
 
@@ -81,10 +88,11 @@ function needsSecondary(op: OperationKind): boolean {
                 </select>
               </div>
 
-              @if (needsSecondary(op)) {
+              @if (hasSecondarySlot(op)) {
                 <div class="flex items-center gap-1.5">
                   <span class="text-[8px] text-green-500/45 w-14 shrink-0">
                     {{ op === 'IF_ELSE' ? 'FALSE:' : 'CATCH:' }}
+                    <span class="text-green-500/30">(opc)</span>
                   </span>
                   <select (change)="setSecondary(i, $any($event.target).value || null)"
                     class="flex-1 min-w-0 bg-black/80 border border-green-500/20 text-[9px]
@@ -183,8 +191,7 @@ export class CompileEditor {
     const sec = this.draftSecondary();
     for (let i = 0; i < ops.length; i++) {
       if (!prim[i]) return false;
-      if (needsSecondary(ops[i]) && !sec[i]) return false;
-      if (needsSecondary(ops[i]) && prim[i] === sec[i]) return false;
+      if (hasSecondarySlot(ops[i]) && sec[i] && funcSig(prim[i]) === funcSig(sec[i])) return false;
     }
     return true;
   });
@@ -196,14 +203,14 @@ export class CompileEditor {
     const sec = this.draftSecondary();
     for (let i = 0; i < ops.length; i++) {
       if (!prim[i]) return `Op ${i + 1}: selecciona función primaria.`;
-      if (needsSecondary(ops[i]) && !sec[i]) return `Op ${i + 1}: selecciona función secundaria.`;
-      if (needsSecondary(ops[i]) && prim[i] === sec[i]) return `Op ${i + 1}: primaria y secundaria deben ser distintas.`;
+      if (hasSecondarySlot(ops[i]) && sec[i] && funcSig(prim[i]) === funcSig(sec[i]))
+        return `Op ${i + 1}: primaria y secundaria deben ser funciones distintas.`;
     }
     return null;
   });
 
   isLoop(op: OperationKind): boolean { return op === 'FOR' || op === 'WHILE'; }
-  needsSecondary(op: OperationKind): boolean { return needsSecondary(op); }
+  hasSecondarySlot(op: OperationKind): boolean { return hasSecondarySlot(op); }
 
   addSlot(op: OperationKind): void {
     if (!this.canAdd()) return;
@@ -242,7 +249,7 @@ export class CompileEditor {
     const operations: CompiledOperation[] = ops.map((kind, i) => ({
       kind,
       primary: parseFnKey(prim[i]!),
-      ...(needsSecondary(kind) && sec[i] ? { secondary: parseFnKey(sec[i]!) } : {}),
+      ...(hasSecondarySlot(kind) && sec[i] ? { secondary: parseFnKey(sec[i]!) } : {}),
       ...(kind === 'FOR' ? { forCount: counts[i] ?? 1 } : {}),
     }));
     this.committed.emit({ operations });

@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import type { BattleBot } from '../../../shared/types/battle.types';
+import type { BattleBot, FunctionCall } from '../../../shared/types/battle.types';
 
 export interface FunctionEntry {
   id: string;
@@ -146,13 +146,20 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
             </div>
             <ol class="space-y-1">
               @for (op of prog.operations; track $index; let i = $index) {
-                <li class="border border-cyan-500/20 bg-cyan-500/5 px-2 py-1 text-[10px]">
-                  <span class="text-cyan-400/70">{{ i + 1 }}.</span>
-                  <span class="text-cyan-300 ml-1">{{ op.kind }}</span>
-                  <span class="text-green-300/80 ml-1">{{ op.primary.type }}@if (op.primary.moveDistance) {{{'(' + op.primary.moveDistance + ')'}}}</span>
+                <li class="border border-cyan-500/20 bg-cyan-500/5 px-2 py-1 text-[10px] space-y-0.5">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-cyan-400/70 w-4 shrink-0">{{ i + 1 }}.</span>
+                    <span class="text-cyan-300 tracking-wider w-14 shrink-0">{{ op.kind }}</span>
+                    <span class="text-green-300/80 truncate">{{ fnLabel(op.primary) }}</span>
+                    @if (op.kind === 'FOR' && op.forCount) {
+                      <span class="ml-auto text-[8px] text-green-500/40 shrink-0">×{{ op.forCount }}</span>
+                    }
+                  </div>
                   @if (op.secondary) {
-                    <span class="text-green-500/40">/</span>
-                    <span class="text-green-300/80">{{ op.secondary.type }}</span>
+                    <div class="flex items-center gap-1.5 pl-[22px]">
+                      <span class="text-green-500/30 w-14 shrink-0 text-[8px] leading-none">{{ op.kind === 'IF_ELSE' ? 'FALSE:' : 'CATCH:' }}</span>
+                      <span class="text-green-300/60 truncate leading-none">{{ fnLabel(op.secondary) }}</span>
+                    </div>
                   }
                 </li>
               }
@@ -285,6 +292,14 @@ export class SimulatorBotCard {
     for (let i = 0; i < b.maxNumbers; i++) out.push(b.numbers[i] ?? null);
     return out;
   });
+
+  fnLabel(fn: FunctionCall): string {
+    if (fn.type === 'move') return `move(${fn.moveDistance})`;
+    if (fn.type === 'shield') return 'shield()';
+    const entry = this.functionsMap().get(fn.attackFunctionId ?? '');
+    const cb = entry?.func_name ?? fn.attackFunctionId ?? '?';
+    return `attack(${cb}())`;
+  }
 
   attacksForVersion(v: 1 | 2 | 3): (FunctionEntry | null)[] {
     const b = this.bot();

@@ -152,7 +152,14 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     case 'intercept': {
       const interceptorId = p['interceptorId'] as string | undefined;
       const interceptor = findBot(state, interceptorId);
-      if (interceptor) interceptor.hasInterceptedThisTurn = true;
+      if (interceptor) {
+        interceptor.hasInterceptedThisTurn = true;
+        const n = p['substituteD6'] as number | undefined;
+        if (typeof n === 'number') {
+          const idx = interceptor.numbers.indexOf(n);
+          if (idx >= 0) interceptor.numbers.splice(idx, 1);
+        }
+      }
       break;
     }
     case 'destroyed': {
@@ -180,7 +187,14 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       state.phase = 'finished';
       break;
     }
-    case 'operation_resolved':
+    case 'operation_resolved': {
+      const picked = p['picked'] as number | undefined;
+      if (typeof picked === 'number' && bot) {
+        const idx = bot.numbers.indexOf(picked);
+        if (idx >= 0) bot.numbers.splice(idx, 1);
+      }
+      break;
+    }
     case 'debug_action':
     case 'criterion_chosen':
     case 'ppt_rolled':
