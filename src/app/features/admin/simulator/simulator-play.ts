@@ -94,7 +94,10 @@ export class SimulatorPlay implements OnInit {
   bootStarted = signal(false);
   bootRollingFor = signal<string | null>(null);
 
+  pendingSaves = signal(0);
+
   runState = signal<RunState>(initialRunState);
+  nextRoundTurn = signal<number>(1);
 
   functionsMap = signal<Map<string, FunctionEntry>>(new Map());
   selectedBotIdx = signal<Record<PlayerId, number>>({ 1: 0, 2: 0 });
@@ -118,7 +121,8 @@ export class SimulatorPlay implements OnInit {
   });
 
   readonly initSubPhase = computed<InitSubPhase>(() => {
-    if (this.currentState().phase !== 'deploy') return 'done';
+    const phase = this.currentState().phase;
+    if (phase !== 'deploy' && phase !== 'end') return 'done';
     if (!this.initStarted()) return 'idle';
     if (!this.initPptP1()) return 'ppt-p1';
     if (!this.initPptP2()) return 'ppt-p2';
@@ -232,13 +236,24 @@ export class SimulatorPlay implements OnInit {
       return { player: runBot.playerId, alias: aliasFor(runBot.playerId), sub: `RUN · ${runBot.name}` };
     }
 
-    if (this.initStarted() && this.currentState().phase === 'deploy') {
+    const phase = this.currentState().phase;
+
+    if (phase === 'end') {
+      if (this.initStarted()) {
+        const isp = this.initSubPhase();
+        if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: `INIT R${this.nextRoundTurn()} · Tira PPT` };
+        if (isp === 'ppt-p2') return { player: 2, alias: aliasFor(2), sub: `INIT R${this.nextRoundTurn()} · Tira PPT` };
+      }
+      return null;
+    }
+
+    if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
       if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: 'INIT · Tira Dado PPT' };
       if (isp === 'ppt-p2') return { player: 2, alias: aliasFor(2), sub: 'INIT · Tira Dado PPT' };
       return null;
     }
-    if (this.currentState().phase === 'init') return null;
+    if (phase === 'init') return null;
 
     const sp = this.subPhase();
     if (sp === 'criterion') return null;
@@ -458,6 +473,7 @@ export class SimulatorPlay implements OnInit {
     }, { allowSignalWrites: true });
 
     effect(() => {
+      if (this.pendingSaves() > 0) return;
       if (
         this.deployComplete() &&
         !!this.deployStarter() &&
@@ -471,6 +487,7 @@ export class SimulatorPlay implements OnInit {
 
     // Auto-arranque RUN: cuando entramos en phase 'run' y no hay bot activo, inicia
     effect(() => {
+      if (this.pendingSaves() > 0) return;
       const s = this.currentState();
       if (s.phase !== 'run') return;
       if (this.runState().botId !== null) return;
@@ -480,6 +497,7 @@ export class SimulatorPlay implements OnInit {
 
     // Auto-transition BOOT → COMPILE (todos los bots booted → primer bot a COMPILE)
     effect(() => {
+      if (this.pendingSaves() > 0) return;
       const s = this.currentState();
       if (s.phase !== 'boot') return;
       if (this.nextBootBot() !== null) return;
@@ -494,6 +512,7 @@ export class SimulatorPlay implements OnInit {
 
     // Auto-transition COMPILE → RUN (bot actual ya commit-eó → arranca su RUN)
     effect(() => {
+      if (this.pendingSaves() > 0) return;
       const s = this.currentState();
       if (s.phase !== 'compile') return;
       if (this.nextCompileBot() !== null) return;
@@ -592,6 +611,8 @@ export class SimulatorPlay implements OnInit {
           } else {
             if (pl === 1) this.initPptP1.set(hand);
             if (pl === 2) this.initPptP2.set(hand);
+            this.initStarted.set(true);
+            this.nextRoundTurn.set(ev.turn);
           }
           break;
         }
@@ -600,6 +621,7 @@ export class SimulatorPlay implements OnInit {
           break;
         }
         case 'init_ppt': {
+          this.nextRoundTurn.set(ev.turn);
           this.initStarted.set(false);
           this.initPptP1.set(null);
           this.initPptP2.set(null);
@@ -652,9 +674,18 @@ export class SimulatorPlay implements OnInit {
       const cb = this.nextCompileBot();
       return cb ? cb.playerId === p : true;
     }
-    if (phase === 'run' || phase === 'end') {
+    if (phase === 'run') {
       const rb = this.currentRunBot();
       return rb ? rb.playerId === p : true;
+    }
+    if (phase === 'end') {
+      if (this.initStarted()) {
+        const isp = this.initSubPhase();
+        if (isp === 'ppt-p1') return p === 1;
+        if (isp === 'ppt-p2') return p === 2;
+        if (isp === 'ppt-result') return true;
+      }
+      return true;
     }
     if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
@@ -683,10 +714,19 @@ export class SimulatorPlay implements OnInit {
       if (!cb) return 'active';
       return cb.playerId === p ? 'active' : 'waiting';
     }
-    if (phase === 'run' || phase === 'end') {
+    if (phase === 'run') {
       const rb = this.currentRunBot();
       if (!rb) return 'active';
       return rb.playerId === p ? 'active' : 'waiting';
+    }
+    if (phase === 'end') {
+      if (this.initStarted()) {
+        const isp = this.initSubPhase();
+        if (isp === 'ppt-p1') return p === 1 ? 'active' : 'waiting';
+        if (isp === 'ppt-p2') return p === 2 ? 'active' : 'waiting';
+        return 'active';
+      }
+      return 'active';
     }
     if (this.initStarted() && phase === 'deploy') {
       const isp = this.initSubPhase();
@@ -716,7 +756,17 @@ export class SimulatorPlay implements OnInit {
     const runBot = this.currentRunBot();
     if (runBot) return `RUN · ${runBot.name} (P${runBot.playerId})`;
     if (phase === 'run') return 'RUN';
-    if (phase === 'end') return 'END · ronda completada';
+    if (phase === 'end') {
+      if (this.initStarted()) {
+        switch (this.initSubPhase()) {
+          case 'ppt-p1': return `INIT R${this.nextRoundTurn()} · PPT P1`;
+          case 'ppt-p2': return `INIT R${this.nextRoundTurn()} · PPT P2`;
+          case 'ppt-result': return `INIT R${this.nextRoundTurn()} · Resultado`;
+          default: return `INIT · Ronda ${this.nextRoundTurn()}`;
+        }
+      }
+      return `END · Ronda ${this.currentState().turn}`;
+    }
     if (this.initStarted() && phase === 'deploy') {
       switch (this.initSubPhase()) {
         case 'ppt-p1': return 'INIT · Dado PPT · P1';
@@ -827,8 +877,9 @@ export class SimulatorPlay implements OnInit {
     const hand = rollPptDie();
     this.rollingInitPpt.set(null);
     (player === 1 ? this.initPptP1 : this.initPptP2).set(hand);
+    const nextTurn = this.nextRoundTurn();
     await this.appendEvents([{
-      turn: 1, activation: 0, phase: 'init',
+      turn: nextTurn, activation: 0, phase: 'init',
       timestamp: new Date().toISOString(),
       kind: 'ppt_rolled',
       payload: { player, hand, context: 'init' as PptContext },
@@ -837,7 +888,7 @@ export class SimulatorPlay implements OnInit {
     const b = this.initPptP2();
     if (a && b && resolvePpt(a, b) === null) {
       await this.appendEvents([{
-        turn: 1, activation: 0, phase: 'init',
+        turn: nextTurn, activation: 0, phase: 'init',
         timestamp: new Date().toISOString(),
         kind: 'ppt_tie',
         payload: { hands: { 1: a, 2: b }, context: 'init' as PptContext },
@@ -857,6 +908,7 @@ export class SimulatorPlay implements OnInit {
   }
 
   private async resolveInit(winner: PlayerId): Promise<void> {
+    const nextTurn = this.nextRoundTurn();
     const bots = this.currentState().bots;
     const wBots = bots.filter(b => b.playerId === winner && !b.destroyed).map(b => b.id);
     const lBots = bots.filter(b => b.playerId !== winner && !b.destroyed).map(b => b.id);
@@ -867,16 +919,40 @@ export class SimulatorPlay implements OnInit {
       if (i < lBots.length) order.push(lBots[i]);
     }
     const ok = await this.appendEvents([{
-      turn: 1, activation: 0, phase: 'init',
+      turn: nextTurn, activation: 0, phase: 'init',
       timestamp: new Date().toISOString(),
       kind: 'init_ppt',
       payload: { winner, activationOrder: order },
     }]);
     if (!ok) return;
+
+    // Auto-upgrade: round 3 → V1→V2, round 5 → V2→V3
+    if (nextTurn === 3 || nextTurn === 5) {
+      const targetVersion = (nextTurn === 3 ? 2 : 3) as 2 | 3;
+      const fromVersion = targetVersion - 1;
+      const upgradeEvs: BattleEvent[] = this.currentState().bots
+        .filter(b => !b.destroyed && b.version === fromVersion)
+        .map(b => ({
+          turn: nextTurn, activation: 0, phase: 'init' as const,
+          timestamp: new Date().toISOString(),
+          botId: b.id,
+          kind: 'upgrade' as const,
+          payload: { version: targetVersion },
+        }));
+      if (upgradeEvs.length > 0) await this.appendEvents(upgradeEvs);
+    }
+
     this.initStarted.set(false);
     this.initPptP1.set(null);
     this.initPptP2.set(null);
     this.bootStarted.set(true);
+  }
+
+  startNewRound(): void {
+    this.nextRoundTurn.set(this.currentState().turn + 1);
+    this.initPptP1.set(null);
+    this.initPptP2.set(null);
+    this.initStarted.set(true);
   }
 
   startBoot(): void {
@@ -901,6 +977,17 @@ export class SimulatorPlay implements OnInit {
       botId,
       kind: 'compile_committed',
       payload: { program },
+    }]);
+  }
+
+  async skipToDebug(botId: string): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'compile',
+      timestamp: new Date().toISOString(),
+      botId,
+      kind: 'compile_committed',
+      payload: { program: { operations: [] } },
     }]);
   }
 
@@ -933,7 +1020,7 @@ export class SimulatorPlay implements OnInit {
     }
     const program = bot.compiledProgram?.operations ?? [];
     if (program.length === 0) {
-      this.runState.set({ ...initialRunState, botId: id, step: 'bot-done' });
+      this.runState.set({ ...initialRunState, botId: id, step: 'debug' });
       return;
     }
     this.runState.set({ ...initialRunState, botId: id, opIdx: 0, step: 'idle' });
@@ -946,23 +1033,26 @@ export class SimulatorPlay implements OnInit {
     if (op.kind === 'IF' || op.kind === 'IF_ELSE') return this.resolveIfLike(op, bot);
     if (op.kind === 'FOR') return this.resolveFor(op, bot);
     if (op.kind === 'TRY_CATCH') return this.resolveTryCatch(op, bot);
-    if (op.kind === 'WHILE') {
-      // WHILE not yet supported in MVP — skip with a BUG to advance
-      await this.appendEvents([{
-        turn: this.currentState().turn, activation: this.currentState().currentActivationIdx,
-        phase: 'run', timestamp: new Date().toISOString(), botId: bot.id,
-        kind: 'bug_added', payload: { count: 1, reason: 'while-not-supported' },
-      }]);
-      this.runState.update(s => ({ ...s, step: 'op-done' }));
-      return;
-    }
+    if (op.kind === 'WHILE') return this.resolveWhile(op, bot);
   }
 
-  private async resolveIfLike(op: CompiledOperation, bot: BattleBot): Promise<void> {
+  private async resolveIfLike(_op: CompiledOperation, bot: BattleBot): Promise<void> {
     this.runState.update(s => ({ ...s, step: 'rolling' }));
     await this.animateDelay();
     const opFace = rollOperationDie(bot.version);
-    // Intercept offered BEFORE d6 roll — opponent substitutes their own number as the d6
+    const interceptBot = this.findInterceptBot(bot);
+    if (interceptBot) {
+      this.runState.update(s => ({ ...s, opFace, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
+      return;
+    }
+    const d6 = rollD6();
+    this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
+  }
+
+  private async resolveWhile(_op: CompiledOperation, bot: BattleBot): Promise<void> {
+    this.runState.update(s => ({ ...s, step: 'rolling' }));
+    await this.animateDelay();
+    const opFace = rollOperationDie(bot.version);
     const interceptBot = this.findInterceptBot(bot);
     if (interceptBot) {
       this.runState.update(s => ({ ...s, opFace, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
@@ -1006,8 +1096,37 @@ export class SimulatorPlay implements OnInit {
       return;
     }
 
+    // WHILE
+    if (op.kind === 'WHILE') {
+      const condResult = evaluate(rs.d6, n, rs.opFace!);
+      const s = this.currentState();
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: new Date().toISOString(), botId: bot.id,
+        kind: 'operation_resolved',
+        payload: { opIdx: rs.opIdx, kind: 'WHILE', opFace: rs.opFace, d6: rs.d6, picked: n, condResult },
+      }]);
+      if (condResult) {
+        this.runState.update(st => ({
+          ...st, pickedNumber: n, condResult, branch: 'primary',
+          pendingFn: op.primary, step: 'evaluated', loopExecuted: true,
+        }));
+        await this.executePendingFn();
+      } else {
+        if (!rs.loopExecuted) {
+          await this.appendEvents([{
+            turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+            timestamp: new Date().toISOString(), botId: bot.id,
+            kind: 'bug_added', payload: { count: 1, reason: 'while-never-executed' },
+          }]);
+        }
+        this.runState.update(st => ({ ...st, pickedNumber: n, condResult, step: 'op-done' }));
+      }
+      return;
+    }
+
     // IF / IF_ELSE
-    const condResult = evaluate(rs.d6, n, rs.opFace);
+    const condResult = evaluate(rs.d6, n, rs.opFace!);
     const s = this.currentState();
     await this.appendEvents([{
       turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
@@ -1163,6 +1282,37 @@ export class SimulatorPlay implements OnInit {
 
   private async afterFnExecuted(): Promise<void> {
     const rs = this.runState();
+    // WHILE loop: continue with new condition check each iteration
+    const whileOp = this.currentRunOp();
+    if (whileOp?.kind === 'WHILE') {
+      const bot = this.currentRunBot()!;
+      const cost = fnEnergyCost(rs.pendingFn!, this.functionsMap());
+      if (bot.energy < cost) {
+        await this.applyOverload(bot, cost, 'while-loop-iteration');
+        this.runState.update(s => ({ ...s, step: 'op-done', pendingFn: null }));
+        const winner = this.checkVictory();
+        if (winner) {
+          const st = this.currentState();
+          await this.appendEvents([{
+            turn: st.turn, activation: st.currentActivationIdx, phase: 'finished',
+            timestamp: new Date().toISOString(), kind: 'victory', payload: { winner },
+          }]);
+        }
+        return;
+      }
+      // New condition check for next iteration
+      this.runState.update(s => ({ ...s, step: 'rolling', opFace: null, d6: null, pickedNumber: null, condResult: null, pendingFn: null }));
+      await this.animateDelay();
+      const opFace = rollOperationDie(bot.version);
+      const interceptBot = this.findInterceptBot(bot);
+      if (interceptBot) {
+        this.runState.update(s => ({ ...s, opFace, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
+        return;
+      }
+      const d6 = rollD6();
+      this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
+      return;
+    }
     if (rs.forRemaining > 1) {
       // Check energy before next FOR iteration — insufficient → OVERLOAD + stop loop
       const iterBot = this.currentRunBot();
@@ -1308,12 +1458,40 @@ export class SimulatorPlay implements OnInit {
     const program = bot.compiledProgram?.operations ?? [];
     const nextIdx = this.runState().opIdx + 1;
     if (nextIdx >= program.length) {
-      this.runState.update(s => ({ ...s, step: 'bot-done' }));
+      this.runState.update(s => ({ ...s, step: 'debug' }));
       return;
     }
     this.runState.set({
       ...initialRunState, botId: bot.id, opIdx: nextIdx, step: 'idle',
     });
+  }
+
+  async applyDebugFn(action: { action: string; n?: number }): Promise<void> {
+    const bot = this.currentRunBot();
+    if (!bot) return;
+    const s = this.currentState();
+    let energyCost = 0;
+    let bugsRemoved = 0;
+    let numbersRemoved = 0;
+    if (action.action === 'debug') {
+      if (bot.bugs === 0 || bot.energy < 2) return;
+      energyCost = 2; bugsRemoved = 1;
+    } else if (action.action === 'patch') {
+      if (bot.bugs === 0 || bot.energy < 5) return;
+      energyCost = 5; bugsRemoved = bot.bugs;
+    } else if (action.action === 'optimize') {
+      const n = action.n ?? 1;
+      if (bot.numbers.length < n || bot.energy < n) return;
+      energyCost = n; numbersRemoved = n;
+    } else {
+      return;
+    }
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'debug',
+      timestamp: new Date().toISOString(), botId: bot.id,
+      kind: 'debug_action',
+      payload: { action: action.action, energyCost, bugsRemoved, numbersRemoved },
+    }]);
   }
 
   async finishBotRun(_botId?: string): Promise<void> {
@@ -1436,6 +1614,7 @@ export class SimulatorPlay implements OnInit {
     this.saveError.set(null);
     const prev = this.events();
     this.events.set([...prev, ...newEvs]);
+    this.pendingSaves.update(n => n + 1);
     try {
       const resp = await fetch(`${API_URL}/api/battles/${r.id}/events`, {
         method: 'PATCH',
@@ -1454,6 +1633,8 @@ export class SimulatorPlay implements OnInit {
       this.events.set(prev);
       this.saveError.set(String(e));
       return false;
+    } finally {
+      this.pendingSaves.update(n => n - 1);
     }
   }
 

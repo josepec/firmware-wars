@@ -195,7 +195,17 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       }
       break;
     }
-    case 'debug_action':
+    case 'debug_action': {
+      if (bot) {
+        const cost = (p['energyCost'] as number) ?? 0;
+        bot.energy = Math.max(0, bot.energy - cost);
+        const bugsRemoved = (p['bugsRemoved'] as number) ?? 0;
+        if (bugsRemoved) bot.bugs = Math.max(0, bot.bugs - bugsRemoved);
+        const numbersRemoved = (p['numbersRemoved'] as number) ?? 0;
+        if (numbersRemoved > 0) bot.numbers = bot.numbers.slice(0, Math.max(0, bot.numbers.length - numbersRemoved));
+      }
+      break;
+    }
     case 'criterion_chosen':
     case 'ppt_rolled':
     case 'ppt_tie':

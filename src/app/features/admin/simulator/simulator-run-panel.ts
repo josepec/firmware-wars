@@ -165,6 +165,65 @@ import type { FunctionEntry } from './simulator-bot-card';
           Finalizar turno
         </button>
       }
+
+      <!-- DEBUG phase -->
+      @if (state().step === 'debug') {
+        <div class="pt-2 border-t border-green-500/10 space-y-2">
+          <div class="text-[8px] tracking-[0.2em] uppercase text-yellow-400/70">
+            DEBUG · {{ bot().name }}
+          </div>
+          <div class="text-[8px] text-green-500/50 tracking-wider">
+            ⚡ {{ bot().energy }}/{{ bot().maxEnergy }}
+            &nbsp;🐛 {{ bot().bugs }}
+            &nbsp;RAM [{{ bot().numbers.join(', ') }}]
+          </div>
+
+          <!-- debug() -->
+          <button type="button"
+            [disabled]="bot().bugs === 0 || bot().energy < 2"
+            (click)="debugAction.emit({ action: 'debug' })"
+            class="w-full px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase
+                   bg-yellow-500/10 border border-yellow-500/30 text-yellow-300
+                   hover:bg-yellow-500/20 disabled:opacity-30 cursor-pointer">
+            debug() — 2⚡ → elimina 1 bug
+          </button>
+
+          <!-- patch() -->
+          <button type="button"
+            [disabled]="bot().bugs === 0 || bot().energy < 5"
+            (click)="debugAction.emit({ action: 'patch' })"
+            class="w-full px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase
+                   bg-yellow-500/10 border border-yellow-500/30 text-yellow-300
+                   hover:bg-yellow-500/20 disabled:opacity-30 cursor-pointer">
+            patch() — 5⚡ → elimina todos los bugs
+          </button>
+
+          <!-- optimize(n) -->
+          @if (bot().numbers.length > 0) {
+            <div class="space-y-1">
+              <div class="text-[8px] text-green-500/50 tracking-wider">optimize(n) — n⚡ → elimina n números de RAM</div>
+              <div class="flex flex-wrap gap-1">
+                @for (n of optimizeOptions(); track n) {
+                  <button type="button"
+                    [disabled]="bot().energy < n"
+                    (click)="debugAction.emit({ action: 'optimize', n: n })"
+                    class="px-2 py-1 text-[9px] border border-green-500/30 text-green-400
+                           hover:border-green-400 hover:bg-green-500/10 disabled:opacity-30 cursor-pointer">
+                    {{ n }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <button type="button" (click)="finishRun.emit()"
+            class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase mt-1
+                   bg-green-500/10 border border-green-500/30 text-green-400
+                   hover:bg-green-500/20 cursor-pointer">
+            Finalizar DEBUG →
+          </button>
+        </div>
+      }
     </div>
   `,
 })
@@ -177,6 +236,7 @@ export class SimulatorRunPanel {
   numberPicked = output<number>();
   nextOp = output<void>();
   finishRun = output<void>();
+  debugAction = output<{ action: string; n?: number }>();
 
   readonly COMP_LABEL = COMP_LABEL;
 
@@ -190,6 +250,11 @@ export class SimulatorRunPanel {
   });
 
   readonly hasCurrentOp = computed(() => this.currentOp() !== null);
+
+  readonly optimizeOptions = computed<number[]>(() => {
+    const len = this.bot().numbers.length;
+    return Array.from({ length: len }, (_, i) => i + 1);
+  });
 
   fnLabel(fn: FunctionCall): string {
     if (fn.type === 'move') return `move(${fn.moveDistance})`;

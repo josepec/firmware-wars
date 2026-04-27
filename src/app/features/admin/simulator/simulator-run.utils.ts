@@ -21,6 +21,7 @@ export type RunStep =
   | 'picking-target'
   | 'between-iters'
   | 'op-done'
+  | 'debug'
   | 'bot-done';
 
 export interface RunState {
@@ -35,6 +36,7 @@ export interface RunState {
   pendingFn: FunctionCall | null;
   condResult: boolean | null;
   interceptBotId: string | null;
+  loopExecuted: boolean;
 }
 
 export const initialRunState: RunState = {
@@ -49,6 +51,7 @@ export const initialRunState: RunState = {
   pendingFn: null,
   condResult: null,
   interceptBotId: null,
+  loopExecuted: false,
 };
 
 export function parseRange(s: string | undefined | null): number {

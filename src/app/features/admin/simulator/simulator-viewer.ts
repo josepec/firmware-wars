@@ -98,10 +98,19 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     }
     case 'compile_committed':
       return `Programa compilado (${((p['program'] as { operations?: unknown[] })?.operations?.length ?? 0)} ops)`;
-    case 'operation_resolved':
-      return `Operación ${p['kind'] ?? ''} → ${p['branch'] ?? ''}`;
-    case 'intercept':
-      return `Intercepta → ${name(p['interceptorId'] as string)}`;
+    case 'operation_resolved': {
+      const kind = p['kind'] ?? '';
+      const cond = p['condResult'] !== undefined ? ` = ${p['condResult'] ? 'TRUE' : 'FALSE'}` : '';
+      const d6str = p['d6'] !== undefined ? ` d6:${p['d6']}` : '';
+      const picked = p['picked'] !== undefined ? ` núm:${p['picked']}` : '';
+      const branch = p['branch'] ? ` → ${p['branch']}` : '';
+      return `Op ${kind}${d6str}${picked}${cond}${branch}`;
+    }
+    case 'intercept': {
+      const who = name(p['interceptorId'] as string);
+      if (p['skipped']) return `${who} no intercepta`;
+      return `${who} intercepta → sustituye d6 por ${p['substituteD6']}`;
+    }
     case 'move':
       return `Mueve a (${p['toQ']}, ${p['toR']}) · -${p['energyCost'] ?? 0}⚡`;
     case 'attack_hit': {
@@ -122,6 +131,8 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       return `Destruido`;
     case 'debug_action':
       return `DEBUG: ${p['action'] ?? '?'}`;
+    case 'phase_changed':
+      return `Fase: ${p['from'] ?? '?'} → ${p['to'] ?? '?'}`;
     case 'turn_ended':
       return `Fin de turno`;
     case 'round_ended':
