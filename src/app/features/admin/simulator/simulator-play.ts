@@ -241,7 +241,8 @@ export class SimulatorPlay implements OnInit {
 
     const runBot = this.currentRunBot();
     if (runBot) {
-      return { player: runBot.playerId, alias: aliasFor(runBot.playerId), sub: `RUN · ${runBot.name}` };
+      const sub = phase === 'debug' ? `DEBUG · ${runBot.name}` : `RUN · ${runBot.name}`;
+      return { player: runBot.playerId, alias: aliasFor(runBot.playerId), sub };
     }
 
     if (phase === 'end' || phase === 'init') return null;
@@ -667,7 +668,7 @@ export class SimulatorPlay implements OnInit {
       const cb = this.nextCompileBot();
       return cb ? cb.playerId === p : true;
     }
-    if (phase === 'run') {
+    if (phase === 'run' || phase === 'debug') {
       const rb = this.currentRunBot();
       return rb ? rb.playerId === p : true;
     }
@@ -715,7 +716,7 @@ export class SimulatorPlay implements OnInit {
       if (!cb) return 'active';
       return cb.playerId === p ? 'active' : 'waiting';
     }
-    if (phase === 'run') {
+    if (phase === 'run' || phase === 'debug') {
       const rb = this.currentRunBot();
       if (!rb) return 'active';
       return rb.playerId === p ? 'active' : 'waiting';
@@ -773,8 +774,9 @@ export class SimulatorPlay implements OnInit {
     if (compileBot) return `COMPILE · ${compileBot.name} (P${compileBot.playerId})`;
     if (phase === 'compile') return 'COMPILE · Completado';
     const runBot = this.currentRunBot();
-    if (runBot) return `RUN · ${runBot.name} (P${runBot.playerId})`;
+    if (runBot) return phase === 'debug' ? `DEBUG · ${runBot.name} (P${runBot.playerId})` : `RUN · ${runBot.name} (P${runBot.playerId})`;
     if (phase === 'run') return 'RUN';
+    if (phase === 'debug') return 'DEBUG';
     if (phase === 'end') {
       return `END · Ronda ${this.currentState().turn}`;
     }

@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import type { BattleBot, CompiledOperation, FunctionCall } from '../../../shared/types/battle.types';
 import { COMP_LABEL, type RunState } from './simulator-run.utils';
 import type { FunctionEntry } from './simulator-bot-card';
@@ -200,19 +200,41 @@ import type { FunctionEntry } from './simulator-bot-card';
 
           <!-- optimize(n) -->
           @if (bot().numbers.length > 0) {
-            <div class="space-y-1">
-              <div class="text-[8px] text-green-500/50 tracking-wider">optimize(n) — n⚡ → elimina n números de RAM</div>
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <div class="text-[8px] text-yellow-400/60 tracking-wider uppercase">optimize(n) — n⚡ → elimina n números de RAM</div>
+                @if (optimizeSelected().size > 0) {
+                  <div class="text-[8px] text-yellow-300/80">{{ optimizeSelected().size }}⚡</div>
+                }
+              </div>
               <div class="flex flex-wrap gap-1">
-                @for (n of optimizeOptions(); track n) {
+                @for (n of bot().numbers; track $index; let idx = $index) {
+                  @let sel = optimizeSelected().has(idx);
+                  @let canSelect = sel || optimizeSelected().size < bot().energy;
                   <button type="button"
-                    [disabled]="bot().energy < n"
-                    (click)="debugAction.emit({ action: 'optimize', n: n })"
-                    class="px-2 py-1 text-[9px] border border-green-500/30 text-green-400
-                           hover:border-green-400 hover:bg-green-500/10 disabled:opacity-30 cursor-pointer">
+                    [disabled]="!canSelect"
+                    (click)="toggleOptimize(idx)"
+                    class="w-7 h-7 text-[11px] font-bold border transition-all cursor-pointer disabled:opacity-30"
+                    [class.border-yellow-400]="sel"
+                    [class.bg-yellow-500\\/20]="sel"
+                    [class.text-yellow-200]="sel"
+                    [class.border-yellow-500\\/30]="!sel"
+                    [class.bg-yellow-500\\/5]="!sel"
+                    [class.text-yellow-400\\/70]="!sel"
+                    [class.hover\\:border-yellow-400]="!sel"
+                    [class.hover\\:bg-yellow-500\\/15]="!sel">
                     {{ n }}
                   </button>
                 }
               </div>
+              @if (optimizeSelected().size > 0) {
+                <button type="button" (click)="confirmOptimize()"
+                  class="w-full px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase
+                         bg-yellow-500/10 border border-yellow-500/30 text-yellow-300
+                         hover:bg-yellow-500/20 cursor-pointer">
+                  Aplicar optimize ({{ optimizeSelected().size }}⚡)
+                </button>
+              }
             </div>
           }
 
@@ -251,10 +273,30 @@ export class SimulatorRunPanel {
 
   readonly hasCurrentOp = computed(() => this.currentOp() !== null);
 
-  readonly optimizeOptions = computed<number[]>(() => {
-    const len = this.bot().numbers.length;
-    return Array.from({ length: len }, (_, i) => i + 1);
-  });
+  readonly optimizeSelected = signal<Set<number>>(new Set());
+
+  constructor() {
+    effect(() => {
+      void this.bot().id;
+      this.optimizeSelected.set(new Set());
+    });
+  }
+
+  toggleOptimize(idx: number): void {
+    this.optimizeSelected.update(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else if (next.size < this.bot().energy) next.add(idx);
+      return next;
+    });
+  }
+
+  confirmOptimize(): void {
+    const n = this.optimizeSelected().size;
+    if (n === 0) return;
+    this.debugAction.emit({ action: 'optimize', n });
+    this.optimizeSelected.set(new Set());
+  }
 
   fnLabel(fn: FunctionCall): string {
     if (fn.type === 'move') return `move(${fn.moveDistance})`;

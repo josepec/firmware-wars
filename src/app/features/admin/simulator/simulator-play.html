@@ -343,7 +343,7 @@
     </div>
     }
 
-    } @else if (currentState().phase === 'run' || currentState().phase === 'end') {
+    } @else if (currentState().phase === 'run' || currentState().phase === 'debug' || currentState().phase === 'end') {
     @if (currentRunBot(); as rb) {
     @if (rb.playerId === p) {
     <app-simulator-run-panel [bot]="rb" [state]="runState()" [functionsMap]="functionsMap()"
@@ -520,7 +520,7 @@
     @if (bootRollingFor() === bot.id) {
     <div class="flex items-center gap-2 py-2">
       <span class="dice-spin text-3xl">🎲</span>
-      <span class="text-green-500/40 italic text-[10px]">arrancando...</span>
+      <span class="text-green-500/40 italic text-[10px]">Tirando...</span>
     </div>
     } @else if (!br.energy) {
     <div class="text-[9px] text-green-500/60">getEnergy(n) · elige n dados d6:</div>
