@@ -27,7 +27,7 @@
     style="font-family: 'Orbitron', monospace;">{{ r.title }}</h1>
   <div class="text-[10px] tracking-[0.2em] text-green-500/50 mb-4">
     FASE: <span class="text-green-300">{{ phaseLabel(currentState().phase) }}</span>
-    &middot; Ronda <span class="text-green-300">{{ currentState().turn }}</span>
+    &middot; Ronda <span class="text-green-300">{{ (initStarted() && currentState().phase === 'end') ? nextRoundTurn() : currentState().turn }}</span>
     @if (subPhaseLabel(); as lbl) {
     &middot; <span class="text-cyan-300">{{ lbl }}</span>
     }
@@ -136,20 +136,6 @@
     </div>
   </details>
 
-  @if (currentState().phase === 'init' && activationOrderNames().length > 0) {
-  <div class="mt-3 border border-cyan-500/25 bg-cyan-500/5 p-3">
-    <div class="text-[10px] tracking-[0.2em] text-cyan-300 uppercase mb-2">
-      Orden de activación
-    </div>
-    <div class="flex flex-wrap gap-2 text-[9px] tracking-wider">
-      @for (n of activationOrderNames(); track $index) {
-      <span class="px-2 py-1 border border-green-500/20 text-green-300">
-        {{ $index + 1 }}. {{ n }}
-      </span>
-      }
-    </div>
-  </div>
-  }
   }
 </div>
 
@@ -162,6 +148,9 @@
     <div class="text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 text-green-400">
       <span class="inline-block w-2 h-2 rounded-full bg-green-500/60"></span>
       P{{ p }} · {{ p === 1 ? r.player1Alias : r.player2Alias }}
+      @if (!initStarted() && currentState().cpuPriority === p && currentState().phase !== 'deploy' && currentState().phase !== 'finished') {
+      <span class="text-[7px] tracking-[0.15em] border border-cyan-500/40 text-cyan-400/80" style="display:inline-block;line-height:1;padding:5px 6px 3px;">INICIATIVA</span>
+      }
     </div>
 
     @if (currentState().phase === 'deploy') {
@@ -287,15 +276,20 @@
     }
     }
     } @else if (currentState().phase === 'init' || currentState().phase === 'boot') {
-    <div class="text-[9px] tracking-wider text-green-500/60">
-      Iniciativa:
-      <span [class.text-cyan-300]="currentState().cpuPriority === p"
-        [class.text-green-500\/40]="currentState().cpuPriority !== p">
-        {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
-      </span>
-    </div>
 
-    @if (nextBootBot(); as bb) {
+    @if (initStarted()) {
+    @if (initSubPhase() === 'ppt-p1' || initSubPhase() === 'ppt-p2') {
+    <ng-container *ngTemplateOutlet="pptRollTpl; context: {
+            $implicit: p, ctx: 'init',
+            rolling: rollingInitPpt() === p, hand: initPptFor(p), active: isActive(p)
+          }"></ng-container>
+    } @else if (initSubPhase() === 'ppt-result') {
+    <ng-container *ngTemplateOutlet="pptResultTpl; context: {
+            $implicit: p, ctx: 'init',
+            h1: initPptFor(1), h2: initPptFor(2), winner: initPptWinner()
+          }"></ng-container>
+    }
+    } @else if (nextBootBot(); as bb) {
     @if (bb.playerId === p) {
     <ng-container *ngTemplateOutlet="bootPanelTpl; context: { $implicit: bb }"></ng-container>
     } @else {
@@ -314,13 +308,6 @@
     }
 
     } @else if (currentState().phase === 'compile') {
-    <div class="text-[9px] tracking-wider text-green-500/60">
-      Iniciativa:
-      <span [class.text-cyan-300]="currentState().cpuPriority === p"
-        [class.text-green-500\/40]="currentState().cpuPriority !== p">
-        {{ currentState().cpuPriority === p ? 'Ganador PPT' : 'Perdedor PPT' }}
-      </span>
-    </div>
 
     @if (nextCompileBot(); as cb) {
     @if (cb.playerId === p) {

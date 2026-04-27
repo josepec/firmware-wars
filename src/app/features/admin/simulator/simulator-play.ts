@@ -122,7 +122,7 @@ export class SimulatorPlay implements OnInit {
 
   readonly initSubPhase = computed<InitSubPhase>(() => {
     const phase = this.currentState().phase;
-    if (phase !== 'deploy' && phase !== 'end') return 'done';
+    if (phase !== 'deploy' && phase !== 'end' && phase !== 'init') return 'done';
     if (!this.initStarted()) return 'idle';
     if (!this.initPptP1()) return 'ppt-p1';
     if (!this.initPptP2()) return 'ppt-p2';
@@ -220,6 +220,14 @@ export class SimulatorPlay implements OnInit {
     const r = this.report();
     if (!r) return null;
     const aliasFor = (p: PlayerId) => p === 1 ? r.player1Alias : r.player2Alias;
+    const phase = this.currentState().phase;
+
+    if (this.initStarted()) {
+      const isp = this.initSubPhase();
+      if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: `INIT R${this.nextRoundTurn()} · Tira PPT` };
+      if (isp === 'ppt-p2') return { player: 2, alias: aliasFor(2), sub: `INIT R${this.nextRoundTurn()} · Tira PPT` };
+      return null;
+    }
 
     const bootBot = this.nextBootBot();
     if (bootBot) {
@@ -236,24 +244,7 @@ export class SimulatorPlay implements OnInit {
       return { player: runBot.playerId, alias: aliasFor(runBot.playerId), sub: `RUN · ${runBot.name}` };
     }
 
-    const phase = this.currentState().phase;
-
-    if (phase === 'end') {
-      if (this.initStarted()) {
-        const isp = this.initSubPhase();
-        if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: `INIT R${this.nextRoundTurn()} · Tira PPT` };
-        if (isp === 'ppt-p2') return { player: 2, alias: aliasFor(2), sub: `INIT R${this.nextRoundTurn()} · Tira PPT` };
-      }
-      return null;
-    }
-
-    if (this.initStarted() && phase === 'deploy') {
-      const isp = this.initSubPhase();
-      if (isp === 'ppt-p1') return { player: 1, alias: aliasFor(1), sub: 'INIT · Tira Dado PPT' };
-      if (isp === 'ppt-p2') return { player: 2, alias: aliasFor(2), sub: 'INIT · Tira Dado PPT' };
-      return null;
-    }
-    if (phase === 'init') return null;
+    if (phase === 'end' || phase === 'init') return null;
 
     const sp = this.subPhase();
     if (sp === 'criterion') return null;
@@ -478,10 +469,11 @@ export class SimulatorPlay implements OnInit {
         this.deployComplete() &&
         !!this.deployStarter() &&
         !this.bootStarted() &&
+        !this.initStarted() &&
         this.currentState().phase === 'deploy' &&
         !this.events().some(e => e.kind === 'init_ppt')
       ) {
-        void this.resolveInit(this.deployStarter()!);
+        this.initStarted.set(true);
       }
     }, { allowSignalWrites: true });
 
@@ -694,7 +686,15 @@ export class SimulatorPlay implements OnInit {
       if (isp === 'ppt-result') return true;
       return false;
     }
-    if (phase === 'init') return true;
+    if (phase === 'init') {
+      if (this.initStarted()) {
+        const isp = this.initSubPhase();
+        if (isp === 'ppt-p1') return p === 1;
+        if (isp === 'ppt-p2') return p === 2;
+        if (isp === 'ppt-result') return true;
+      }
+      return true;
+    }
     const sp = this.subPhase();
     if (sp === 'criterion') return !this.choiceFor(p);
     if (sp === 'ppt-p1') return p === 1;
@@ -734,7 +734,14 @@ export class SimulatorPlay implements OnInit {
       if (isp === 'ppt-p2') return p === 2 ? 'active' : 'waiting';
       return 'active';
     }
-    if (phase === 'init') return 'active';
+    if (phase === 'init') {
+      if (this.initStarted()) {
+        const isp = this.initSubPhase();
+        if (isp === 'ppt-p1') return p === 1 ? 'active' : 'waiting';
+        if (isp === 'ppt-p2') return p === 2 ? 'active' : 'waiting';
+      }
+      return 'active';
+    }
     const sp = this.subPhase();
     if (sp === 'criterion') return 'active';
     if (sp === 'ppt-result') return 'active';
@@ -747,6 +754,17 @@ export class SimulatorPlay implements OnInit {
 
   subPhaseLabel(): string | null {
     const phase = this.currentState().phase;
+    if (this.initStarted()) {
+      const isp = this.initSubPhase();
+      if (phase === 'end' || phase === 'init') {
+        switch (isp) {
+          case 'ppt-p1': return `INIT R${this.nextRoundTurn()} · PPT P1`;
+          case 'ppt-p2': return `INIT R${this.nextRoundTurn()} · PPT P2`;
+          case 'ppt-result': return `INIT R${this.nextRoundTurn()} · Resultado`;
+          default: return null;
+        }
+      }
+    }
     const bootBot = this.nextBootBot();
     if (bootBot) return `BOOT · ${bootBot.name} (P${bootBot.playerId})`;
     if (phase === 'boot') return 'BOOT · Completado';
@@ -757,14 +775,6 @@ export class SimulatorPlay implements OnInit {
     if (runBot) return `RUN · ${runBot.name} (P${runBot.playerId})`;
     if (phase === 'run') return 'RUN';
     if (phase === 'end') {
-      if (this.initStarted()) {
-        switch (this.initSubPhase()) {
-          case 'ppt-p1': return `INIT R${this.nextRoundTurn()} · PPT P1`;
-          case 'ppt-p2': return `INIT R${this.nextRoundTurn()} · PPT P2`;
-          case 'ppt-result': return `INIT R${this.nextRoundTurn()} · Resultado`;
-          default: return `INIT · Ronda ${this.nextRoundTurn()}`;
-        }
-      }
       return `END · Ronda ${this.currentState().turn}`;
     }
     if (this.initStarted() && phase === 'deploy') {
@@ -1528,14 +1538,6 @@ export class SimulatorPlay implements OnInit {
     this.bootRollingFor.set(null);
   }
 
-  activationOrderNames(): string[] {
-    const s = this.currentState();
-    const byId = new Map(s.bots.map(b => [b.id, b]));
-    return s.activationOrder.map(id => {
-      const bot = byId.get(id);
-      return bot ? `P${bot.playerId}·${bot.name}` : id;
-    });
-  }
 
   async rollColorDice(): Promise<void> {
     if (this.rollingColor()) return;
