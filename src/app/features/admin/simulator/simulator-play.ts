@@ -1394,16 +1394,6 @@ export class SimulatorPlay implements OnInit {
   }
 
   async skipIntercept(): Promise<void> {
-    const rs = this.runState();
-    if (rs.interceptBotId) {
-      const s = this.currentState();
-      await this.appendEvents([{
-        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
-        timestamp: new Date().toISOString(), botId: rs.interceptBotId,
-        kind: 'intercept',
-        payload: { interceptorId: rs.interceptBotId, skipped: true },
-      }]);
-    }
     const d6 = rollD6();
     this.runState.update(s => ({ ...s, d6, step: 'picking-number', interceptBotId: null }));
   }

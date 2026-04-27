@@ -151,8 +151,9 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'intercept': {
       const interceptorId = p['interceptorId'] as string | undefined;
+      const skipped = p['skipped'] as boolean | undefined;
       const interceptor = findBot(state, interceptorId);
-      if (interceptor) {
+      if (interceptor && !skipped) {
         interceptor.hasInterceptedThisTurn = true;
         const n = p['substituteD6'] as number | undefined;
         if (typeof n === 'number') {
