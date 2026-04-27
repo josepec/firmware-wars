@@ -57,7 +57,11 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     case 'upgrade': {
       if (bot) {
         const v = p['version'] as 1 | 2 | 3;
-        if (v) bot.version = v;
+        if (v) {
+          bot.version = v;
+          const maxNumbersByVersion: Record<1 | 2 | 3, number> = { 1: 5, 2: 7, 3: 8 };
+          bot.maxNumbers = maxNumbersByVersion[v];
+        }
       }
       break;
     }

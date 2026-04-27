@@ -290,6 +290,7 @@ export class SimulatorPlay implements OnInit {
   });
 
   readonly nextBootBot = computed<BattleBot | null>(() => {
+    if (this.initStarted()) return null;
     const s = this.currentState();
     const inBoot = s.phase === 'boot' || (s.phase === 'init' && this.bootStarted());
     if (!inBoot) return null;

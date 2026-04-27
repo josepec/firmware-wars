@@ -44,8 +44,9 @@ export function rollBoot(
   const dice: number[] = [];
   for (let i = 0; i < chosen; i++) dice.push(d6());
   const total = dice.reduce((s, x) => s + x, 0);
-  const energy = Math.min(bot.maxEnergy, total);
-  const overflow = total > bot.maxEnergy;
+  const combined = bot.energy + total;
+  const energy = Math.min(bot.maxEnergy, combined);
+  const overflow = combined > bot.maxEnergy;
 
   const events: BattleEvent[] = [];
   events.push({
