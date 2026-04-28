@@ -244,12 +244,13 @@ export class SimulatorPlay implements OnInit {
       return { player: bootBot.playerId, alias: aliasFor(bootBot.playerId), sub: `BOOT · ${bootBot.name}` };
     }
 
-    const compileBot = this.nextCompileBot();
+    const compileBot = this.nextCompileBot()
+      ?? (phase === 'compile' ? this.lastActiveBot() : null);
     if (compileBot) {
       return { player: compileBot.playerId, alias: aliasFor(compileBot.playerId), sub: `COMPILE · ${compileBot.name}` };
     }
 
-    const runBot = this.currentRunBot();
+    const runBot = this.currentRunBot() ?? this.anticipatedRunBot();
     if (runBot) {
       const sub = phase === 'debug' ? `DEBUG · ${runBot.name}` : `RUN · ${runBot.name}`;
       return { player: runBot.playerId, alias: aliasFor(runBot.playerId), sub };
@@ -353,6 +354,32 @@ export class SimulatorPlay implements OnInit {
     const id = this.runState().botId;
     if (!id) return null;
     return this.currentState().bots.find(b => b.id === id) ?? null;
+  });
+
+  /** Most recent action's bot in the current turn (compile_committed or turn_ended).
+   *  Bridges async network gaps where nextCompileBot()/currentRunBot() are momentarily null
+   *  during phase transitions, so isActive/panelState/turnBanner stay on the correct player. */
+  readonly lastActiveBot = computed<BattleBot | null>(() => {
+    const s = this.currentState();
+    const events = this.events();
+    for (let i = events.length - 1; i >= 0; i--) {
+      const e = events[i];
+      if (e.turn !== s.turn) continue;
+      if ((e.kind === 'compile_committed' || e.kind === 'turn_ended') && e.botId) {
+        return s.bots.find(b => b.id === e.botId) ?? null;
+      }
+    }
+    return null;
+  });
+
+  /** Bot that will run next — same lookup as beginRunForActiveBot().
+   *  Bridges the gap between phase→'run' (sync) and runState.botId being set (after network save).
+   *  Also covers 'end' phase between turn_ended save and runState.set(initialRunState). */
+  readonly anticipatedRunBot = computed<BattleBot | null>(() => {
+    const s = this.currentState();
+    if (s.phase !== 'run' && s.phase !== 'debug' && s.phase !== 'end') return null;
+    if (this.runState().botId !== null) return null;
+    return this.lastActiveBot();
   });
 
   readonly currentRunOp = computed<CompiledOperation | null>(() => {
@@ -675,15 +702,13 @@ export class SimulatorPlay implements OnInit {
     if (bootBot) return bootBot.playerId === p;
     if (phase === 'boot') return true;
     if (phase === 'compile') {
-      const cb = this.nextCompileBot();
+      const cb = this.nextCompileBot() ?? this.lastActiveBot();
       return cb ? cb.playerId === p : true;
     }
     if (phase === 'run' || phase === 'debug') {
-      const rb = this.currentRunBot();
+      const rb = this.currentRunBot() ?? this.anticipatedRunBot();
       if (rb) return rb.playerId === p;
-      const s = this.currentState();
-      const nextBot = s.bots.find(b => b.id === s.activationOrder[s.currentActivationIdx]);
-      return nextBot ? nextBot.playerId === p : true;
+      return true;
     }
     if (phase === 'end') {
       if (this.initStarted()) {
@@ -692,6 +717,9 @@ export class SimulatorPlay implements OnInit {
         if (isp === 'ppt-p2') return p === 2;
         if (isp === 'ppt-result') return true;
       }
+      // Brief transition between bots: keep showing the player whose turn just ended
+      const rb = this.currentRunBot() ?? this.lastActiveBot();
+      if (rb) return rb.playerId === p;
       return true;
     }
     if (this.initStarted() && phase === 'deploy') {
@@ -725,16 +753,14 @@ export class SimulatorPlay implements OnInit {
     if (bootBot) return bootBot.playerId === p ? 'active' : 'waiting';
     if (phase === 'boot') return 'active';
     if (phase === 'compile') {
-      const cb = this.nextCompileBot();
+      const cb = this.nextCompileBot() ?? this.lastActiveBot();
       if (!cb) return 'active';
       return cb.playerId === p ? 'active' : 'waiting';
     }
     if (phase === 'run' || phase === 'debug') {
-      const rb = this.currentRunBot();
+      const rb = this.currentRunBot() ?? this.anticipatedRunBot();
       if (rb) return rb.playerId === p ? 'active' : 'waiting';
-      const s = this.currentState();
-      const nextBot = s.bots.find(b => b.id === s.activationOrder[s.currentActivationIdx]);
-      return nextBot ? (nextBot.playerId === p ? 'active' : 'waiting') : 'active';
+      return 'active';
     }
     if (phase === 'end') {
       if (this.initStarted()) {
@@ -743,6 +769,9 @@ export class SimulatorPlay implements OnInit {
         if (isp === 'ppt-p2') return p === 2 ? 'active' : 'waiting';
         return 'active';
       }
+      // Brief transition between bots: keep showing the player whose turn just ended
+      const rb = this.currentRunBot() ?? this.lastActiveBot();
+      if (rb) return rb.playerId === p ? 'active' : 'waiting';
       return 'active';
     }
     if (this.initStarted() && phase === 'deploy') {
