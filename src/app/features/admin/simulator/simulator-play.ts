@@ -15,7 +15,7 @@ import {
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollOperationDie } from './engine/dice';
-import { reachableHexes } from './engine/pathfinding';
+import { hexDistance, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
@@ -23,7 +23,6 @@ import { SimulatorBotCard, type FunctionEntry } from './simulator-bot-card';
 import { SimulatorRunPanel } from './simulator-run-panel';
 import {
   computeAttackTargets,
-  findClosestEnemyOf,
   fnEnergyCost,
   initialRunState,
   parseDamage,
@@ -144,6 +143,10 @@ export class SimulatorPlay implements OnInit {
 
   readonly displayMap = computed<HexMapData>(() => {
     const s = this.currentState();
+    const phase = s.phase;
+    const activeRunBotId = (phase === 'run' || phase === 'debug')
+      ? (s.activationOrder[s.currentActivationIdx] ?? null)
+      : null;
     const deployments = s.bots
       .filter(b => b.q !== -999)
       .map(b => ({
@@ -152,9 +155,16 @@ export class SimulatorPlay implements OnInit {
         type: 'player' as const,
         team: b.playerId,
         label: b.name,
+        active: b.id === activeRunBotId,
+        destroyed: b.destroyed,
+        tooltip: `${b.name}\n♥ ${b.life}/${b.maxLife}  ⚡ ${b.energy}/${b.maxEnergy}  🛡️ ${b.shield}/${b.maxShield}`,
       }));
     return { ...s.hexMap, deployments };
   });
+
+  readonly dotOpacity = computed(() =>
+    this.currentState().phase === 'deploy' ? 1.0 : 0.12
+  );
 
   readonly activeDeployer = computed<PlayerId | null>(() => {
     const s = this.currentState();
@@ -670,7 +680,10 @@ export class SimulatorPlay implements OnInit {
     }
     if (phase === 'run' || phase === 'debug') {
       const rb = this.currentRunBot();
-      return rb ? rb.playerId === p : true;
+      if (rb) return rb.playerId === p;
+      const s = this.currentState();
+      const nextBot = s.bots.find(b => b.id === s.activationOrder[s.currentActivationIdx]);
+      return nextBot ? nextBot.playerId === p : true;
     }
     if (phase === 'end') {
       if (this.initStarted()) {
@@ -718,8 +731,10 @@ export class SimulatorPlay implements OnInit {
     }
     if (phase === 'run' || phase === 'debug') {
       const rb = this.currentRunBot();
-      if (!rb) return 'active';
-      return rb.playerId === p ? 'active' : 'waiting';
+      if (rb) return rb.playerId === p ? 'active' : 'waiting';
+      const s = this.currentState();
+      const nextBot = s.bots.find(b => b.id === s.activationOrder[s.currentActivationIdx]);
+      return nextBot ? (nextBot.playerId === p ? 'active' : 'waiting') : 'active';
     }
     if (phase === 'end') {
       if (this.initStarted()) {
@@ -824,15 +839,24 @@ export class SimulatorPlay implements OnInit {
     }]);
     const c1 = this.choiceP1();
     const c2 = this.choiceP2();
-    if (c1 && c2 && c1 === c2 && (c1 === 'junior-1' || c1 === 'junior-2')) {
-      const starter: PlayerId = c1 === 'junior-1' ? 1 : 2;
-      this.deployStarter.set(starter);
-      await this.appendEvents([{
-        turn: 0, activation: 0, phase: 'deploy',
-        timestamp: new Date().toISOString(),
-        kind: 'ppt_starter_set',
-        payload: { starter, reason: 'junior-agreement' },
-      }]);
+    if (c1 && c2) {
+      if (c1 === c2 && (c1 === 'junior-1' || c1 === 'junior-2')) {
+        const starter: PlayerId = c1 === 'junior-1' ? 1 : 2;
+        this.deployStarter.set(starter);
+        await this.appendEvents([{
+          turn: 0, activation: 0, phase: 'deploy',
+          timestamp: new Date().toISOString(),
+          kind: 'ppt_starter_set',
+          payload: { starter, reason: 'junior-agreement' },
+        }]);
+      } else {
+        await this.appendEvents([{
+          turn: 0, activation: 0, phase: 'deploy',
+          timestamp: new Date().toISOString(),
+          kind: 'phase_changed',
+          payload: { reason: 'criteria-differ', c1, c2 },
+        }]);
+      }
     }
   }
 
@@ -1079,7 +1103,8 @@ export class SimulatorPlay implements OnInit {
     const rs = this.runState();
     const op = this.currentRunOp();
     const bot = this.currentRunBot();
-    if (!op || !bot || rs.step !== 'picking-number' || !rs.opFace || rs.d6 === null) return;
+    if (!op || !bot || rs.step !== 'picking-number' || rs.d6 === null) return;
+    if (op.kind !== 'FOR' && !rs.opFace) return;
 
     if (op.kind === 'FOR') {
       // FOR: pickedNumber + d6 → diff
@@ -1089,7 +1114,7 @@ export class SimulatorPlay implements OnInit {
         turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
         timestamp: new Date().toISOString(), botId: bot.id,
         kind: 'operation_resolved',
-        payload: { opIdx: rs.opIdx, kind: 'FOR', d6: rs.d6, picked: n, diff },
+        payload: { opIdx: rs.opIdx, kind: 'FOR', d6: rs.d6, picked: n, diff, primary: op.primary },
       }]);
       if (diff === 0 || diff > 3) {
         await this.appendEvents([{
@@ -1097,12 +1122,12 @@ export class SimulatorPlay implements OnInit {
           timestamp: new Date().toISOString(), botId: bot.id,
           kind: 'bug_added', payload: { count: 1, reason: 'infinite-loop' },
         }]);
-        this.runState.update(st => ({ ...st, pickedNumber: n, step: 'op-done', condResult: false }));
+        this.runState.update(st => ({ ...st, pickedNumber: n, step: 'op-done', condResult: 0 }));
         return;
       }
       this.runState.update(st => ({
         ...st, pickedNumber: n, forRemaining: diff, branch: 'primary',
-        pendingFn: op.primary, condResult: true, step: 'evaluated',
+        pendingFn: op.primary, condResult: diff, step: 'evaluated',
       }));
       // Trigger first iteration
       await this.executePendingFn();
@@ -1117,7 +1142,7 @@ export class SimulatorPlay implements OnInit {
         turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
         timestamp: new Date().toISOString(), botId: bot.id,
         kind: 'operation_resolved',
-        payload: { opIdx: rs.opIdx, kind: 'WHILE', opFace: rs.opFace, d6: rs.d6, picked: n, condResult },
+        payload: { opIdx: rs.opIdx, kind: 'WHILE', opFace: rs.opFace, d6: rs.d6, picked: n, condResult, primary: op.primary },
       }]);
       if (condResult) {
         this.runState.update(st => ({
@@ -1145,7 +1170,7 @@ export class SimulatorPlay implements OnInit {
       turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
       timestamp: new Date().toISOString(), botId: bot.id,
       kind: 'operation_resolved',
-      payload: { opIdx: rs.opIdx, kind: op.kind, opFace: rs.opFace, d6: rs.d6, picked: n, condResult },
+      payload: { opIdx: rs.opIdx, kind: op.kind, opFace: rs.opFace, d6: rs.d6, picked: n, condResult, primary: op.primary, secondary: op.secondary ?? null },
     }]);
     if (condResult) {
       this.runState.update(st => ({
@@ -1387,10 +1412,21 @@ export class SimulatorPlay implements OnInit {
   }
 
   private findInterceptBot(activeBot: BattleBot): BattleBot | null {
-    const bots = this.currentState().bots.filter(
-      b => !b.destroyed && !b.hasInterceptedThisTurn && b.numbers.length > 0,
+    const allBots = this.currentState().bots;
+    const enemies = allBots.filter(
+      b => !b.destroyed && b.playerId !== activeBot.playerId && b.q !== -999,
     );
-    return findClosestEnemyOf(activeBot.q, activeBot.r, activeBot.playerId, bots);
+    if (enemies.length === 0) return null;
+    let minDist = Infinity;
+    for (const e of enemies) {
+      const d = hexDistance(activeBot.q, activeBot.r, e.q, e.r);
+      if (d < minDist) minDist = d;
+    }
+    return enemies.find(
+      e => hexDistance(activeBot.q, activeBot.r, e.q, e.r) === minDist
+        && !e.hasInterceptedThisTurn
+        && e.numbers.length > 0,
+    ) ?? null;
   }
 
   canIntercept(p: PlayerId): boolean {

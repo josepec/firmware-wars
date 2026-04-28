@@ -1,22 +1,26 @@
-import { Component, computed, input, output } from '@angular/core';
-import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighbors, DOT_COLORS } from './hex-map.types';
+import { Component, computed, input, output, signal } from '@angular/core';
+import { HexMapData, hexToPixel, hexPoints, hexNeighbors, DOT_COLORS } from './hex-map.types';
+
+interface RenderedDeployment {
+  key: string; q: number; r: number; cx: number; cy: number; type: string; label: string; imageUrl?: string;
+  active: boolean; destroyed: boolean; tooltip: string | null; teamColor: string;
+}
 
 @Component({
   selector: 'app-hex-map',
   template: `
-    <svg [attr.viewBox]="viewBox()" class="block mx-auto w-full h-auto max-w-[900px]"
-         preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-
+    <svg [attr.viewBox]="viewBox()" class="block mx-auto w-full h-auto max-w-[900px] overflow-visible"
+         overflow="visible" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
       <g [attr.transform]="rotateTransform()">
 
-      <!-- 3D depth effect (bottom layer) -->
+      <!-- 3D depth -->
       @for (h of renderedHexes(); track h.key) {
         <polygon [attr.points]="h.depthPoints"
                  [attr.fill]="printMode() ? (h.isObstacle ? '#1a1a1a' : '#c8c8c8') : (h.isObstacle ? '#0a0a0a' : '#b0b0b0')"
                  stroke="none" />
       }
 
-      <!-- Ghost hexes (valid placement positions) -->
+      <!-- Ghost hexes -->
       @for (g of ghostHexes(); track g.key) {
         <polygon [attr.points]="g.points"
                  fill="rgba(0,255,136,0.06)" stroke="rgba(0,255,136,0.2)"
@@ -25,31 +29,26 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
                  (click)="onGhostClick(g.q, g.r)" />
       }
 
-      <!-- Hex faces: normal first, then special/obstacle on top -->
+      <!-- Normal hex faces -->
       @for (h of renderedHexes(); track h.key) {
         @if (!h.isSpecial && !h.isObstacle) {
-        <polygon [attr.points]="h.points"
-                 [attr.fill]="h.fill"
-                 [attr.stroke]="h.stroke"
-                 [attr.stroke-width]="h.strokeWidth"
-                 class="hex-face"
-                 [class.interactive]="interactive()"
-                 [class.dragging]="dragHex()?.key === h.key"
-                 (mousedown)="onDragStart($event, h.q, h.r)"
-                 (click)="onHexClick(h.q, h.r)" />
+          <polygon [attr.points]="h.points" [attr.fill]="h.fill"
+                   [attr.stroke]="h.stroke" [attr.stroke-width]="h.strokeWidth"
+                   class="hex-face" [class.interactive]="interactive()"
+                   [class.dragging]="dragHex()?.key === h.key"
+                   (mousedown)="onDragStart($event, h.q, h.r)"
+                   (click)="onHexClick(h.q, h.r)" />
         }
       }
+      <!-- Special / obstacle hex faces -->
       @for (h of renderedHexes(); track h.key) {
         @if (h.isSpecial || h.isObstacle) {
-        <polygon [attr.points]="h.points"
-                 [attr.fill]="h.fill"
-                 [attr.stroke]="h.stroke"
-                 [attr.stroke-width]="h.strokeWidth"
-                 class="hex-face"
-                 [class.interactive]="interactive()"
-                 [class.dragging]="dragHex()?.key === h.key"
-                 (mousedown)="onDragStart($event, h.q, h.r)"
-                 (click)="onHexClick(h.q, h.r)" />
+          <polygon [attr.points]="h.points" [attr.fill]="h.fill"
+                   [attr.stroke]="h.stroke" [attr.stroke-width]="h.strokeWidth"
+                   class="hex-face" [class.interactive]="interactive()"
+                   [class.dragging]="dragHex()?.key === h.key"
+                   (mousedown)="onDragStart($event, h.q, h.r)"
+                   (click)="onHexClick(h.q, h.r)" />
         }
       }
 
@@ -57,67 +56,80 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
       @for (h of renderedHexes(); track h.key) {
         @if (h.dotColor) {
           <circle [attr.cx]="h.dotCx" [attr.cy]="h.dotCy" [attr.r]="dotRadius()"
-                  [attr.fill]="h.dotColor"
+                  [attr.fill]="h.dotColor" [attr.fill-opacity]="dotOpacity()"
                   class="pointer-events-none" />
         }
       }
 
       <!-- Deployment markers -->
       @for (d of renderedDeployments(); track d.key) {
-        <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'" class="pointer-events-none">
-          @if (d.type === 'player') {
-            <!-- Robot image -->
+        @if (d.type === 'player') {
+          <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
+             [attr.opacity]="d.destroyed ? 0.25 : (!d.active && hasAnyActive()) ? 0.65 : 1"
+             [style.filter]="d.destroyed ? 'grayscale(1)' : null"
+             [class.cursor-pointer]="interactive()"
+             (mouseenter)="onBotHover(d)" (mouseleave)="hoveredTooltip.set(null)"
+             (click)="onHexClick(d.q, d.r)">
+            <!-- Team ring -->
+            <circle [attr.r]="size() * 0.44" [attr.stroke]="d.teamColor"
+                    stroke-width="1" fill="none" stroke-opacity="0.4"
+                    class="pointer-events-none" />
+            <!-- Active ping ring -->
+            @if (d.active) {
+              <circle [attr.r]="size() * 0.50" [attr.stroke]="d.teamColor"
+                      stroke-width="2" fill="none"
+                      class="animate-ping ping-ring pointer-events-none" />
+            }
             <image href="/assets/img/bot.png"
-                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
-                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
+                   [attr.x]="-(size() * 0.5)" [attr.y]="-(size() * 0.55)"
+                   [attr.width]="size()" [attr.height]="size()"
                    preserveAspectRatio="xMidYMid meet" />
-          } @else if (d.type === 'treasure') {
-            <!-- Treasure image -->
-            <image href="/assets/img/money.png"
-                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
-                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
-                   preserveAspectRatio="xMidYMid meet" />
-          } @else if (d.type === 'flag') {
-            <!-- Flag image -->
-            <image href="/assets/img/flag.png"
-                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
-                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
-                   preserveAspectRatio="xMidYMid meet" />
-          } @else if (d.type === 'plaque') {
-            <!-- XP image -->
-            <image href="/assets/img/xp.png"
-                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
-                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
-                   preserveAspectRatio="xMidYMid meet" />
-          } @else if (d.type === 'threat') {
-            <!-- Threat marker: image or fallback skull -->
-            @if (d.imageUrl) {
-              <image [attr.href]="d.imageUrl"
+          </g>
+        } @else {
+          <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
+             class="pointer-events-none">
+            @if (d.type === 'treasure') {
+              <image href="/assets/img/money.png"
                      [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
                      [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
                      preserveAspectRatio="xMidYMid meet" />
-            } @else {
-              <g [attr.transform]="'scale(' + robotScale() + ')'">
-                <circle cx="0" cy="-3" r="6" fill="#dc2626" stroke="#991b1b" stroke-width="0.8"/>
-                <text y="-0.5" text-anchor="middle" font-size="9" fill="white" font-weight="700">!</text>
-              </g>
+            } @else if (d.type === 'flag') {
+              <image href="/assets/img/flag.png"
+                     [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                     [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
+                     preserveAspectRatio="xMidYMid meet" />
+            } @else if (d.type === 'plaque') {
+              <image href="/assets/img/xp.png"
+                     [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                     [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
+                     preserveAspectRatio="xMidYMid meet" />
+            } @else if (d.type === 'threat') {
+              @if (d.imageUrl) {
+                <image [attr.href]="d.imageUrl"
+                       [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.5)"
+                       [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
+                       preserveAspectRatio="xMidYMid meet" />
+              } @else {
+                <g [attr.transform]="'scale(' + robotScale() + ')'">
+                  <circle cx="0" cy="-3" r="6" fill="#dc2626" stroke="#991b1b" stroke-width="0.8"/>
+                  <text y="-0.5" text-anchor="middle" font-size="9" fill="white" font-weight="700">!</text>
+                </g>
+              }
             }
-          }
-          <!-- Label -->
-          <text [attr.y]="printMode() ? (d.type === 'player' ? 13 : 12) : (d.type === 'player' ? 16 : 15)" text-anchor="middle"
-                [attr.font-size]="printMode() ? size() * 0.28 : size() * 0.3"
-                [attr.fill]="printMode() ? '#1a5c28' : '#22d3ee'" font-family="'Orbitron', monospace" font-weight="700">
-            {{ d.label }}
-          </text>
-        </g>
+            <text [attr.y]="printMode() ? 12 : 15" text-anchor="middle"
+                  [attr.font-size]="printMode() ? size() * 0.28 : size() * 0.3"
+                  [attr.fill]="printMode() ? '#1a5c28' : '#22d3ee'"
+                  font-family="'Orbitron', monospace" font-weight="700">
+              {{ d.label }}
+            </text>
+          </g>
+        }
       }
 
       <!-- Highlight overlay -->
       @for (h of highlightOverlays(); track h.key) {
-        <polygon [attr.points]="h.points"
-                 fill="none"
-                 [attr.stroke]="h.color"
-                 stroke-width="3"
+        <polygon [attr.points]="h.points" fill="none"
+                 [attr.stroke]="h.color" stroke-width="3"
                  class="pointer-events-none" />
       }
 
@@ -129,6 +141,25 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
                  class="pointer-events-none" />
       }
 
+      <!-- Hover tooltip (last = always on top) -->
+      @if (hoveredTooltip(); as tt) {
+        <g [attr.transform]="'translate(' + tt.cx + ',' + tt.cy + ') rotate(' + (-rotateAngle()) + ')'">
+          <rect [attr.x]="size() * 0.55"
+                [attr.y]="-(size() * 0.6) - tt.lines.length * 10 - 8"
+                width="104" [attr.height]="tt.lines.length * 10 + 8"
+                rx="2" fill="rgba(0,0,0,0.88)"
+                [attr.stroke]="tt.teamColor" stroke-opacity="0.45" stroke-width="0.8"
+                class="pointer-events-none" />
+          @for (line of tt.lines; track $index; let i = $index) {
+            <text [attr.x]="size() * 0.55 + 5"
+                  [attr.y]="-(size() * 0.6) - tt.lines.length * 10 - 8 + 11 + i * 10"
+                  font-size="7.5" [attr.fill]="tt.teamColor"
+                  font-family="'Orbitron', monospace"
+                  class="pointer-events-none">{{ line }}</text>
+          }
+        </g>
+      }
+
       </g>
     </svg>
   `,
@@ -136,6 +167,7 @@ import { HexMapData, HexCell, DeploymentMarker, hexToPixel, hexPoints, hexNeighb
     .hex-face.interactive { cursor: pointer; }
     .hex-face.interactive:hover { opacity: 0.8; }
     .hex-face.dragging { opacity: 0.4; }
+    .ping-ring { transform-box: fill-box; transform-origin: center; }
   `],
   host: {
     '(document:mousemove)': 'onDragMove($event)',
@@ -152,6 +184,7 @@ export class HexMap {
   readonly highlightedHexes = input<Set<string> | null>(null);
   readonly highlightColor = input<string>('#3b82f6');
   readonly selectable = input<Set<string> | null>(null);
+  readonly dotOpacity = input(1.0);
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
@@ -159,14 +192,15 @@ export class HexMap {
   private padding = 20;
   private depthOffset = 6;
 
-  /* Drag state */
   dragHex = input<{ key: string } | null>(null);
-  dragGhost = computed<{ points: string } | null>(() => null); // placeholder for now
+  dragGhost = computed<{ points: string } | null>(() => null);
 
   dotRadius = computed(() => this.size() * 0.15);
   robotScale = computed(() => this.size() / 30);
 
-  /** AABB of all hex polygon vertices in unrotated space — tighter than using centers ± size */
+  hoveredTooltip = signal<{ cx: number; cy: number; lines: string[]; teamColor: string } | null>(null);
+  hasAnyActive = computed(() => this.renderedDeployments().some(d => d.type === 'player' && d.active));
+
   private rawBounds = computed(() => {
     const s = this.size();
     const allCoords = [
@@ -191,13 +225,11 @@ export class HexMap {
     return { minX, minY, maxX, maxY };
   });
 
-  /** Center of the unrotated content — used as pivot for rotation */
   private rotateCenter = computed(() => {
     const b = this.rawBounds();
     return { cx: (b.minX + b.maxX) / 2, cy: (b.minY + b.maxY) / 2 };
   });
 
-  /** SVG transform for the wrapping <g> */
   rotateTransform = computed(() => {
     const a = this.rotateAngle();
     if (a === 0) return '';
@@ -208,15 +240,10 @@ export class HexMap {
   viewBox = computed(() => {
     const p = this.padding;
     const a = this.rotateAngle();
-
     if (a === 0) {
       const b = this.rawBounds();
       return `${b.minX - p} ${b.minY - p} ${b.maxX - b.minX + p * 2} ${b.maxY - b.minY + p * 2}`;
     }
-
-    // Tight AABB of ROTATED hex vertices (rotating each vertex around the content center).
-    // Much tighter than rotating the 4 corners of the content AABB, especially for
-    // non-rectangular grid shapes: removes the triangular empty space those corners carry.
     const s = this.size();
     const { cx: rcx, cy: rcy } = this.rotateCenter();
     const rad = (a * Math.PI) / 180;
@@ -228,23 +255,18 @@ export class HexMap {
     ];
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     const addRotated = (x: number, y: number) => {
-      const dx = x - rcx;
-      const dy = y - rcy;
+      const dx = x - rcx, dy = y - rcy;
       const rx = rcx + dx * cos - dy * sin;
       const ry = rcy + dx * sin + dy * cos;
-      if (rx < minX) minX = rx;
-      if (rx > maxX) maxX = rx;
-      if (ry < minY) minY = ry;
-      if (ry > maxY) maxY = ry;
+      if (rx < minX) minX = rx; if (rx > maxX) maxX = rx;
+      if (ry < minY) minY = ry; if (ry > maxY) maxY = ry;
     };
     for (const h of allCoords) {
       const { x: hcx, y: hcy } = hexToPixel(h.q, h.r, s);
       for (let i = 0; i < 6; i++) {
         const angle = (Math.PI / 180) * (60 * i);
-        const vx = hcx + s * Math.cos(angle);
-        const vy = hcy + s * Math.sin(angle);
-        addRotated(vx, vy);
-        addRotated(vx, vy + this.depthOffset);
+        const vx = hcx + s * Math.cos(angle), vy = hcy + s * Math.sin(angle);
+        addRotated(vx, vy); addRotated(vx, vy + this.depthOffset);
       }
     }
     if (!isFinite(minX)) { minX = 0; minY = 0; maxX = 200; maxY = 200; }
@@ -259,10 +281,7 @@ export class HexMap {
     for (const h of data.hexes) {
       for (const n of hexNeighbors(h.q, h.r)) {
         const key = `${n.q},${n.r}`;
-        if (!existing.has(key) && !seen.has(key)) {
-          seen.add(key);
-          ghosts.push(n);
-        }
+        if (!existing.has(key) && !seen.has(key)) { seen.add(key); ghosts.push(n); }
       }
     }
     return ghosts;
@@ -283,35 +302,22 @@ export class HexMap {
     const print = this.printMode();
     const typeMap = new Map(data.hexTypes.map(t => [t.id, t]));
     const deployedSet = new Set(data.deployments.map(d => `${d.q},${d.r}`));
-
     return data.hexes.map(h => {
       const { x, y } = hexToPixel(h.q, h.r, s);
       const type = typeMap.get(h.typeId) ?? data.hexTypes[0];
       const dotDef = h.dot ? DOT_COLORS.find(d => d.id === h.dot) : null;
       const hasDeployment = deployedSet.has(`${h.q},${h.r}`);
-      let fill = type.color;
-      let stroke = type.borderColor;
+      let fill = type.color, stroke = type.borderColor;
       const isSpecial = h.typeId !== 'normal' && h.typeId !== 'obstacle';
       if (print) {
         if (h.typeId === 'normal') { fill = '#ffffff'; stroke = '#aaaaaa'; }
         else if (h.typeId === 'obstacle') { fill = '#1a1a1a'; stroke = '#333333'; }
-        // Speciales: keep their own colors
       }
       return {
-        key: `${h.q},${h.r}`,
-        q: h.q,
-        r: h.r,
-        cx: x,
-        cy: y,
-        dotCx: x,
-        dotCy: hasDeployment ? y - s * 0.65 : y,
-        points: hexPoints(x, y, s),
-        depthPoints: hexPoints(x, y + this.depthOffset, s),
-        fill,
-        stroke,
-        strokeWidth: 2,
-        isSpecial,
-        isObstacle: h.typeId === 'obstacle',
+        key: `${h.q},${h.r}`, q: h.q, r: h.r, cx: x, cy: y,
+        dotCx: x, dotCy: hasDeployment ? y - s * 0.65 : y,
+        points: hexPoints(x, y, s), depthPoints: hexPoints(x, y + this.depthOffset, s),
+        fill, stroke, strokeWidth: 2, isSpecial, isObstacle: h.typeId === 'obstacle',
         dotColor: dotDef?.hex ?? null,
       };
     });
@@ -325,8 +331,7 @@ export class HexMap {
     const out: { key: string; points: string; color: string }[] = [];
     for (const key of set) {
       const [qStr, rStr] = key.split(',');
-      const q = Number(qStr);
-      const r = Number(rStr);
+      const q = Number(qStr), r = Number(rStr);
       if (!Number.isFinite(q) || !Number.isFinite(r)) continue;
       const { x, y } = hexToPixel(q, r, s);
       out.push({ key: `hl-${key}`, points: hexPoints(x, y, s * 0.9), color });
@@ -334,16 +339,25 @@ export class HexMap {
     return out;
   });
 
-  renderedDeployments = computed(() => {
+  renderedDeployments = computed<RenderedDeployment[]>(() => {
     const s = this.size();
     const data = this.mapData();
     return data.deployments.map(d => {
       const { x, y } = hexToPixel(d.q, d.r, s);
-      return { key: `dep-${d.q},${d.r}`, cx: x, cy: y, type: d.type, label: d.label, imageUrl: d.imageUrl };
+      const teamColor = d.team === 1 ? '#22d3ee' : d.team === 2 ? '#e879f9' : '#22d3ee';
+      return {
+        key: `dep-${d.q},${d.r}`, q: d.q, r: d.r, cx: x, cy: y,
+        type: d.type, label: d.label, imageUrl: d.imageUrl,
+        active: d.active ?? false, destroyed: d.destroyed ?? false,
+        tooltip: d.tooltip ?? null, teamColor,
+      };
     });
   });
 
-  /* ── Events ──────────────────────────────────────────────── */
+  onBotHover(d: RenderedDeployment): void {
+    if (!d.tooltip) { this.hoveredTooltip.set(null); return; }
+    this.hoveredTooltip.set({ cx: d.cx, cy: d.cy, lines: d.tooltip.split('\n'), teamColor: d.teamColor });
+  }
 
   onHexClick(q: number, r: number): void {
     if (!this.interactive()) return;
@@ -356,7 +370,6 @@ export class HexMap {
     this.ghostClicked.emit({ q, r });
   }
 
-  /* ── Drag & Drop ─────────────────────────────────────────── */
   private dragging: { q: number; r: number; startX: number; startY: number } | null = null;
   private svgEl: SVGSVGElement | null = null;
 
@@ -370,50 +383,34 @@ export class HexMap {
     if (!this.dragging || !this.svgEl) return;
     const dx = Math.abs(event.clientX - this.dragging.startX);
     const dy = Math.abs(event.clientY - this.dragging.startY);
-    if (dx + dy < 8) return; // threshold
-    // Show visual feedback via CSS
+    if (dx + dy < 8) return;
   }
 
   onDragEnd(event: MouseEvent): void {
     if (!this.dragging || !this.svgEl) return;
     const dx = Math.abs(event.clientX - this.dragging.startX);
     const dy = Math.abs(event.clientY - this.dragging.startY);
-
     if (dx + dy >= 8) {
-      // Find nearest hex to drop position
       const pt = this.svgEl.createSVGPoint();
-      pt.x = event.clientX;
-      pt.y = event.clientY;
+      pt.x = event.clientX; pt.y = event.clientY;
       const svgPt = pt.matrixTransform(this.svgEl.getScreenCTM()!.inverse());
-
       const s = this.size();
       const data = this.mapData();
-      let bestDist = Infinity;
-      let bestQ = 0, bestR = 0;
-      let foundGhost = false;
-
-      // Check ghost positions (valid empty neighbors)
+      let bestDist = Infinity, bestQ = 0, bestR = 0;
       const existing = new Set(data.hexes.map(h => `${h.q},${h.r}`));
       for (const h of data.hexes) {
         for (const n of hexNeighbors(h.q, h.r)) {
           const nk = `${n.q},${n.r}`;
-          if (existing.has(nk) && !(n.q === this.dragging.q && n.r === this.dragging.r)) continue;
+          if (existing.has(nk) && !(n.q === this.dragging!.q && n.r === this.dragging!.r)) continue;
           const { x, y } = hexToPixel(n.q, n.r, s);
           const dist = Math.sqrt((svgPt.x - x) ** 2 + (svgPt.y - y) ** 2);
-          if (dist < s && dist < bestDist) {
-            bestDist = dist;
-            bestQ = n.q;
-            bestR = n.r;
-            foundGhost = !existing.has(nk) || (n.q === this.dragging.q && n.r === this.dragging.r);
-          }
+          if (dist < s && dist < bestDist) { bestDist = dist; bestQ = n.q; bestR = n.r; }
         }
       }
-
-      if (bestDist < s && !(bestQ === this.dragging.q && bestR === this.dragging.r)) {
-        this.hexMoved.emit({ fromQ: this.dragging.q, fromR: this.dragging.r, toQ: bestQ, toR: bestR });
+      if (bestDist < s && !(bestQ === this.dragging!.q && bestR === this.dragging!.r)) {
+        this.hexMoved.emit({ fromQ: this.dragging!.q, fromR: this.dragging!.r, toQ: bestQ, toR: bestR });
       }
     }
-
     this.dragging = null;
     this.svgEl = null;
   }

@@ -23,10 +23,10 @@ const BOT_COLORS = [
   '#facc15', '#4ade80', '#60a5fa', '#f87171',
 ];
 
-function colorForBotId(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return BOT_COLORS[h % BOT_COLORS.length];
+function buildBotColorMap(bots: BattleBot[]): Map<string, string> {
+  const map = new Map<string, string>();
+  bots.forEach((b, i) => map.set(b.id, BOT_COLORS[i % BOT_COLORS.length]));
+  return map;
 }
 
 const PPT_EMOJI: Record<string, string> = {
@@ -80,10 +80,10 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'boot_energy_rolled': {
       const chosen = p['chosen'];
       const dice = (p['dice'] as number[] ?? []).join('+');
-      const total = p['total'];
-      const energy = p['energy'];
-      const overflow = p['overflow'] ? ' · OVERFLOW' : '';
-      return `getEnergy(${chosen}) → [${dice}] = ${total} · almacenado ${energy}${overflow}`;
+      const combined = (p['combined'] ?? p['total']) as number;
+      const overflow = p['overflow'] as boolean | undefined;
+      if (overflow) return `getEnergy(${chosen}) → [${dice}] = ${combined} · almacenado ${combined} · +1 🐛`;
+      return `getEnergy(${chosen}) → [${dice}] = ${combined}⚡`;
     }
     case 'boot_numbers_rolled': {
       const rolled = (p['rolled'] as number[] ?? []).join(', ');
@@ -96,15 +96,44 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       const bugs = p['bugs'];
       return `Operaciones (${slots} slots, ${bugs} bugs): [${ops}]`;
     }
-    case 'compile_committed':
-      return `Programa compilado (${((p['program'] as { operations?: unknown[] })?.operations?.length ?? 0)} ops)`;
+    case 'compile_committed': {
+      const ops = ((p['program'] as { operations?: Array<{ kind: string; primary?: { type: string; moveDistance?: number; attackFunctionId?: string }; secondary?: { type: string; moveDistance?: number; attackFunctionId?: string } | null; forCount?: number } > })?.operations ?? []);
+      if (ops.length === 0) return `Programa compilado (vacío)`;
+      const fmt = (fn: { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined) => {
+        if (!fn) return '?';
+        if (fn.type === 'move') return `move(${fn.moveDistance ?? '?'})`;
+        if (fn.type === 'shield') return 'shield()';
+        return `attack(${fn.attackFunctionId ?? '?'})`;
+      };
+      const opStrs = ops.map(o => {
+        const prim = fmt(o.primary);
+        const sec = o.secondary ? `/${fmt(o.secondary)}` : '';
+        const cnt = o.forCount ? `×${o.forCount}` : '';
+        return `${o.kind}${cnt}(${prim}${sec})`;
+      });
+      return `Programa (${ops.length} ops): [${opStrs.join(', ')}]`;
+    }
     case 'operation_resolved': {
       const kind = p['kind'] ?? '';
-      const cond = p['condResult'] !== undefined ? ` = ${p['condResult'] ? 'TRUE' : 'FALSE'}` : '';
+      const face = p['opFace'] as string | undefined;
+      const compMap: Record<string, string> = { '<': '<', '<=': '≤', '>=': '≥', '>': '>', '!=': '≠', '==': '=' };
+      const comp = face ? ` ${compMap[face] ?? face}` : '';
       const d6str = p['d6'] !== undefined ? ` d6:${p['d6']}` : '';
       const picked = p['picked'] !== undefined ? ` núm:${p['picked']}` : '';
-      const branch = p['branch'] ? ` → ${p['branch']}` : '';
-      return `Op ${kind}${d6str}${picked}${cond}${branch}`;
+      const diff = p['diff'] !== undefined ? ` diff:${p['diff']}` : '';
+      const cond = p['condResult'] !== undefined ? ` = ${p['condResult'] ? 'TRUE' : 'FALSE'}` : '';
+      const primary = p['primary'] as { type: string; moveDistance?: number; attackFunctionId?: string } | undefined;
+      const secondary = p['secondary'] as { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined;
+      const fmtFn = (fn: { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined) => {
+        if (!fn) return null;
+        if (fn.type === 'move') return `move(${fn.moveDistance ?? '?'})`;
+        if (fn.type === 'shield') return 'shield()';
+        return `attack(${fn.attackFunctionId ?? '?'})`;
+      };
+      const primStr = fmtFn(primary);
+      const secStr = fmtFn(secondary);
+      const fnPart = primStr ? ` → ${primStr}${secStr ? `/${secStr}` : ''}` : '';
+      return `Op ${kind}${d6str}${comp}${picked}${diff}${cond}${fnPart}`;
     }
     case 'intercept': {
       const who = name(p['interceptorId'] as string);
@@ -132,6 +161,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'debug_action':
       return `DEBUG: ${p['action'] ?? '?'}`;
     case 'phase_changed':
+      if (p['reason'] === 'criteria-differ') return `Criterios distintos (P1: ${CRITERION_LABEL[p['c1'] as string] ?? p['c1']}, P2: ${CRITERION_LABEL[p['c2'] as string] ?? p['c2']}) → PPT`;
       return `Fase: ${p['from'] ?? '?'} → ${p['to'] ?? '?'}`;
     case 'turn_ended':
       return `Fin de turno`;
@@ -352,6 +382,10 @@ export class SimulatorViewer implements OnInit {
   functionsMap = signal<Map<string, FunctionEntry>>(new Map());
   private playTimer: ReturnType<typeof setInterval> | null = null;
 
+  readonly botColorMap = computed<Map<string, string>>(() =>
+    buildBotColorMap(this.report()?.initialSnapshot.bots ?? [])
+  );
+
   readonly currentState = computed<BattleState>(() => {
     const r = this.report();
     if (!r) {
@@ -555,7 +589,7 @@ export class SimulatorViewer implements OnInit {
       player: pid,
       alias,
       botName: bot?.name ?? null,
-      botColor: bot ? colorForBotId(bot.id) : null,
+      botColor: bot ? (this.botColorMap().get(bot.id) ?? BOT_COLORS[0]) : null,
     };
   }
 }

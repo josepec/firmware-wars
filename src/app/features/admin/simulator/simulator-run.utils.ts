@@ -34,7 +34,7 @@ export interface RunState {
   branch: 'primary' | 'secondary' | null;
   forRemaining: number;
   pendingFn: FunctionCall | null;
-  condResult: boolean | null;
+  condResult: boolean | number | null;
   interceptBotId: string | null;
   loopExecuted: boolean;
 }

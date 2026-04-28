@@ -52,7 +52,7 @@ export function rollBoot(
   events.push({
     ...base,
     kind: 'boot_energy_rolled',
-    payload: { chosen, dice, total, energy, overflow },
+    payload: { chosen, dice, total, combined, energy, overflow },
   });
   if (overflow) {
     events.push({

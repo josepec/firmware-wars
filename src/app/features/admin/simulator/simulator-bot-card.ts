@@ -98,7 +98,7 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
             </div>
           </div>
           @if (bot().bugs > 0) {
-            <div class="mt-1.5 border border-red-500/30 bg-red-500/5 px-2 py-1 flex justify-between text-[10px]">
+            <div class="mt-1.5 border border-red-500/30 bg-red-500/5 px-2 py-1 flex justify-between items-center text-[10px]">
               <span class="text-[8px] tracking-[0.25em] text-red-400/70 uppercase">BUGS</span>
               <span class="text-red-300 font-bold">{{ bot().bugs }}</span>
             </div>

@@ -42,6 +42,9 @@ export interface DeploymentMarker {
   label: string;
   threatId?: string;
   imageUrl?: string;
+  active?: boolean;
+  destroyed?: boolean;
+  tooltip?: string;
 }
 
 export interface HexMapData {

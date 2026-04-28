@@ -25,8 +25,12 @@ import type { FunctionEntry } from './simulator-bot-card';
               <span class="text-green-500/45 w-4 shrink-0">{{ i + 1 }}.</span>
               <span class="text-cyan-300 tracking-wider w-14 shrink-0">{{ op.kind }}</span>
               <span class="text-green-300/80 truncate">{{ fnLabel(op.primary) }}</span>
-              @if (op.kind === 'FOR' && op.forCount) {
-                <span class="ml-auto text-[8px] text-green-500/40 shrink-0">×{{ op.forCount }}</span>
+              @if (op.kind === 'FOR') {
+                <span class="ml-auto text-[8px] shrink-0"
+                      [class.text-cyan-400]="isCurrent && state().condResult !== null"
+                      [class.text-green-500\/40]="!(isCurrent && state().condResult !== null)">
+                  ×{{ isCurrent && state().condResult !== null ? state().condResult : '?' }}
+                </span>
               }
             </div>
             @if (op.secondary) {
@@ -79,7 +83,7 @@ import type { FunctionEntry } from './simulator-bot-card';
               <div class="w-12 h-12 flex items-center justify-center text-3xl font-bold leading-none"
                    [class.text-cyan-300]="state().opFace"
                    [class.text-green-500\\/30]="!state().opFace">
-                {{ state().opFace ? COMP_LABEL[state().opFace!] : (currentOp()?.kind === 'FOR' ? '|−|' : '?') }}
+                {{ state().opFace ? COMP_LABEL[state().opFace!] : (currentOp()?.kind === 'FOR' ? 'diff' : '?') }}
               </div>
               <div class="text-[7px] opacity-0 select-none tracking-[0.15em]">--</div>
             </div>
@@ -106,7 +110,7 @@ import type { FunctionEntry } from './simulator-bot-card';
             <div class="text-center text-[11px] tracking-[0.25em] uppercase font-bold pt-1 border-t border-green-500/10"
                  [class.text-green-300]="state().condResult"
                  [class.text-red-400]="!state().condResult">
-              = {{ state().condResult ? 'TRUE' : 'FALSE' }}
+              = {{ typeof state().condResult === 'number' ? state().condResult : (state().condResult ? 'TRUE' : 'FALSE') }}
             </div>
           }
         </div>

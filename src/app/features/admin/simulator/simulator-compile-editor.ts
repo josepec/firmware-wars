@@ -3,7 +3,7 @@ import type { AttackRef, BattleBot, CompiledOperation, CompiledProgram, Operatio
 import type { FunctionEntry } from './simulator-bot-card';
 
 interface FnOption { value: string; label: string }
-interface DraftSlot { op: OperationKind; primary: string | null; secondary: string | null; forCount: number }
+interface DraftSlot { op: OperationKind; primary: string | null; secondary: string | null }
 
 function parseFnKey(key: string): CompiledOperation['primary'] {
   if (key === 'shield') return { type: 'shield' };
@@ -27,7 +27,7 @@ function hasSecondarySlot(op: OperationKind): boolean {
   template: `
     <div class="pt-2 border-t border-green-500/10 space-y-3">
       <div class="text-[8px] tracking-[0.2em] uppercase text-cyan-400/70">
-        COMPILE · {{ bot().name }} (V{{ bot().version }}) · {{ bot().maxOperations }} slots
+        COMPILE · {{ bot().name }} (V{{ bot().version }}) · {{ availableSlots() }} slots
       </div>
 
       <div>
@@ -58,19 +58,6 @@ function hasSecondarySlot(op: OperationKind): boolean {
                   class="text-[8px] text-red-400/50 hover:text-red-300 cursor-pointer px-1">✕</button>
               </div>
 
-              @if (op === 'FOR') {
-                <div class="flex items-center gap-1.5 text-[9px]">
-                  <span class="text-green-500/45 w-14">Iter:</span>
-                  @for (n of [1,2,3]; track n) {
-                    <button type="button" (click)="setForCount(i, n)"
-                      class="w-6 h-5 border text-[9px] cursor-pointer"
-                      [class.border-cyan-500\\/50]="draftForCount()[i] === n"
-                      [class.text-cyan-300]="draftForCount()[i] === n"
-                      [class.border-green-500\\/15]="draftForCount()[i] !== n"
-                      [class.text-green-500\\/40]="draftForCount()[i] !== n">{{ n }}</button>
-                  }
-                </div>
-              }
 
               <div class="flex items-center gap-1.5">
                 <span class="text-[8px] text-green-500/45 w-14 shrink-0">
@@ -132,7 +119,6 @@ export class CompileEditor {
   draftOps = signal<OperationKind[]>([]);
   draftPrimary = signal<(string | null)[]>([]);
   draftSecondary = signal<(string | null)[]>([]);
-  draftForCount = signal<number[]>([]);
 
   private lastBotId = '';
 
@@ -144,7 +130,6 @@ export class CompileEditor {
         this.draftOps.set([]);
         this.draftPrimary.set([]);
         this.draftSecondary.set([]);
-        this.draftForCount.set([]);
       }
     }, { allowSignalWrites: true });
   }
@@ -158,7 +143,8 @@ export class CompileEditor {
     return pool;
   });
 
-  readonly canAdd = computed(() => this.draftOps().length < this.bot().maxOperations);
+  readonly availableSlots = computed(() => Math.max(0, this.bot().maxOperations - this.bot().bugs));
+  readonly canAdd = computed(() => this.draftOps().length < this.availableSlots());
   readonly loopCount = computed(() => this.draftOps().filter(o => o === 'FOR' || o === 'WHILE').length);
 
   readonly fnOptions = computed<FnOption[]>(() => {
@@ -218,14 +204,12 @@ export class CompileEditor {
     this.draftOps.update(a => [...a, op]);
     this.draftPrimary.update(a => [...a, null]);
     this.draftSecondary.update(a => [...a, null]);
-    this.draftForCount.update(a => [...a, 1]);
   }
 
   removeSlot(idx: number): void {
     this.draftOps.update(a => a.filter((_, i) => i !== idx));
     this.draftPrimary.update(a => a.filter((_, i) => i !== idx));
     this.draftSecondary.update(a => a.filter((_, i) => i !== idx));
-    this.draftForCount.update(a => a.filter((_, i) => i !== idx));
   }
 
   setPrimary(idx: number, val: string | null): void {
@@ -236,21 +220,15 @@ export class CompileEditor {
     this.draftSecondary.update(a => a.map((v, i) => i === idx ? val : v));
   }
 
-  setForCount(idx: number, n: number): void {
-    this.draftForCount.update(a => a.map((v, i) => i === idx ? n : v));
-  }
-
   commit(): void {
     if (!this.isValid()) return;
     const ops = this.draftOps();
     const prim = this.draftPrimary();
     const sec = this.draftSecondary();
-    const counts = this.draftForCount();
     const operations: CompiledOperation[] = ops.map((kind, i) => ({
       kind,
       primary: parseFnKey(prim[i]!),
       ...(hasSecondarySlot(kind) && sec[i] ? { secondary: parseFnKey(sec[i]!) } : {}),
-      ...(kind === 'FOR' ? { forCount: counts[i] ?? 1 } : {}),
     }));
     this.committed.emit({ operations });
   }

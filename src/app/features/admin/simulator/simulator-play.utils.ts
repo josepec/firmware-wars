@@ -13,7 +13,7 @@ import { hexDistance } from './engine/pathfinding';
 
 export const PHASE_LABEL: Record<Phase, string> = {
   deploy: 'DESPLIEGUE',
-  init: 'INICIO DE RONDA',
+  init: 'INIT',
   boot: 'BOOT',
   compile: 'COMPILE',
   run: 'RUN',
