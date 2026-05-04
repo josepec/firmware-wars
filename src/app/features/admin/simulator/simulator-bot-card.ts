@@ -64,7 +64,7 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
           @if (!bot().destroyed && (activatedThisTurn() || canIntercept() || (bot().statusEffects?.length ?? 0) > 0)) {
             <div class="flex justify-center gap-1 mt-1 flex-wrap">
               @for (se of (bot().statusEffects ?? []); track se.kind) {
-                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 border"
+                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 pt-1.5 border"
                       [class.border-red-500\\/40]="se.kind === 'REBOOTING'"
                       [class.text-red-300]="se.kind === 'REBOOTING'"
                       [class.bg-red-500\\/10]="se.kind === 'REBOOTING'"
@@ -80,12 +80,12 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
                       style="line-height:1;">{{ statusLabel(se.kind) }}</span>
               }
               @if (activatedThisTurn()) {
-                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5
+                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 pt-1.5
                              border border-green-500/35 text-green-400/80 bg-green-500/5"
                       style="line-height:1;">ACTIVADO</span>
               }
               @if (canIntercept()) {
-                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5
+                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 pt-1.5
                              border border-yellow-500/40 text-yellow-300/85 bg-yellow-500/5"
                       style="line-height:1;">INTERCEPTAR</span>
               }
