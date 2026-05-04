@@ -36,12 +36,20 @@ export const empField: AttackFnDef = {
     for (const bot of bots) {
       if (bot.id === attacker.id || bot.destroyed) continue;
       if (bot.id !== target.id && hexDistance(target.q, target.r, bot.q, bot.r) > 1) continue;
-      if (rollD(6) < 4) {
+      const roll = rollD(6);
+      if (roll < 4) {
         events.push({
           turn, activation, phase: 'run', timestamp,
           botId: bot.id,
           kind: 'status_applied',
-          payload: { kind: 'DMZ', sourceFn: 'empField' },
+          payload: { kind: 'DMZ', roll, threshold: 4, sourceFn: 'empField' },
+        });
+      } else {
+        events.push({
+          turn, activation, phase: 'run', timestamp,
+          botId: bot.id,
+          kind: 'status_resisted',
+          payload: { kind: 'DMZ', roll, threshold: 4, sourceFn: 'empField' },
         });
       }
     }

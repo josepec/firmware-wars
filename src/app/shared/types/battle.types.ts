@@ -137,6 +137,7 @@ export type BattleEventKind =
   | 'destroyed'
   | 'debug_action'
   | 'status_applied'
+  | 'status_resisted'
   | 'status_expired'
   | 'healed'
   | 'moved'

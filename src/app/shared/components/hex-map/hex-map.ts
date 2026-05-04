@@ -92,26 +92,34 @@ interface RenderedDeployment {
       @for (d of renderedDeployments(); track d.key) {
         @if (d.type === 'player') {
           <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
-             [attr.opacity]="d.destroyed ? 0.25 : (!(d.active || d.turnBot) && hasAnyActive()) ? 0.65 : 1"
-             [style.filter]="d.destroyed ? 'grayscale(1)' : null"
+             [attr.opacity]="!d.destroyed && !(d.active || d.turnBot) && hasAnyActive() ? 0.65 : 1"
              [class.cursor-pointer]="interactive()"
              (mouseenter)="onBotHover(d)" (mouseleave)="hoveredTooltip.set(null)"
              (click)="onHexClick(d.q, d.r)">
             <!-- Team ring: tenue siempre, brillante cuando active (seleccionado en panel) -->
-            <circle [attr.r]="size() * 0.44" [attr.stroke]="d.teamColor"
-                    [attr.stroke-width]="d.active ? 2 : 1"
-                    [attr.stroke-opacity]="d.active ? 0.85 : 0.35"
-                    fill="none" class="pointer-events-none" />
+            @if (!d.destroyed) {
+              <circle [attr.r]="size() * 0.44" [attr.stroke]="d.teamColor"
+                      [attr.stroke-width]="d.active ? 2 : 1"
+                      [attr.stroke-opacity]="d.active ? 0.85 : 0.35"
+                      fill="none" class="pointer-events-none" />
+            }
             <!-- Ping ring: solo el bot con el turno activo -->
-            @if (d.turnBot) {
+            @if (d.turnBot && !d.destroyed) {
               <circle [attr.r]="size() * 0.52" [attr.stroke]="d.teamColor"
                       stroke-width="2" fill="none"
                       class="animate-ping ping-ring pointer-events-none" />
             }
-            <image href="/assets/img/bot.png"
-                   [attr.x]="-(size() * 0.5)" [attr.y]="-(size() * 0.55)"
-                   [attr.width]="size()" [attr.height]="size()"
-                   preserveAspectRatio="xMidYMid meet" />
+            @if (d.destroyed) {
+              <image href="/assets/img/destroyed-bot.png"
+                     [attr.x]="-(size() * 0.5)" [attr.y]="-(size() * 0.55)"
+                     [attr.width]="size()" [attr.height]="size()"
+                     preserveAspectRatio="xMidYMid meet" />
+            } @else {
+              <image href="/assets/img/bot.png"
+                     [attr.x]="-(size() * 0.5)" [attr.y]="-(size() * 0.55)"
+                     [attr.width]="size()" [attr.height]="size()"
+                     preserveAspectRatio="xMidYMid meet" />
+            }
           </g>
         } @else {
           <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
@@ -176,12 +184,15 @@ interface RenderedDeployment {
                 [attr.y]="-(size() * 0.6) - tt.lines.length * 10 - 8"
                 width="104" [attr.height]="tt.lines.length * 10 + 8"
                 rx="2" fill="rgba(0,0,0,0.88)"
-                [attr.stroke]="tt.teamColor" stroke-opacity="0.45" stroke-width="0.8"
+                [attr.stroke]="tt.destroyed ? '#ef4444' : tt.teamColor"
+                stroke-opacity="0.55" stroke-width="0.8"
                 class="pointer-events-none" />
           @for (line of tt.lines; track $index; let i = $index) {
             <text [attr.x]="size() * 0.55 + 5"
                   [attr.y]="-(size() * 0.6) - tt.lines.length * 10 - 8 + 11 + i * 10"
-                  font-size="7.5" [attr.fill]="tt.teamColor"
+                  [attr.font-size]="i === 0 && tt.destroyed ? 8.5 : 7.5"
+                  [attr.font-weight]="i === 0 && tt.destroyed ? '700' : '400'"
+                  [attr.fill]="i === 0 && tt.destroyed ? '#ef4444' : (tt.destroyed ? '#6b7280' : tt.teamColor)"
                   font-family="'Orbitron', monospace"
                   class="pointer-events-none">{{ line }}</text>
           }
@@ -241,7 +252,7 @@ export class HexMap {
     });
   });
 
-  hoveredTooltip = signal<{ cx: number; cy: number; lines: string[]; teamColor: string } | null>(null);
+  hoveredTooltip = signal<{ cx: number; cy: number; lines: string[]; teamColor: string; destroyed: boolean } | null>(null);
   hasAnyActive = computed(() => this.renderedDeployments().some(d => d.type === 'player' && (d.active || d.turnBot)));
 
   private rawBounds = computed(() => {
@@ -399,7 +410,10 @@ export class HexMap {
 
   onBotHover(d: RenderedDeployment): void {
     if (!d.tooltip) { this.hoveredTooltip.set(null); return; }
-    this.hoveredTooltip.set({ cx: d.cx, cy: d.cy, lines: d.tooltip.split('\n'), teamColor: d.teamColor });
+    const lines = d.destroyed
+      ? ['◆  DESTROYED', ...d.tooltip.split('\n')]
+      : d.tooltip.split('\n');
+    this.hoveredTooltip.set({ cx: d.cx, cy: d.cy, lines, teamColor: d.teamColor, destroyed: d.destroyed });
   }
 
   onHexClick(q: number, r: number): void {

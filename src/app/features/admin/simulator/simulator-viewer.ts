@@ -163,7 +163,14 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'status_applied': {
       const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
       const k = p['kind'] as string ?? '?';
-      return `Estado aplicado: ${labels[k] ?? k}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+      const rollStr = typeof p['roll'] === 'number' ? ` [d6: ${p['roll']}/${p['threshold'] ?? '?'}]` : '';
+      return `Estado aplicado: ${labels[k] ?? k}${rollStr}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+    }
+    case 'status_resisted': {
+      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
+      const k = p['kind'] as string ?? '?';
+      const rollStr = typeof p['roll'] === 'number' ? ` [d6: ${p['roll']}/${p['threshold'] ?? '?'}]` : '';
+      return `Estado resistido: ${labels[k] ?? k}${rollStr}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
     }
     case 'status_expired': {
       const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };

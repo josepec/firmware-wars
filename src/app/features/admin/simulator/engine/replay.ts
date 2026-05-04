@@ -308,6 +308,7 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       if (entityId) state.entities = (state.entities ?? []).filter(e => e.id !== entityId);
       break;
     }
+    case 'status_resisted':
     case 'criterion_chosen':
     case 'ppt_rolled':
     case 'ppt_tie':
