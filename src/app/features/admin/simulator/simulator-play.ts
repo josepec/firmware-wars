@@ -1480,14 +1480,6 @@ export class SimulatorPlay implements OnInit {
       if (bot.energy < cost) {
         await this.applyOverload(bot, cost, 'while-loop-iteration');
         this.runState.update(s => ({ ...s, step: 'op-done', pendingFn: null }));
-        const winner = this.checkVictory();
-        if (winner) {
-          const st = this.currentState();
-          await this.appendEvents([{
-            turn: st.turn, activation: st.currentActivationIdx, phase: 'finished',
-            timestamp: new Date().toISOString(), kind: 'victory', payload: { winner },
-          }]);
-        }
         return;
       }
       // New condition check for next iteration
@@ -1512,14 +1504,6 @@ export class SimulatorPlay implements OnInit {
         if (iterBot.energy < cost) {
           await this.applyOverload(iterBot, cost, 'for-loop-iteration');
           this.runState.update(s => ({ ...s, step: 'op-done', forRemaining: 0, pendingFn: null }));
-          const winner = this.checkVictory();
-          if (winner) {
-            const st = this.currentState();
-            await this.appendEvents([{
-              turn: st.turn, activation: st.currentActivationIdx, phase: 'finished',
-              timestamp: new Date().toISOString(), kind: 'victory', payload: { winner },
-            }]);
-          }
           return;
         }
       }
@@ -1527,18 +1511,8 @@ export class SimulatorPlay implements OnInit {
       await this.executePendingFn();
       return;
     }
-    // Op done
+    // Op done — victoria se evalúa en END (finishBotRun)
     this.runState.update(s => ({ ...s, step: 'op-done', forRemaining: 0, pendingFn: null }));
-    // Check victory after each function
-    const winner = this.checkVictory();
-    if (winner) {
-      const s = this.currentState();
-      await this.appendEvents([{
-        turn: s.turn, activation: s.currentActivationIdx, phase: 'finished',
-        timestamp: new Date().toISOString(),
-        kind: 'victory', payload: { winner },
-      }]);
-    }
   }
 
   private checkVictory(): PlayerId | null {
@@ -1758,6 +1732,19 @@ export class SimulatorPlay implements OnInit {
       kind: 'turn_ended', payload: {},
     }]);
     this.runState.set(initialRunState);
+
+    // END phase: check victory — si solo un jugador tiene bots vivos, finaliza la partida
+    const winner = this.checkVictory();
+    if (winner) {
+      const st = this.currentState();
+      await this.appendEvents([{
+        turn: st.turn, activation: st.currentActivationIdx, phase: 'finished',
+        timestamp: new Date().toISOString(),
+        kind: 'victory', payload: { winner },
+      }]);
+      return;
+    }
+
     const after = this.currentState();
     if (after.currentActivationIdx >= after.activationOrder.length) {
       // Round ended — wait for INIT of next round (handled separately)
