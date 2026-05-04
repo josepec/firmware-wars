@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, output, signal } from '@angular/core';
 import { HexMapData, HexMapEntity, hexToPixel, hexPoints, hexNeighbors, DOT_COLORS } from './hex-map.types';
 
 interface RenderedEntity {
@@ -200,6 +200,8 @@ interface RenderedDeployment {
       }
 
       </g>
+      <!-- Animation overlay: always on top, same coordinate space as main <g> -->
+      <g class="anim-layer" [attr.transform]="rotateTransform()"></g>
     </svg>
   `,
   styles: [`
@@ -214,6 +216,12 @@ interface RenderedDeployment {
   },
 })
 export class HexMap {
+  private readonly elRef = inject(ElementRef<HTMLElement>);
+
+  getAnimLayer(): SVGGElement | null {
+    return this.elRef.nativeElement.querySelector('.anim-layer') as SVGGElement | null;
+  }
+
   readonly mapData = input.required<HexMapData>();
   readonly size = input(30);
   readonly interactive = input(false);

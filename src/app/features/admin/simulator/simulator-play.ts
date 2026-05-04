@@ -1,9 +1,11 @@
 import { JsonPipe, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import { HexMap } from '../../../shared/components/hex-map/hex-map';
-import { type DotColor, type HexMapData, type HexMapEntity } from '../../../shared/components/hex-map/hex-map.types';
+import { hexToPixel, type DotColor, type HexMapData, type HexMapEntity } from '../../../shared/components/hex-map/hex-map.types';
+import { playAttackAnim, playMoveEnergyAnim, playOverloadAnim, playShieldAnim } from './animations/attack-animator';
+import { floatingText } from './animations/primitives/floating-text';
 import {
   hexKey,
   type BattleBot,
@@ -97,6 +99,8 @@ export class SimulatorPlay implements OnInit {
   bootRollingFor = signal<string | null>(null);
 
   pendingSaves = signal(0);
+
+  readonly hexMapComp = viewChild(HexMap);
 
   runState = signal<RunState>(initialRunState);
   nextRoundTurn = signal<number>(1);
@@ -754,6 +758,45 @@ export class SimulatorPlay implements OnInit {
     await new Promise<void>(res => setTimeout(res, ANIM_MS));
   }
 
+  private readonly MAP_SIZE = 28;
+
+  private async playAnimForAttack(
+    attackId: string | undefined,
+    attacker: BattleBot,
+    target: BattleBot,
+    damage: number,
+    shieldConsumed: number,
+    energyCost: number,
+    extraEvents: BattleEvent[],
+  ): Promise<void> {
+    if (!this.animationEnabled()) return;
+    const g = this.hexMapComp()?.getAnimLayer();
+    if (!g) return;
+    const s = this.MAP_SIZE;
+    const attackerPx = hexToPixel(attacker.q, attacker.r, s);
+    const targetPx = hexToPixel(target.q, target.r, s);
+    const statusEv = extraEvents.find(e => e.kind === 'status_applied');
+    const statusApplied = statusEv?.payload['kind'] as string | undefined;
+    const healEv = extraEvents.find(e => e.kind === 'healed');
+    const healAmount = healEv ? (healEv.payload['amount'] as number) : undefined;
+    const moveEv = extraEvents.find(e => e.kind === 'moved' && e.botId === target.id);
+    const pushMovePx = moveEv
+      ? hexToPixel(moveEv.payload['toQ'] as number, moveEv.payload['toR'] as number, s)
+      : undefined;
+    const secondaryPx = extraEvents
+      .filter(e => e.kind === 'attack_hit')
+      .map(e => {
+        const bot = this.currentState().bots.find(b => b.id === (e.payload['targetId'] as string));
+        return bot ? hexToPixel(bot.q, bot.r, s) : null;
+      })
+      .filter(Boolean) as { x: number; y: number }[];
+    await playAttackAnim({
+      g, attackId: attackId ?? '', attackerPx, targetPx,
+      secondaryPx, damage, size: s, statusApplied, pushMovePx, healAmount,
+      shieldConsumed, energyCost,
+    });
+  }
+
   isActive(p: PlayerId): boolean {
     const phase = this.currentState().phase;
     const bootBot = this.nextBootBot();
@@ -1308,6 +1351,13 @@ export class SimulatorPlay implements OnInit {
           timestamp: new Date().toISOString(), botId: bot.id,
           kind: 'shield_up', payload: { energyCost: cost, amount: 1 },
         }]);
+        if (this.animationEnabled()) {
+          const g = this.hexMapComp()?.getAnimLayer();
+          if (g) {
+            const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+            playShieldAnim(g, px.x, px.y, 1, cost, this.MAP_SIZE);
+          }
+        }
       }
       await this.afterFnExecuted();
       return;
@@ -1331,6 +1381,13 @@ export class SimulatorPlay implements OnInit {
           timestamp: new Date().toISOString(), botId: bot.id,
           kind: 'bug_added', payload: { count: 1, reason: 'no-targets-in-range' },
         }]);
+        if (this.animationEnabled()) {
+          const g = this.hexMapComp()?.getAnimLayer();
+          if (g) {
+            const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+            floatingText(g, px.x, px.y, 'MISS', '#6b7280', this.MAP_SIZE);
+          }
+        }
         await this.afterFnExecuted();
         return;
       }
@@ -1354,6 +1411,13 @@ export class SimulatorPlay implements OnInit {
         kind: 'destroyed', payload: {},
       }]);
     }
+    if (this.animationEnabled() && lifeLoss > 0) {
+      const g = this.hexMapComp()?.getAnimLayer();
+      if (g) {
+        const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+        playOverloadAnim(g, px.x, px.y, lifeLoss, this.MAP_SIZE);
+      }
+    }
   }
 
   async pickRunHex(q: number, r: number): Promise<void> {
@@ -1367,11 +1431,19 @@ export class SimulatorPlay implements OnInit {
     if (bot.energy < cost) {
       await this.applyOverload(bot, cost, 'move');
     } else {
+      const preMoveQ = bot.q, preMoveR = bot.r;
       await this.appendEvents([{
         turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
         timestamp: new Date().toISOString(), botId: bot.id,
         kind: 'move', payload: { toQ: q, toR: r, energyCost: cost },
       }]);
+      if (this.animationEnabled() && cost > 0) {
+        const g = this.hexMapComp()?.getAnimLayer();
+        if (g) {
+          const px = hexToPixel(preMoveQ, preMoveR, this.MAP_SIZE);
+          playMoveEnergyAnim(g, px.x, px.y, cost, this.MAP_SIZE);
+        }
+      }
       // Relay node damage: triggers when entering or exiting a hex adjacent to a node
       const relayNodes = this.currentState().entities?.filter(e => e.kind === 'relay_node') ?? [];
       if (relayNodes.length > 0) {
@@ -1466,6 +1538,8 @@ export class SimulatorPlay implements OnInit {
 
     const extraEvents = attackFnDef?.onHit?.(ctx) ?? [];
     for (const ev of extraEvents) await this.appendEvents([ev]);
+
+    await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, extraEvents);
 
     await this.afterFnExecuted();
   }
