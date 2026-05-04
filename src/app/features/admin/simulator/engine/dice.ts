@@ -31,6 +31,25 @@ export function rollOperationDie(version: 1 | 2 | 3): OperationFace {
   return faces[Math.floor(Math.random() * faces.length)];
 }
 
+export function rollDN(sides: number): number {
+  return 1 + Math.floor(Math.random() * sides);
+}
+
+/** Parses and rolls a damage string: "2", "1d4", "1d6", "1d8", "1d10". Returns 0 for "—". */
+export function rollDamageString(s: string | undefined | null): number {
+  if (!s || s === '—' || s === '*') return 0;
+  const m = /^(\d+)d(\d+)$/.exec(s.trim());
+  if (m) {
+    const count = parseInt(m[1], 10);
+    const sides = parseInt(m[2], 10);
+    let total = 0;
+    for (let i = 0; i < count; i++) total += rollDN(sides);
+    return total;
+  }
+  const flat = parseInt(s.trim(), 10);
+  return isNaN(flat) ? 0 : flat;
+}
+
 export function evaluate(d6: number, picked: number, cmp: Comparator): boolean {
   switch (cmp) {
     case '<': return d6 < picked;

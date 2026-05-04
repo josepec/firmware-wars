@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, OnInit, signal } from '@angular/co
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import { HexMap } from '../../../shared/components/hex-map/hex-map';
-import { type DotColor, type HexMapData } from '../../../shared/components/hex-map/hex-map.types';
+import { type DotColor, type HexMapData, type HexMapEntity } from '../../../shared/components/hex-map/hex-map.types';
 import {
   hexKey,
   type BattleBot,
@@ -12,10 +12,11 @@ import {
   type BattleState,
   type CompiledOperation,
   type CompiledProgram,
+  type MapEntity,
   type PlayerId,
 } from '../../../shared/types/battle.types';
-import { evaluate, rollD6, rollDadoColores, rollOperationDie } from './engine/dice';
-import { hexDistance, reachableHexes } from './engine/pathfinding';
+import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie } from './engine/dice';
+import { hexDistance, hexPushDir, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
@@ -24,10 +25,13 @@ import { SimulatorRunPanel } from './simulator-run-panel';
 import {
   computeAttackTargets,
   fnEnergyCost,
+  hasStatus,
   initialRunState,
-  parseDamage,
+  parseRangeMax,
+  parseRangeMin,
   type RunState,
 } from './simulator-run.utils';
+import { getAttackFn, type AttackResolveContext } from './attack-fns/index';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -145,7 +149,7 @@ export class SimulatorPlay implements OnInit {
     const s = this.currentState();
     const phase = s.phase;
     const activeRunBotId = (phase === 'run' || phase === 'debug')
-      ? (s.activationOrder[s.currentActivationIdx] ?? null)
+      ? (this.runState().botId ?? s.activationOrder[s.currentActivationIdx] ?? null)
       : null;
     const deployments = s.bots
       .filter(b => b.q !== -999)
@@ -165,6 +169,18 @@ export class SimulatorPlay implements OnInit {
   readonly dotOpacity = computed(() =>
     this.currentState().phase === 'deploy' ? 1.0 : 0.12
   );
+
+  readonly displayEntities = computed<HexMapEntity[]>(() => {
+    const s = this.currentState();
+    return (s.entities ?? []).map(e => ({
+      kind: e.kind,
+      q: e.q,
+      r: e.r,
+      teamColor: e.ownerId
+        ? (s.bots.find(b => b.id === e.ownerId)?.playerId === 1 ? '#22d3ee' : '#e879f9')
+        : undefined,
+    }));
+  });
 
   readonly activeDeployer = computed<PlayerId | null>(() => {
     const s = this.currentState();
@@ -195,9 +211,15 @@ export class SimulatorPlay implements OnInit {
       if (!bot) return null;
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
         const dist = rs.pendingFn.moveDistance ?? 0;
-        const maxByEnergy = Math.min(dist, bot.energy);
+        const effectiveDist = Math.max(0, dist - (hasStatus(bot, 'LAG') ? 1 : 0));
+        const maxByEnergy = Math.min(effectiveDist, bot.energy);
         if (maxByEnergy <= 0) return new Set();
-        return reachableHexes(bot.q, bot.r, maxByEnergy, this.currentState().hexMap, this.currentState().bots, bot.id);
+        const reachable = reachableHexes(bot.q, bot.r, maxByEnergy, this.currentState().hexMap, this.currentState().bots, bot.id);
+        // Barriers block movement
+        for (const e of (this.currentState().entities ?? [])) {
+          if (e.kind === 'barrier') reachable.delete(hexKey(e.q, e.r));
+        }
+        return reachable;
       }
       if (rs.step === 'picking-target' && rs.pendingFn.type === 'attack') {
         return computeAttackTargets(bot, rs.pendingFn, this.currentState().bots, this.currentState().hexMap, this.functionsMap());
@@ -310,6 +332,7 @@ export class SimulatorPlay implements OnInit {
     for (const id of s.activationOrder) {
       const b = s.bots.find(x => x.id === id);
       if (!b || b.destroyed) continue;
+      if (hasStatus(b, 'REBOOTING')) continue;
       if (!booted.has(id)) return b;
     }
     return null;
@@ -337,6 +360,8 @@ export class SimulatorPlay implements OnInit {
     if (!slotId) return null;
     const slotBot = s.bots.find(b => b.id === slotId);
     if (!slotBot) return null;
+    // Rebooted bot: skip COMPILE entirely → null lets the auto-RUN effect fire and skipRebootedBot runs.
+    if (hasStatus(slotBot, 'REBOOTING')) return null;
     const playerId = slotBot.playerId;
     // One bot per slot: if any bot compiled at this activation index this turn → null → triggers RUN
     const compiledAtSlot = this.events().some(
@@ -410,6 +435,19 @@ export class SimulatorPlay implements OnInit {
       2: bots.filter(b => b.playerId === 2),
     };
   });
+
+  /** True after the bot's activation has completed this turn (turn_ended fired). */
+  isActivatedThisTurn(botId: string): boolean {
+    const turn = this.currentState().turn;
+    return this.events().some(
+      e => e.botId === botId && e.turn === turn && e.kind === 'turn_ended',
+    );
+  }
+
+  /** Intercept once-per-round still available — needs numbers to substitute the d6. */
+  canBotIntercept(bot: BattleBot): boolean {
+    return !bot.destroyed && !bot.hasInterceptedThisTurn && bot.numbers.length > 0;
+  }
 
   selectedBotFor(p: PlayerId): BattleBot | null {
     const list = this.botsByPlayer()[p];
@@ -1084,6 +1122,10 @@ export class SimulatorPlay implements OnInit {
       await this.finishBotRun(id);
       return;
     }
+    if (hasStatus(bot, 'REBOOTING')) {
+      await this.skipRebootedBot(bot.id);
+      return;
+    }
     const program = bot.compiledProgram?.operations ?? [];
     if (program.length === 0) {
       this.runState.set({ ...initialRunState, botId: id, step: 'debug' });
@@ -1299,8 +1341,8 @@ export class SimulatorPlay implements OnInit {
     const bot = this.currentRunBot();
     const fn = rs.pendingFn;
     if (!bot || !fn || fn.type !== 'move') return;
-    const requested = fn.moveDistance ?? 0;
-    const cost = requested; // move(n) cuesta n
+    const requested = Math.max(0, (fn.moveDistance ?? 0) - (hasStatus(bot, 'LAG') ? 1 : 0));
+    const cost = requested; // move(n) cuesta n; LAG reduces both range and cost by 1
     const s = this.currentState();
     if (bot.energy < cost) {
       await this.applyOverload(bot, cost, 'move');
@@ -1310,6 +1352,32 @@ export class SimulatorPlay implements OnInit {
         timestamp: new Date().toISOString(), botId: bot.id,
         kind: 'move', payload: { toQ: q, toR: r, energyCost: cost },
       }]);
+      // Relay node damage: triggers when entering or exiting a hex adjacent to a node
+      const relayNodes = this.currentState().entities?.filter(e => e.kind === 'relay_node') ?? [];
+      if (relayNodes.length > 0) {
+        const movedBot = this.currentState().bots.find(b => b.id === bot.id)!;
+        const ts2 = new Date().toISOString();
+        for (const node of relayNodes) {
+          if (hexDistance(bot.q, bot.r, node.q, node.r) > 1 && hexDistance(movedBot.q, movedBot.r, node.q, node.r) > 1) continue;
+          if (movedBot.destroyed) break;
+          const nodeDmg = 2;
+          const sc = Math.min(movedBot.shield, nodeDmg);
+          const dealt = nodeDmg - sc;
+          const st = this.currentState();
+          await this.appendEvents([{
+            turn: st.turn, activation: st.currentActivationIdx, phase: 'run',
+            timestamp: ts2, botId: node.ownerId,
+            kind: 'attack_hit',
+            payload: { targetId: movedBot.id, damage: dealt, shieldConsumed: sc, energyCost: 0, sourceFn: 'relayNode' },
+          }]);
+          if (movedBot.life - dealt <= 0) {
+            await this.appendEvents([{
+              turn: st.turn, activation: st.currentActivationIdx, phase: 'run',
+              timestamp: ts2, botId: movedBot.id, kind: 'destroyed', payload: { sourceFn: 'relayNode' },
+            }]);
+          }
+        }
+      }
     }
     await this.afterFnExecuted();
   }
@@ -1319,31 +1387,66 @@ export class SimulatorPlay implements OnInit {
     const bot = this.currentRunBot();
     const fn = rs.pendingFn;
     if (!bot || !fn || fn.type !== 'attack') return;
-    const target = this.currentState().bots.find(b => b.id === targetId);
+    const s = this.currentState();
+    const target = s.bots.find(b => b.id === targetId);
     if (!target) return;
     const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : undefined;
-    const cost = fnEnergyCost(fn, this.functionsMap());
-    const damage = parseDamage(entry?.damage);
-    const s = this.currentState();
+    const attackFnDef = getAttackFn(fn.attackFunctionId);
+    const cost = attackFnDef?.computeEnergyCost?.(bot) ?? fnEnergyCost(fn, this.functionsMap());
+    const ts = new Date().toISOString();
+
     if (bot.energy < cost) {
       await this.applyOverload(bot, cost, 'attack');
-    } else {
-      const shieldConsumed = Math.min(target.shield, damage);
-      const dealt = Math.max(0, damage - shieldConsumed);
+      await this.afterFnExecuted();
+      return;
+    }
+
+    const ctx: AttackResolveContext = {
+      attacker: bot, target, bots: s.bots, map: s.hexMap,
+      rangeMin: parseRangeMin(entry?.range),
+      rangeMax: parseRangeMax(entry?.range),
+      energyCost: cost, turn: s.turn, activation: s.currentActivationIdx,
+      timestamp: ts, rollD: rollDN, splashRadius: attackFnDef?.splashRadius,
+      entities: s.entities, damage: 0,
+    };
+    ctx.damage = attackFnDef?.rollDamage?.(ctx) ?? rollDamageString(entry?.damage);
+
+    // Consume temporary damage buffs
+    const buffPlus1 = (bot.tempBuffs ?? []).filter(b => b.kind === 'DAMAGE_PLUS_1');
+    const buffDouble = (bot.tempBuffs ?? []).find(b => b.kind === 'DAMAGE_DOUBLE');
+    for (const buff of buffPlus1) {
+      ctx.damage += 1;
       await this.appendEvents([{
         turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
-        timestamp: new Date().toISOString(), botId: bot.id,
-        kind: 'attack_hit',
-        payload: { targetId, damage: dealt, shieldConsumed, energyCost: cost, functionId: fn.attackFunctionId },
+        timestamp: ts, botId: bot.id, kind: 'buff_consumed', payload: { kind: buff.kind },
       }]);
-      if (target.life - dealt <= 0) {
-        await this.appendEvents([{
-          turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
-          timestamp: new Date().toISOString(), botId: targetId,
-          kind: 'destroyed', payload: {},
-        }]);
-      }
     }
+    if (buffDouble) {
+      ctx.damage *= 2;
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: ts, botId: bot.id, kind: 'buff_consumed', payload: { kind: buffDouble.kind },
+      }]);
+    }
+
+    const shieldConsumed = Math.min(target.shield, ctx.damage);
+    const dealt = Math.max(0, ctx.damage - shieldConsumed);
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'attack_hit',
+      payload: { targetId, damage: dealt, shieldConsumed, energyCost: cost, functionId: fn.attackFunctionId },
+    }]);
+    if (target.life - dealt <= 0) {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+        timestamp: ts, botId: targetId, kind: 'destroyed', payload: {},
+      }]);
+    }
+
+    const extraEvents = attackFnDef?.onHit?.(ctx) ?? [];
+    for (const ev of extraEvents) await this.appendEvents([ev]);
+
     await this.afterFnExecuted();
   }
 
@@ -1440,7 +1543,12 @@ export class SimulatorPlay implements OnInit {
     this.runState.update(s => ({ ...s, d6, step: 'picking-number' }));
   }
 
-  private findInterceptBot(activeBot: BattleBot): BattleBot | null {
+  /** Returns the next available interceptor for the active bot.
+   *  Rules: only enemies at the MINIMUM distance can intercept. If multiple are tied
+   *  at min distance, they're offered one by one (each call returns one not in `excludeIds`).
+   *  An enemy with hasInterceptedThisTurn=true (already used their once-per-round intercept)
+   *  or numbers.length===0 (nothing to substitute for d6) is not eligible. */
+  private findInterceptBot(activeBot: BattleBot, excludeIds: ReadonlySet<string> = new Set()): BattleBot | null {
     const allBots = this.currentState().bots;
     const enemies = allBots.filter(
       b => !b.destroyed && b.playerId !== activeBot.playerId && b.q !== -999,
@@ -1454,7 +1562,8 @@ export class SimulatorPlay implements OnInit {
     return enemies.find(
       e => hexDistance(activeBot.q, activeBot.r, e.q, e.r) === minDist
         && !e.hasInterceptedThisTurn
-        && e.numbers.length > 0,
+        && e.numbers.length > 0
+        && !excludeIds.has(e.id),
     ) ?? null;
   }
 
@@ -1472,8 +1581,32 @@ export class SimulatorPlay implements OnInit {
   }
 
   async skipIntercept(): Promise<void> {
+    const rs = this.runState();
+    const declinedId = rs.interceptBotId;
+    const activeBot = this.currentRunBot();
+
+    // Try to offer intercept to another equidistant candidate (rules:
+    // multiple bots tied at the closest distance each get a chance, in sequence).
+    if (declinedId && activeBot) {
+      const declined = new Set([...rs.interceptDeclinedIds, declinedId]);
+      const next = this.findInterceptBot(activeBot, declined);
+      if (next) {
+        this.runState.update(s => ({
+          ...s,
+          interceptBotId: next.id,
+          interceptDeclinedIds: [...declined],
+          step: 'intercept-prompt',
+        }));
+        return;
+      }
+    }
+
+    // No more candidates → roll d6, clear declined list, proceed.
     const d6 = rollD6();
-    this.runState.update(s => ({ ...s, d6, step: 'picking-number', interceptBotId: null }));
+    this.runState.update(s => ({
+      ...s, d6, step: 'picking-number',
+      interceptBotId: null, interceptDeclinedIds: [],
+    }));
   }
 
   beginIntercept(): void {
@@ -1490,7 +1623,10 @@ export class SimulatorPlay implements OnInit {
       kind: 'intercept',
       payload: { interceptorId: rs.interceptBotId, substituteD6: n },
     }]);
-    this.runState.update(st => ({ ...st, d6: n, step: 'picking-number', interceptBotId: null }));
+    this.runState.update(st => ({
+      ...st, d6: n, step: 'picking-number',
+      interceptBotId: null, interceptDeclinedIds: [],
+    }));
   }
 
   private async resolveTryCatch(op: CompiledOperation, bot: BattleBot): Promise<void> {
@@ -1551,6 +1687,8 @@ export class SimulatorPlay implements OnInit {
       const n = action.n ?? 1;
       if (bot.numbers.length < n || bot.energy < n) return;
       energyCost = n; numbersRemoved = n;
+    } else if (action.action === 'reboot') {
+      energyCost = 0;
     } else {
       return;
     }
@@ -1560,6 +1698,31 @@ export class SimulatorPlay implements OnInit {
       kind: 'debug_action',
       payload: { action: action.action, energyCost, bugsRemoved, numbersRemoved },
     }]);
+  }
+
+  /** Emit a turn_ended-skip for a rebooted bot, then chain to round_ended or next compile. */
+  private async skipRebootedBot(botId: string): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'end',
+      timestamp: new Date().toISOString(), botId,
+      kind: 'turn_ended', payload: { reason: 'reboot-skip' },
+    }]);
+    this.runState.set(initialRunState);
+    const after = this.currentState();
+    if (after.currentActivationIdx >= after.activationOrder.length) {
+      await this.appendEvents([{
+        turn: after.turn, activation: 0, phase: 'end',
+        timestamp: new Date().toISOString(),
+        kind: 'round_ended', payload: { nextTurn: after.turn + 1 },
+      }]);
+    } else {
+      await this.appendEvents([{
+        turn: after.turn, activation: after.currentActivationIdx, phase: 'compile',
+        timestamp: new Date().toISOString(),
+        kind: 'phase_changed', payload: { from: 'end', to: 'compile' },
+      }]);
+    }
   }
 
   async finishBotRun(_botId?: string): Promise<void> {

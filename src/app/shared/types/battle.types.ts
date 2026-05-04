@@ -1,5 +1,28 @@
 import type { HexMapData } from '../components/hex-map/hex-map.types';
 
+export type StatusEffectKind = 'LAG' | 'SAFE_MODE' | 'DMZ' | 'REBOOTING';
+
+export interface StatusEffect {
+  kind: StatusEffectKind;
+  appliedTurn: number;
+}
+
+export type TempBuffKind = 'DAMAGE_PLUS_1' | 'DAMAGE_DOUBLE';
+
+export interface TempBuff {
+  kind: TempBuffKind;
+  appliedTurn: number;
+}
+
+export interface MapEntity {
+  id: string;
+  kind: 'barrier' | 'relay_node';
+  q: number;
+  r: number;
+  life: number;
+  ownerId: string;
+}
+
 export type Phase =
   | 'deploy'
   | 'init'
@@ -64,6 +87,8 @@ export interface BattleBot {
   compiledProgram?: CompiledProgram;
   destroyed: boolean;
   hasInterceptedThisTurn: boolean;
+  statusEffects?: StatusEffect[];
+  tempBuffs?: TempBuff[];
   attacks: BotAttackSlots;
 }
 
@@ -83,6 +108,7 @@ export interface BattleState {
   players: Record<PlayerId, PlayerState>;
   bots: BattleBot[];
   hexMap: HexMapData;
+  entities?: MapEntity[];
   winner?: PlayerId;
 }
 
@@ -110,6 +136,15 @@ export type BattleEventKind =
   | 'bug_purged'
   | 'destroyed'
   | 'debug_action'
+  | 'status_applied'
+  | 'status_expired'
+  | 'healed'
+  | 'moved'
+  | 'buff_applied'
+  | 'buff_consumed'
+  | 'numbers_lost'
+  | 'entity_placed'
+  | 'entity_destroyed'
   | 'turn_ended'
   | 'round_ended'
   | 'phase_changed'

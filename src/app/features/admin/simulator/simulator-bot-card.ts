@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import type { BattleBot, FunctionCall } from '../../../shared/types/battle.types';
+import type { BattleBot, FunctionCall, StatusEffectKind } from '../../../shared/types/battle.types';
 
 export interface FunctionEntry {
   id: string;
@@ -61,6 +61,36 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
             UNIT {{ index() + 1 }} / {{ totalBots() }} · V{{ bot().version }}
             @if (bot().destroyed) { · <span class="text-red-400">DESTRUIDO</span> }
           </div>
+          @if (!bot().destroyed && (activatedThisTurn() || canIntercept() || (bot().statusEffects?.length ?? 0) > 0)) {
+            <div class="flex justify-center gap-1 mt-1 flex-wrap">
+              @for (se of (bot().statusEffects ?? []); track se.kind) {
+                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 border"
+                      [class.border-red-500\\/40]="se.kind === 'REBOOTING'"
+                      [class.text-red-300]="se.kind === 'REBOOTING'"
+                      [class.bg-red-500\\/10]="se.kind === 'REBOOTING'"
+                      [class.border-orange-500\\/40]="se.kind === 'LAG'"
+                      [class.text-orange-300]="se.kind === 'LAG'"
+                      [class.bg-orange-500\\/10]="se.kind === 'LAG'"
+                      [class.border-blue-500\\/40]="se.kind === 'SAFE_MODE'"
+                      [class.text-blue-300]="se.kind === 'SAFE_MODE'"
+                      [class.bg-blue-500\\/10]="se.kind === 'SAFE_MODE'"
+                      [class.border-violet-500\\/40]="se.kind === 'DMZ'"
+                      [class.text-violet-300]="se.kind === 'DMZ'"
+                      [class.bg-violet-500\\/10]="se.kind === 'DMZ'"
+                      style="line-height:1;">{{ statusLabel(se.kind) }}</span>
+              }
+              @if (activatedThisTurn()) {
+                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5
+                             border border-green-500/35 text-green-400/80 bg-green-500/5"
+                      style="line-height:1;">ACTIVADO</span>
+              }
+              @if (canIntercept()) {
+                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5
+                             border border-yellow-500/40 text-yellow-300/85 bg-yellow-500/5"
+                      style="line-height:1;">INTERCEPTAR</span>
+              }
+            </div>
+          }
         </div>
         <button type="button" (click)="next.emit()" [disabled]="totalBots() <= 1"
           class="w-6 h-6 flex items-center justify-center text-[12px]
@@ -270,6 +300,8 @@ export class SimulatorBotCard {
   active = input<boolean>(false);
   expandedVersion = input<1 | 2 | 3 | null>(null);
   functionsMap = input<Map<string, FunctionEntry>>(new Map());
+  activatedThisTurn = input<boolean>(false);
+  canIntercept = input<boolean>(false);
 
   readonly versions: (1 | 2 | 3)[] = [1, 2, 3];
 
@@ -302,6 +334,13 @@ export class SimulatorBotCard {
 
   rangeInfoOf(range: string): { abbr: string; name: string; description: string }[] {
     return rangeInfo(range);
+  }
+
+  statusLabel(kind: StatusEffectKind): string {
+    const labels: Record<StatusEffectKind, string> = {
+      REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ',
+    };
+    return labels[kind] ?? kind;
   }
 
   stripBackticks(s: string): string {

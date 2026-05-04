@@ -1,4 +1,23 @@
 import { hexKey, type BattleBot } from '../../../../shared/types/battle.types';
+
+const CUBE_DIRS: [number, number, number][] = [
+  [1, 0, -1], [-1, 0, 1], [0, 1, -1], [0, -1, 1], [1, -1, 0], [-1, 1, 0],
+];
+
+/** Returns the unit hex direction that best points FROM (aq,ar) TOWARD (tq,tr). */
+export function hexPushDir(aq: number, ar: number, tq: number, tr: number): [number, number] {
+  const dq = tq - aq, dr = tr - ar, ds = -(dq + dr);
+  const dist = hexDistance(aq, ar, tq, tr);
+  if (dist === 0) return [1, 0];
+  const nq = dq / dist, nr = dr / dist, ns = ds / dist;
+  let best: [number, number] = [1, 0];
+  let bestDot = -Infinity;
+  for (const [udq, udr, uds] of CUBE_DIRS) {
+    const dot = nq * udq + nr * udr + ns * uds;
+    if (dot > bestDot) { bestDot = dot; best = [udq, udr]; }
+  }
+  return best;
+}
 import { hexNeighbors, type HexCell, type HexMapData } from '../../../../shared/components/hex-map/hex-map.types';
 
 export function hexDistance(aq: number, ar: number, bq: number, br: number): number {

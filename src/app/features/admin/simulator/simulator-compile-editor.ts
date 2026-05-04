@@ -29,6 +29,11 @@ function hasSecondarySlot(op: OperationKind): boolean {
       <div class="text-[8px] tracking-[0.2em] uppercase text-cyan-400/70">
         COMPILE · {{ bot().name }} (V{{ bot().version }}) · {{ availableSlots() }} slots
       </div>
+      @if (hasDMZ()) {
+        <div class="text-[8px] text-violet-300/80 border border-violet-500/30 bg-violet-500/10 px-2 py-1 tracking-wider">
+          ⚡ DMZ activo — funciones de ataque bloqueadas
+        </div>
+      }
 
       <div>
         <div class="text-[8px] text-green-500/45 tracking-wider mb-1">Pool disponible:</div>
@@ -147,25 +152,29 @@ export class CompileEditor {
   readonly canAdd = computed(() => this.draftOps().length < this.availableSlots());
   readonly loopCount = computed(() => this.draftOps().filter(o => o === 'FOR' || o === 'WHILE').length);
 
+  readonly hasDMZ = computed(() => (this.bot().statusEffects ?? []).some(se => se.kind === 'DMZ'));
+
   readonly fnOptions = computed<FnOption[]>(() => {
     const bot = this.bot();
     const fmap = this.functionsMap();
     const opts: FnOption[] = [];
     for (let n = 1; n <= bot.maxMovement; n++) opts.push({ value: `move:${n}`, label: `move(${n})` });
     opts.push({ value: 'shield', label: 'shield()' });
-    const addAttacks = (refs: (AttackRef | null)[], vLabel: string) => {
-      for (const ref of refs) {
-        if (!ref) continue;
+    if (!this.hasDMZ()) {
+      const addAttacks = (refs: (AttackRef | null)[], vLabel: string) => {
+        for (const ref of refs) {
+          if (!ref) continue;
+          const fn = fmap.get(ref.functionId);
+          opts.push({ value: `attack:${ref.functionId}`, label: `${fn?.func_name ?? ref.functionId} [V${vLabel}]` });
+        }
+      };
+      addAttacks(bot.attacks.v1, '1');
+      if (bot.version >= 2) addAttacks(bot.attacks.v2, '2');
+      if (bot.version >= 3 && bot.attacks.v3) {
+        const ref = bot.attacks.v3;
         const fn = fmap.get(ref.functionId);
-        opts.push({ value: `attack:${ref.functionId}`, label: `${fn?.func_name ?? ref.functionId} [V${vLabel}]` });
+        opts.push({ value: `attack:${ref.functionId}`, label: `${fn?.func_name ?? ref.functionId} [V3]` });
       }
-    };
-    addAttacks(bot.attacks.v1, '1');
-    if (bot.version >= 2) addAttacks(bot.attacks.v2, '2');
-    if (bot.version >= 3 && bot.attacks.v3) {
-      const ref = bot.attacks.v3;
-      const fn = fmap.get(ref.functionId);
-      opts.push({ value: `attack:${ref.functionId}`, label: `${fn?.func_name ?? ref.functionId} [V3]` });
     }
     return opts;
   });

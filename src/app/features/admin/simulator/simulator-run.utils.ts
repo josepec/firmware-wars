@@ -4,10 +4,12 @@ import {
   type FunctionCall,
   type OperationKind,
   type PlayerId,
+  type StatusEffectKind,
 } from '../../../shared/types/battle.types';
 import type { HexMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { attackableHexes, hexDistance, lineOfSight } from './engine/pathfinding';
 import type { OperationFace } from './engine/dice';
+import { getAttackFn, lrHexes, sldvHexes } from './attack-fns/index';
 import type { FunctionEntry } from './simulator-bot-card';
 
 export type RunStep =
@@ -36,6 +38,8 @@ export interface RunState {
   pendingFn: FunctionCall | null;
   condResult: boolean | number | null;
   interceptBotId: string | null;
+  /** Bots that were offered intercept this op and declined — excluded from further offers this op. */
+  interceptDeclinedIds: string[];
   loopExecuted: boolean;
 }
 
@@ -51,13 +55,30 @@ export const initialRunState: RunState = {
   pendingFn: null,
   condResult: null,
   interceptBotId: null,
+  interceptDeclinedIds: [],
   loopExecuted: false,
 };
 
+export function hasStatus(bot: BattleBot, kind: StatusEffectKind): boolean {
+  return (bot.statusEffects ?? []).some(s => s.kind === kind);
+}
+
 export function parseRange(s: string | undefined | null): number {
-  if (!s) return 1;
+  return parseRangeMax(s);
+}
+
+export function parseRangeMin(s: string | undefined | null): number {
+  if (!s || s.trim() === '—') return 0;
   const m = /^\s*(\d+)/.exec(s);
   return m ? parseInt(m[1], 10) : 1;
+}
+
+export function parseRangeMax(s: string | undefined | null): number {
+  if (!s || s.trim() === '—') return 0;
+  const beforeParens = s.split('(')[0];
+  const nums = beforeParens.match(/\d+/g);
+  if (!nums) return 1;
+  return parseInt(nums[nums.length - 1], 10);
 }
 
 export function parseEnergy(s: string | undefined | null): number {
@@ -72,9 +93,11 @@ export function parseDamage(s: string | undefined | null): number {
   return m ? parseInt(m[1], 10) : 0;
 }
 
-export function fnEnergyCost(fn: FunctionCall, fmap: Map<string, FunctionEntry>): number {
+export function fnEnergyCost(fn: FunctionCall, fmap: Map<string, FunctionEntry>, bot?: BattleBot): number {
   if (fn.type === 'move') return fn.moveDistance ?? 0;
   if (fn.type === 'shield') return 2;
+  const attackFnDef = fn.attackFunctionId ? getAttackFn(fn.attackFunctionId) : undefined;
+  if (attackFnDef?.computeEnergyCost && bot) return attackFnDef.computeEnergyCost(bot);
   const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
   return parseEnergy(entry?.energy);
 }
@@ -87,9 +110,42 @@ export function computeAttackTargets(
   fmap: Map<string, FunctionEntry>,
 ): Set<string> {
   if (fn.type !== 'attack') return new Set();
+  const attackFnDef = fn.attackFunctionId ? getAttackFn(fn.attackFunctionId) : undefined;
+
+  // Self-targeted: only the attacker's hex
+  if (attackFnDef?.rangeKind === 'self') return new Set([hexKey(bot.q, bot.r)]);
+
+  // Custom targeting override
+  if (attackFnDef?.computeValidHexes) {
+    const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
+    return attackFnDef.computeValidHexes({
+      attacker: bot, bots, map,
+      rangeMin: parseRangeMin(entry?.range),
+      rangeMax: parseRangeMax(entry?.range),
+    });
+  }
+
   const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
-  const range = parseRange(entry?.range);
-  const reachable = attackableHexes(bot.q, bot.r, range, map, bots);
+  const rangeMin = parseRangeMin(entry?.range);
+  const rangeMax = parseRangeMax(entry?.range);
+  const rangeKind = attackFnDef?.rangeKind ?? 'normal';
+
+  let reachable: Set<string>;
+  if (rangeKind === 'SLDV') {
+    reachable = sldvHexes(bot.q, bot.r, rangeMin, rangeMax, map);
+  } else if (rangeKind === 'LR') {
+    reachable = lrHexes(bot.q, bot.r, rangeMin, rangeMax, map, bots);
+  } else {
+    // normal and splash: LOS-based targeting to enemy hexes within range
+    reachable = attackableHexes(bot.q, bot.r, rangeMax, map, bots);
+    if (rangeMin > 1) {
+      for (const k of [...reachable]) {
+        const h = k.split(',').map(Number);
+        if (hexDistance(bot.q, bot.r, h[0], h[1]) < rangeMin) reachable.delete(k);
+      }
+    }
+  }
+
   const out = new Set<string>();
   for (const enemy of bots) {
     if (enemy.destroyed || enemy.playerId === bot.playerId) continue;

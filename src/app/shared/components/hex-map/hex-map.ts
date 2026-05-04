@@ -1,5 +1,10 @@
 import { Component, computed, input, output, signal } from '@angular/core';
-import { HexMapData, hexToPixel, hexPoints, hexNeighbors, DOT_COLORS } from './hex-map.types';
+import { HexMapData, HexMapEntity, hexToPixel, hexPoints, hexNeighbors, DOT_COLORS } from './hex-map.types';
+
+interface RenderedEntity {
+  key: string; q: number; r: number; cx: number; cy: number;
+  kind: 'barrier' | 'relay_node'; teamColor: string;
+}
 
 interface RenderedDeployment {
   key: string; q: number; r: number; cx: number; cy: number; type: string; label: string; imageUrl?: string;
@@ -59,6 +64,28 @@ interface RenderedDeployment {
                   [attr.fill]="h.dotColor" [attr.fill-opacity]="dotOpacity()"
                   class="pointer-events-none" />
         }
+      }
+
+      <!-- Map entities: barriers + relay nodes -->
+      @for (e of renderedEntities(); track e.key) {
+        <g [attr.transform]="'translate(' + e.cx + ',' + e.cy + ') rotate(' + (-rotateAngle()) + ')'"
+           class="pointer-events-none">
+          @if (e.kind === 'barrier') {
+            <polygon [attr.points]="barrierHexPts()" fill="#111827" stroke="#4b5563" stroke-width="1.2" />
+            <line [attr.x1]="-(size() * 0.38)" [attr.y1]="-(size() * 0.38)"
+                  [attr.x2]="size() * 0.38" [attr.y2]="size() * 0.38"
+                  stroke="#6b7280" stroke-width="1.5" />
+            <line [attr.x1]="size() * 0.38" [attr.y1]="-(size() * 0.38)"
+                  [attr.x2]="-(size() * 0.38)" [attr.y2]="size() * 0.38"
+                  stroke="#6b7280" stroke-width="1.5" />
+          } @else if (e.kind === 'relay_node') {
+            <circle [attr.r]="size() * 0.35" [attr.fill]="e.teamColor"
+                    fill-opacity="0.22" [attr.stroke]="e.teamColor" stroke-width="1.5" />
+            <circle [attr.r]="size() * 0.42" [attr.stroke]="e.teamColor"
+                    stroke-width="1.5" fill="none" class="animate-ping ping-ring" />
+            <circle r="2.5" [attr.fill]="e.teamColor" />
+          }
+        </g>
       }
 
       <!-- Deployment markers -->
@@ -185,6 +212,7 @@ export class HexMap {
   readonly highlightColor = input<string>('#3b82f6');
   readonly selectable = input<Set<string> | null>(null);
   readonly dotOpacity = input(1.0);
+  readonly mapEntities = input<HexMapEntity[]>([]);
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
@@ -197,6 +225,20 @@ export class HexMap {
 
   dotRadius = computed(() => this.size() * 0.15);
   robotScale = computed(() => this.size() / 30);
+  barrierHexPts = computed(() => hexPoints(0, 0, this.size() * 0.72));
+
+  renderedEntities = computed<RenderedEntity[]>(() => {
+    const s = this.size();
+    return this.mapEntities().map(e => {
+      const { x, y } = hexToPixel(e.q, e.r, s);
+      return {
+        key: `ent-${e.q},${e.r}`,
+        q: e.q, r: e.r, cx: x, cy: y,
+        kind: e.kind,
+        teamColor: e.teamColor ?? '#94a3b8',
+      };
+    });
+  });
 
   hoveredTooltip = signal<{ cx: number; cy: number; lines: string[]; teamColor: string } | null>(null);
   hasAnyActive = computed(() => this.renderedDeployments().some(d => d.type === 'player' && d.active));

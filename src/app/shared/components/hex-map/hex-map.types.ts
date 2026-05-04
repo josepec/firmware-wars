@@ -34,6 +34,13 @@ export const MARKER_TYPES: { id: MarkerType; label: string; prefix: string }[] =
   { id: 'plaque', label: 'Nodo de Datos', prefix: 'X' },
 ];
 
+export interface HexMapEntity {
+  kind: 'barrier' | 'relay_node';
+  q: number;
+  r: number;
+  teamColor?: string;
+}
+
 export interface DeploymentMarker {
   q: number;
   r: number;

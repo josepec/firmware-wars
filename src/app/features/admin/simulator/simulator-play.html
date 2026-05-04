@@ -85,7 +85,7 @@
       <div class="border border-green-500/15 bg-black/40 p-2">
         <app-hex-map [mapData]="displayMap()" [size]="28" [interactive]="canPickHex()" [selectable]="selectableHexes()"
           [highlightedHexes]="highlightedHexes()" [highlightColor]="highlightColor()"
-          [dotOpacity]="dotOpacity()"
+          [dotOpacity]="dotOpacity()" [mapEntities]="displayEntities()"
           (hexClicked)="onHexClick($event)" />
       </div>
     </div>
@@ -609,6 +609,7 @@
   @if (selectedBotFor(p); as sb) {
   <app-simulator-bot-card [bot]="sb" [index]="selectedBotIdxFor(p)" [totalBots]="totalBotsFor(p)" [playerId]="p"
     [active]="isActive(p)" [expandedVersion]="expandedVersionFor(sb.id)" [functionsMap]="functionsMap()"
+    [activatedThisTurn]="isActivatedThisTurn(sb.id)" [canIntercept]="canBotIntercept(sb)"
     (prev)="onBotPrev(p)" (next)="onBotNext(p)" (versionToggled)="toggleAttackVersion(sb.id, $event)" />
   }
 </ng-template>

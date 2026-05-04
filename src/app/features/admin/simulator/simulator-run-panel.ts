@@ -242,6 +242,15 @@ import type { FunctionEntry } from './simulator-bot-card';
             </div>
           }
 
+          <!-- reboot() -->
+          <button type="button"
+            (click)="debugAction.emit({ action: 'reboot' })"
+            class="w-full px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase
+                   bg-red-500/10 border border-red-500/30 text-red-300
+                   hover:bg-red-500/20 cursor-pointer">
+            reboot() — 0⚡ → pierde el próximo turno · reset total
+          </button>
+
           <button type="button" (click)="finishRun.emit()"
             class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase mt-1
                    bg-green-500/10 border border-green-500/30 text-green-400

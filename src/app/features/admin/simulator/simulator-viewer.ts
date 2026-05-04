@@ -160,6 +160,39 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       return `Destruido`;
     case 'debug_action':
       return `DEBUG: ${p['action'] ?? '?'}`;
+    case 'status_applied': {
+      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
+      const k = p['kind'] as string ?? '?';
+      return `Estado aplicado: ${labels[k] ?? k}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+    }
+    case 'status_expired': {
+      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
+      const k = p['kind'] as string ?? '?';
+      return `Estado eliminado: ${labels[k] ?? k}`;
+    }
+    case 'healed':
+      return `Recupera ${p['amount'] ?? 0} ♥${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+    case 'moved':
+      return `→ (${p['toQ']}, ${p['toR']})${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+    case 'buff_applied': {
+      const buffLabels: Record<string, string> = { DAMAGE_PLUS_1: '+1 daño', DAMAGE_DOUBLE: 'x2 daño' };
+      const k = p['kind'] as string ?? '?';
+      return `Buff: ${buffLabels[k] ?? k}`;
+    }
+    case 'buff_consumed': {
+      const buffLabels: Record<string, string> = { DAMAGE_PLUS_1: '+1 daño', DAMAGE_DOUBLE: 'x2 daño' };
+      const k = p['kind'] as string ?? '?';
+      return `Buff consumido: ${buffLabels[k] ?? k}`;
+    }
+    case 'numbers_lost':
+      return `-${p['count'] ?? 1} numbers${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+    case 'entity_placed': {
+      const e = p['entity'] as { kind?: string; q?: number; r?: number } | undefined;
+      const kLabel: Record<string, string> = { barrier: 'Barrera', relay_node: 'Nodo Relay' };
+      return `Coloca ${kLabel[e?.kind ?? ''] ?? e?.kind ?? '?'} en (${e?.q ?? '?'}, ${e?.r ?? '?'})`;
+    }
+    case 'entity_destroyed':
+      return `Entidad destruida`;
     case 'phase_changed':
       if (p['reason'] === 'criteria-differ') return `Criterios distintos (P1: ${CRITERION_LABEL[p['c1'] as string] ?? p['c1']}, P2: ${CRITERION_LABEL[p['c2'] as string] ?? p['c2']}) → PPT`;
       return `Fase: ${p['from'] ?? '?'} → ${p['to'] ?? '?'}`;

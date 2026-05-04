@@ -1,4 +1,4 @@
-import type { BattleBot, BattleEvent, BattleState, PlayerId } from '../../../../shared/types/battle.types';
+import type { BattleBot, BattleEvent, BattleState, MapEntity, PlayerId, StatusEffectKind, TempBuffKind } from '../../../../shared/types/battle.types';
 
 function cloneState(s: BattleState): BattleState {
   return {
@@ -16,8 +16,11 @@ function cloneState(s: BattleState): BattleState {
       compiledProgram: b.compiledProgram
         ? { operations: b.compiledProgram.operations.map(o => ({ ...o })) }
         : undefined,
+      statusEffects: [...(b.statusEffects ?? [])],
+      tempBuffs: [...(b.tempBuffs ?? [])],
     })),
     hexMap: s.hexMap,
+    entities: (s.entities ?? []).map(e => ({ ...e })),
   };
 }
 
@@ -106,6 +109,17 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       }
       break;
     }
+    case 'moved': {
+      if (bot) {
+        const toQ = p['toQ'] as number;
+        const toR = p['toR'] as number;
+        if (typeof toQ === 'number' && typeof toR === 'number') {
+          bot.q = toQ;
+          bot.r = toR;
+        }
+      }
+      break;
+    }
     case 'attack_hit': {
       const targetId = p['targetId'] as string | undefined;
       const target = findBot(state, targetId);
@@ -146,7 +160,9 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       break;
     }
     case 'bug_added': {
-      if (bot) bot.bugs += (p['count'] as number) ?? 1;
+      if (bot && !(bot.statusEffects ?? []).some(s => s.kind === 'SAFE_MODE')) {
+        bot.bugs += (p['count'] as number) ?? 1;
+      }
       break;
     }
     case 'bug_purged': {
@@ -175,6 +191,9 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       break;
     }
     case 'turn_ended': {
+      if (bot && p['reason'] === 'reboot-skip') {
+        bot.statusEffects = (bot.statusEffects ?? []).filter(s => s.kind !== 'REBOOTING');
+      }
       state.currentActivationIdx = Math.min(
         state.activationOrder.length,
         state.currentActivationIdx + 1,
@@ -183,7 +202,10 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'round_ended': {
       state.currentActivationIdx = 0;
-      for (const b of state.bots) b.hasInterceptedThisTurn = false;
+      for (const b of state.bots) {
+        b.hasInterceptedThisTurn = false;
+        b.statusEffects = (b.statusEffects ?? []).filter(s => s.kind === 'REBOOTING');
+      }
       break;
     }
     case 'victory': {
@@ -202,13 +224,88 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'debug_action': {
       if (bot) {
-        const cost = (p['energyCost'] as number) ?? 0;
-        bot.energy = Math.max(0, bot.energy - cost);
-        const bugsRemoved = (p['bugsRemoved'] as number) ?? 0;
-        if (bugsRemoved) bot.bugs = Math.max(0, bot.bugs - bugsRemoved);
-        const numbersRemoved = (p['numbersRemoved'] as number) ?? 0;
-        if (numbersRemoved > 0) bot.numbers = bot.numbers.slice(0, Math.max(0, bot.numbers.length - numbersRemoved));
+        const action = p['action'] as string | undefined;
+        if (action === 'reboot') {
+          bot.energy = 0;
+          bot.numbers = [];
+          bot.bugs = 0;
+          const others = (bot.statusEffects ?? []).filter(s => s.kind !== 'REBOOTING');
+          bot.statusEffects = [...others, { kind: 'REBOOTING', appliedTurn: state.turn }];
+        } else {
+          const cost = (p['energyCost'] as number) ?? 0;
+          bot.energy = Math.max(0, bot.energy - cost);
+          const bugsRemoved = (p['bugsRemoved'] as number) ?? 0;
+          if (bugsRemoved) bot.bugs = Math.max(0, bot.bugs - bugsRemoved);
+          const numbersRemoved = (p['numbersRemoved'] as number) ?? 0;
+          if (numbersRemoved > 0) bot.numbers = bot.numbers.slice(0, Math.max(0, bot.numbers.length - numbersRemoved));
+        }
       }
+      break;
+    }
+    case 'healed': {
+      if (bot) {
+        const amount = (p['amount'] as number) ?? 0;
+        bot.life = Math.min(bot.maxLife, bot.life + amount);
+      }
+      break;
+    }
+    case 'status_applied': {
+      if (bot) {
+        const kind = p['kind'] as StatusEffectKind | undefined;
+        if (kind) {
+          const others = (bot.statusEffects ?? []).filter(s => s.kind !== kind);
+          bot.statusEffects = [...others, { kind, appliedTurn: state.turn }];
+        }
+      }
+      break;
+    }
+    case 'status_expired': {
+      if (bot) {
+        const kind = p['kind'] as StatusEffectKind | undefined;
+        if (kind) {
+          bot.statusEffects = (bot.statusEffects ?? []).filter(s => s.kind !== kind);
+        }
+      }
+      break;
+    }
+    case 'buff_applied': {
+      if (bot) {
+        const kind = p['kind'] as TempBuffKind | undefined;
+        if (kind) {
+          bot.tempBuffs = [...(bot.tempBuffs ?? []), { kind, appliedTurn: state.turn }];
+        }
+      }
+      break;
+    }
+    case 'buff_consumed': {
+      if (bot) {
+        const kind = p['kind'] as TempBuffKind | undefined;
+        if (kind) {
+          const idx = (bot.tempBuffs ?? []).findIndex(b => b.kind === kind);
+          if (idx >= 0) {
+            const next = [...(bot.tempBuffs ?? [])];
+            next.splice(idx, 1);
+            bot.tempBuffs = next;
+          }
+        }
+      }
+      break;
+    }
+    case 'numbers_lost': {
+      if (bot) {
+        const count = (p['count'] as number) ?? 1;
+        bot.numbers = bot.numbers.slice(0, Math.max(0, bot.numbers.length - count));
+      }
+      break;
+    }
+    case 'entity_placed': {
+      const entity = p['entity'] as MapEntity | undefined;
+      if (entity) state.entities = [...(state.entities ?? []), entity];
+      break;
+    }
+    case 'entity_destroyed': {
+      const entityId = p['entityId'] as string | undefined;
+      if (entityId) state.entities = (state.entities ?? []).filter(e => e.id !== entityId);
       break;
     }
     case 'criterion_chosen':
