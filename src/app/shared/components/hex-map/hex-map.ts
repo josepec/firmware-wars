@@ -8,7 +8,7 @@ interface RenderedEntity {
 
 interface RenderedDeployment {
   key: string; q: number; r: number; cx: number; cy: number; type: string; label: string; imageUrl?: string;
-  active: boolean; destroyed: boolean; tooltip: string | null; teamColor: string;
+  active: boolean; turnBot: boolean; destroyed: boolean; tooltip: string | null; teamColor: string;
 }
 
 @Component({
@@ -92,18 +92,19 @@ interface RenderedDeployment {
       @for (d of renderedDeployments(); track d.key) {
         @if (d.type === 'player') {
           <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
-             [attr.opacity]="d.destroyed ? 0.25 : (!d.active && hasAnyActive()) ? 0.65 : 1"
+             [attr.opacity]="d.destroyed ? 0.25 : (!(d.active || d.turnBot) && hasAnyActive()) ? 0.65 : 1"
              [style.filter]="d.destroyed ? 'grayscale(1)' : null"
              [class.cursor-pointer]="interactive()"
              (mouseenter)="onBotHover(d)" (mouseleave)="hoveredTooltip.set(null)"
              (click)="onHexClick(d.q, d.r)">
-            <!-- Team ring -->
+            <!-- Team ring: tenue siempre, brillante cuando active (seleccionado en panel) -->
             <circle [attr.r]="size() * 0.44" [attr.stroke]="d.teamColor"
-                    stroke-width="1" fill="none" stroke-opacity="0.4"
-                    class="pointer-events-none" />
-            <!-- Active ping ring -->
-            @if (d.active) {
-              <circle [attr.r]="size() * 0.50" [attr.stroke]="d.teamColor"
+                    [attr.stroke-width]="d.active ? 2 : 1"
+                    [attr.stroke-opacity]="d.active ? 0.85 : 0.35"
+                    fill="none" class="pointer-events-none" />
+            <!-- Ping ring: solo el bot con el turno activo -->
+            @if (d.turnBot) {
+              <circle [attr.r]="size() * 0.52" [attr.stroke]="d.teamColor"
                       stroke-width="2" fill="none"
                       class="animate-ping ping-ring pointer-events-none" />
             }
@@ -241,7 +242,7 @@ export class HexMap {
   });
 
   hoveredTooltip = signal<{ cx: number; cy: number; lines: string[]; teamColor: string } | null>(null);
-  hasAnyActive = computed(() => this.renderedDeployments().some(d => d.type === 'player' && d.active));
+  hasAnyActive = computed(() => this.renderedDeployments().some(d => d.type === 'player' && (d.active || d.turnBot)));
 
   private rawBounds = computed(() => {
     const s = this.size();
@@ -390,7 +391,7 @@ export class HexMap {
       return {
         key: `dep-${d.q},${d.r}`, q: d.q, r: d.r, cx: x, cy: y,
         type: d.type, label: d.label, imageUrl: d.imageUrl,
-        active: d.active ?? false, destroyed: d.destroyed ?? false,
+        active: d.active ?? false, turnBot: d.turnBot ?? false, destroyed: d.destroyed ?? false,
         tooltip: d.tooltip ?? null, teamColor,
       };
     });

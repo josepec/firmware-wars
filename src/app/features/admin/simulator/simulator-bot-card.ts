@@ -168,8 +168,8 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
           </div>
         }
 
-        <!-- Compiled program -->
-        @if (bot().compiledProgram; as prog) {
+        <!-- Compiled program — solo si compiló en el turno actual -->
+        @if (compiledThisTurn() && bot().compiledProgram; as prog) {
           <div>
             <div class="text-[8px] tracking-[0.25em] uppercase text-cyan-400/70 mb-1.5">
               PROGRAMA COMPILADO
@@ -301,6 +301,7 @@ export class SimulatorBotCard {
   expandedVersion = input<1 | 2 | 3 | null>(null);
   functionsMap = input<Map<string, FunctionEntry>>(new Map());
   activatedThisTurn = input<boolean>(false);
+  compiledThisTurn = input<boolean>(false);
   canIntercept = input<boolean>(false);
 
   readonly versions: (1 | 2 | 3)[] = [1, 2, 3];

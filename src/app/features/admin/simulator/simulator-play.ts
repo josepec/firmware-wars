@@ -12,11 +12,10 @@ import {
   type BattleState,
   type CompiledOperation,
   type CompiledProgram,
-  type MapEntity,
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie } from './engine/dice';
-import { hexDistance, hexPushDir, reachableHexes } from './engine/pathfinding';
+import { hexDistance, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
@@ -147,10 +146,30 @@ export class SimulatorPlay implements OnInit {
 
   readonly displayMap = computed<HexMapData>(() => {
     const s = this.currentState();
+    const rs = this.runState(); // leer siempre — garantiza tracking en todas las fases
     const phase = s.phase;
-    const activeRunBotId = (phase === 'run' || phase === 'debug')
-      ? (this.runState().botId ?? s.activationOrder[s.currentActivationIdx] ?? null)
+    const selIdx = this.selectedBotIdx();
+    const byPlayer = this.botsByPlayer();
+
+    // Bot con el turno activo → aro con ping
+    const turnBotId =
+      (phase === 'run' || phase === 'debug')
+        ? (rs.botId ?? s.activationOrder[s.currentActivationIdx] ?? null)
+        : (phase === 'compile')
+          ? (this.nextCompileBot()?.id ?? null)
+          : s.activationOrder[s.currentActivationIdx] ?? null;
+
+    // Solo el bot seleccionado en el panel del jugador activo → aro estático
+    const activePlayerId = turnBotId
+      ? (s.bots.find(b => b.id === turnBotId)?.playerId ?? null)
       : null;
+    const panelSelectedId = activePlayerId
+      ? (byPlayer[activePlayerId]?.[selIdx[activePlayerId] ?? 0]?.id ?? null)
+      : null;
+    const selectedIds = new Set<string>(
+      [panelSelectedId, turnBotId].filter(Boolean) as string[]
+    );
+
     const deployments = s.bots
       .filter(b => b.q !== -999)
       .map(b => ({
@@ -159,7 +178,8 @@ export class SimulatorPlay implements OnInit {
         type: 'player' as const,
         team: b.playerId,
         label: b.name,
-        active: b.id === activeRunBotId,
+        active: selectedIds.has(b.id),
+        turnBot: b.id === turnBotId,
         destroyed: b.destroyed,
         tooltip: `${b.name}\n♥ ${b.life}/${b.maxLife}  ⚡ ${b.energy}/${b.maxEnergy}  🛡️ ${b.shield}/${b.maxShield}`,
       }));

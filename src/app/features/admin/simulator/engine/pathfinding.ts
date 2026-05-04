@@ -50,9 +50,9 @@ export function reachableHexes(
   const index = buildHexIndex(map);
   const blocked = new Set<string>();
   for (const b of bots) {
-    if (b.destroyed) continue;
     if (b.id === selfId) continue;
-    blocked.add(hexKey(b.q, b.r));
+    if (b.q === -999) continue; // no desplegado
+    blocked.add(hexKey(b.q, b.r)); // destruidos también bloquean movimiento
   }
   const visited = new Set<string>();
   const start = hexKey(fromQ, fromR);

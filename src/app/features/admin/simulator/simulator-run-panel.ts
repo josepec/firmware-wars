@@ -254,8 +254,8 @@ import type { FunctionEntry } from './simulator-bot-card';
           <button type="button" (click)="finishRun.emit()"
             class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase mt-1
                    bg-green-500/10 border border-green-500/30 text-green-400
-                   hover:bg-green-500/20 cursor-pointer">
-            Finalizar DEBUG →
+                   hover:bg-green-500/20 cursor-pointer flex items-center justify-center gap-1">
+            <span>Finalizar DEBUG</span><span class="tracking-normal mb-1">→</span>
           </button>
         </div>
       }

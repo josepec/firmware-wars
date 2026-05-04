@@ -50,6 +50,7 @@ export interface DeploymentMarker {
   threatId?: string;
   imageUrl?: string;
   active?: boolean;
+  turnBot?: boolean;
   destroyed?: boolean;
   tooltip?: string;
 }

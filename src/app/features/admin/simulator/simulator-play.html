@@ -88,6 +88,15 @@
           [dotOpacity]="dotOpacity()" [mapEntities]="displayEntities()"
           (hexClicked)="onHexClick($event)" />
       </div>
+      @if (currentState().phase === 'end' && !initStarted()) {
+      <button type="button" (click)="startNewRound()"
+        class="w-full mt-2 px-4 py-3 text-[11px] tracking-[0.25em] uppercase
+               bg-cyan-500/15 border border-cyan-500/40 text-cyan-300
+               hover:bg-cyan-500/25 hover:border-cyan-400/70 cursor-pointer
+               flex items-center justify-center gap-2">
+        <span>Nueva ronda</span><span class="tracking-normal">→</span>
+      </button>
+      }
     </div>
 
     <div class="transition-all duration-300 space-y-3"
@@ -401,14 +410,6 @@
       <div class="text-[9px] tracking-wider text-green-500/60 pt-2 border-t border-green-500/10">
         Ronda {{ currentState().turn }} completada.
       </div>
-      @if (p === 1) {
-      <button type="button" (click)="startNewRound()"
-        class="w-full px-3 py-2 text-[10px] tracking-[0.2em] uppercase mt-2
-               bg-green-500/10 border border-green-500/30 text-green-400
-               hover:bg-green-500/20 cursor-pointer">
-        Nueva ronda →
-      </button>
-      }
       } @else {
       @if (initSubPhase() === 'ppt-p1' || initSubPhase() === 'ppt-p2') {
       <ng-container *ngTemplateOutlet="pptRollTpl; context: {
@@ -609,7 +610,8 @@
   @if (selectedBotFor(p); as sb) {
   <app-simulator-bot-card [bot]="sb" [index]="selectedBotIdxFor(p)" [totalBots]="totalBotsFor(p)" [playerId]="p"
     [active]="isActive(p)" [expandedVersion]="expandedVersionFor(sb.id)" [functionsMap]="functionsMap()"
-    [activatedThisTurn]="isActivatedThisTurn(sb.id)" [canIntercept]="canBotIntercept(sb)"
+    [activatedThisTurn]="isActivatedThisTurn(sb.id)" [compiledThisTurn]="compiledThisTurn().has(sb.id)"
+    [canIntercept]="canBotIntercept(sb)"
     (prev)="onBotPrev(p)" (next)="onBotNext(p)" (versionToggled)="toggleAttackVersion(sb.id, $event)" />
   }
 </ng-template>
