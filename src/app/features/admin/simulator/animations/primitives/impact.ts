@@ -13,7 +13,7 @@ export function impact(
   g.appendChild(el);
 
   return new Promise(resolve => {
-    const duration = 300;
+    const duration = 450;
     const start = performance.now();
     function tick(now: number): void {
       const t = Math.min(1, (now - start) / duration);

@@ -92,15 +92,14 @@ interface RenderedDeployment {
       @for (d of renderedDeployments(); track d.key) {
         @if (d.type === 'player') {
           <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
-             [attr.opacity]="!d.destroyed && !(d.active || d.turnBot) && hasAnyActive() ? 0.65 : 1"
+             [attr.opacity]="!d.destroyed && !d.active && hasAnyTurnBot() ? 0.65 : 1"
              [class.cursor-pointer]="interactive()"
              (mouseenter)="onBotHover(d)" (mouseleave)="hoveredTooltip.set(null)"
              (click)="onHexClick(d.q, d.r)">
             <!-- Team ring: tenue siempre, brillante cuando active (seleccionado en panel) -->
             @if (!d.destroyed) {
               <circle [attr.r]="size() * 0.44" [attr.stroke]="d.teamColor"
-                      [attr.stroke-width]="d.active ? 2 : 1"
-                      [attr.stroke-opacity]="d.active ? 0.85 : 0.35"
+                      stroke-width="1" stroke-opacity="0.35"
                       fill="none" class="pointer-events-none" />
             }
             <!-- Ping ring: solo el bot con el turno activo -->
@@ -261,7 +260,7 @@ export class HexMap {
   });
 
   hoveredTooltip = signal<{ cx: number; cy: number; lines: string[]; teamColor: string; destroyed: boolean } | null>(null);
-  hasAnyActive = computed(() => this.renderedDeployments().some(d => d.type === 'player' && (d.active || d.turnBot)));
+  hasAnyTurnBot = computed(() => this.renderedDeployments().some(d => d.type === 'player' && d.turnBot));
 
   private rawBounds = computed(() => {
     const s = this.size();

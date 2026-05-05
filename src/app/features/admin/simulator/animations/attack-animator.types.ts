@@ -7,6 +7,8 @@ export interface AttackAnimCtx {
   damage: number;
   size: number;
   statusApplied?: string;
+  statusRoll?: number;
+  statusResisted?: boolean;
   pushMovePx?: { x: number; y: number };
   healAmount?: number;
   shieldConsumed?: number;

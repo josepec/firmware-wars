@@ -1,5 +1,8 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import type { BattleBot, FunctionCall, StatusEffectKind } from '../../../shared/types/battle.types';
+import { DataService } from '../../../core/services/data';
+import { classifyCode } from '../../../shared/markdown/marked-extensions';
 
 export interface FunctionEntry {
   id: string;
@@ -64,7 +67,7 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
           @if (!bot().destroyed && (activatedThisTurn() || canIntercept() || (bot().statusEffects?.length ?? 0) > 0)) {
             <div class="flex justify-center gap-1 mt-1 flex-wrap">
               @for (se of (bot().statusEffects ?? []); track se.kind) {
-                <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 pt-1.5 border"
+                <span class="relative text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 pt-1.5 border cursor-help"
                       [class.border-red-500\\/40]="se.kind === 'REBOOTING'"
                       [class.text-red-300]="se.kind === 'REBOOTING'"
                       [class.bg-red-500\\/10]="se.kind === 'REBOOTING'"
@@ -77,7 +80,21 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
                       [class.border-violet-500\\/40]="se.kind === 'DMZ'"
                       [class.text-violet-300]="se.kind === 'DMZ'"
                       [class.bg-violet-500\\/10]="se.kind === 'DMZ'"
-                      style="line-height:1;">{{ statusLabel(se.kind) }}</span>
+                      (mouseenter)="hoveredStatusKind.set(se.kind)"
+                      (mouseleave)="hoveredStatusKind.set(null)"
+                      style="line-height:1;">{{ statusLabel(se.kind) }}
+                  @if (hoveredStatusKind() === se.kind) {
+                    <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-50
+                                 block w-48 normal-case tracking-normal font-normal
+                                 bg-[#060e12]/95 border border-orange-500/25 rounded-sm p-2
+                                 shadow-xl shadow-black/50 pointer-events-none"
+                          style="line-height:1.4">
+                      <span class="block text-[7px] tracking-wider text-red-400/60 mb-0.5 uppercase">{{ statusLabel(se.kind) }}</span>
+                      <span class="block text-[9px] text-green-400/55 leading-relaxed"
+                            [innerHTML]="statusDescriptionHtml(se.kind)"></span>
+                    </span>
+                  }
+                </span>
               }
               @if (activatedThisTurn()) {
                 <span class="text-[7px] tracking-[0.15em] uppercase px-1.5 py-0.5 pt-1.5
@@ -266,14 +283,16 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
                             </div>
                             @if (fn.effects) {
                               <div class="text-[7px] tracking-wider text-green-500/50 mb-0.5 uppercase">Efectos</div>
-                              <div class="text-[10px] text-green-400/85 leading-relaxed">{{ stripBackticks(fn.effects) }}</div>
+                              <div class="text-[10px] text-green-400/85 leading-relaxed"
+                                   [innerHTML]="formatEffects(fn.effects)"></div>
                             }
                             @for (ri of rangeInfoOf(fn.range); track ri.abbr) {
                               <div class="mt-1.5 pt-1.5 border-t border-green-500/10">
                                 <div class="text-[8px] tracking-wider text-green-500/50 uppercase">
                                   {{ ri.abbr }} — {{ ri.name }}
                                 </div>
-                                <div class="text-[9px] text-green-400/55 leading-relaxed">{{ ri.description }}</div>
+                                <div class="text-[9px] text-green-400/55 leading-relaxed"
+                                     [innerHTML]="formatEffects(ri.description)"></div>
                               </div>
                             }
                           </div>
@@ -304,6 +323,10 @@ export class SimulatorBotCard {
   compiledThisTurn = input<boolean>(false);
   canIntercept = input<boolean>(false);
 
+  private readonly statusEffectDefs = toSignal(inject(DataService).getStatusEffects(), { initialValue: [] });
+  private readonly statusDescMap = computed(() => new Map(this.statusEffectDefs().map(s => [s.name, s.description])));
+
+  readonly hoveredStatusKind = signal<StatusEffectKind | null>(null);
   readonly versions: (1 | 2 | 3)[] = [1, 2, 3];
 
   prev = output<void>();
@@ -344,7 +367,16 @@ export class SimulatorBotCard {
     return labels[kind] ?? kind;
   }
 
-  stripBackticks(s: string): string {
-    return (s ?? '').replace(/`/g, '');
+  formatEffects(text: string): string {
+    if (!text) return '';
+    return text.replace(/`([^`]+)`/g, (_, code: string) => {
+      const cls = classifyCode(code);
+      return cls ? `<code class="${cls}">${code}</code>` : `<code>${code}</code>`;
+    });
   }
+
+  statusDescriptionHtml(kind: StatusEffectKind): string {
+    return this.formatEffects(this.statusDescMap().get(kind) ?? '');
+  }
+
 }

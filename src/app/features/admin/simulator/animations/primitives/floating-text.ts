@@ -14,8 +14,8 @@ export function floatingText(
 
   return new Promise(resolve => {
     const startY = y - size * 0.75;
-    const rise = size * 1.1;
-    const duration = 900;
+    const rise = size * 1.4;
+    const duration = 1400;
     const start = performance.now();
 
     function tick(now: number): void {

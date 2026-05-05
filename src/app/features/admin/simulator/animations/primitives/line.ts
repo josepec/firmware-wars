@@ -20,7 +20,7 @@ export function drawLine(
   g.appendChild(el);
 
   return new Promise(resolve => {
-    const fadeDur = 180;
+    const fadeDur = 270;
     const start = performance.now();
     function tick(now: number): void {
       const elapsed = now - start;

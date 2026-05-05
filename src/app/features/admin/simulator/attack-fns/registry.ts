@@ -47,5 +47,5 @@ export const ATTACK_FN_REGISTRY: ReadonlyMap<string, AttackFnDef> = new Map(
 
 export function getAttackFn(id: string | undefined | null): AttackFnDef | undefined {
   if (!id) return undefined;
-  return ATTACK_FN_REGISTRY.get(id);
+  return ATTACK_FN_REGISTRY.get(id.replace(/\(\s*\)$/, ''));
 }

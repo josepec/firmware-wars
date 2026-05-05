@@ -8,6 +8,7 @@ import { playAttackAnim, playMoveEnergyAnim, playOverloadAnim, playShieldAnim } 
 import { floatingText } from './animations/primitives/floating-text';
 import {
   hexKey,
+  OPERATION_LABEL,
   type BattleBot,
   type BattleEvent,
   type BattleReport,
@@ -97,6 +98,9 @@ export class SimulatorPlay implements OnInit {
 
   bootStarted = signal(false);
   bootRollingFor = signal<string | null>(null);
+  statusCheckAnim = signal<Array<{ botId: string; botName: string; playerId: PlayerId; rolling: boolean; roll: number; resisted: boolean; statusKind: string }>>([]);
+  selfEffectAnim = signal<{ botName: string; playerId: PlayerId; rolling: boolean; kind: 'heal' | 'selfdmg' | 'bugrecoil'; amount: number; extra?: string } | null>(null);
+  animatingPlayers = signal<ReadonlySet<PlayerId>>(new Set());
 
   pendingSaves = signal(0);
 
@@ -156,14 +160,17 @@ export class SimulatorPlay implements OnInit {
     const byPlayer = this.botsByPlayer();
 
     // Bot con el turno activo → aro con ping
+    const inBoot = phase === 'boot' || (phase === 'init' && this.bootStarted());
     const turnBotId =
       (phase === 'run' || phase === 'debug')
         ? (rs.botId ?? s.activationOrder[s.currentActivationIdx] ?? null)
         : (phase === 'compile')
           ? (this.nextCompileBot()?.id ?? null)
-          : s.activationOrder[s.currentActivationIdx] ?? null;
+          : inBoot
+            ? (this.nextBootBot()?.id ?? null)
+            : null; // deploy, init (PPT), end → ningún bot tiene el turno
 
-    // Solo el bot seleccionado en el panel del jugador activo → aro estático
+    // Bot seleccionado en el panel del jugador activo → opacidad completa
     const activePlayerId = turnBotId
       ? (s.bots.find(b => b.id === turnBotId)?.playerId ?? null)
       : null;
@@ -171,7 +178,7 @@ export class SimulatorPlay implements OnInit {
       ? (byPlayer[activePlayerId]?.[selIdx[activePlayerId] ?? 0]?.id ?? null)
       : null;
     const selectedIds = new Set<string>(
-      [panelSelectedId, turnBotId].filter(Boolean) as string[]
+      [panelSelectedId].filter(Boolean) as string[]
     );
 
     const deployments = s.bots
@@ -777,6 +784,9 @@ export class SimulatorPlay implements OnInit {
     const targetPx = hexToPixel(target.q, target.r, s);
     const statusEv = extraEvents.find(e => e.kind === 'status_applied');
     const statusApplied = statusEv?.payload['kind'] as string | undefined;
+    const statusRollEv = extraEvents.find(e => e.kind === 'status_applied' || e.kind === 'status_resisted');
+    const statusRoll = statusRollEv ? (statusRollEv.payload['roll'] as number | undefined) : undefined;
+    const statusResisted = extraEvents.some(e => e.kind === 'status_resisted');
     const healEv = extraEvents.find(e => e.kind === 'healed');
     const healAmount = healEv ? (healEv.payload['amount'] as number) : undefined;
     const moveEv = extraEvents.find(e => e.kind === 'moved' && e.botId === target.id);
@@ -790,11 +800,76 @@ export class SimulatorPlay implements OnInit {
         return bot ? hexToPixel(bot.q, bot.r, s) : null;
       })
       .filter(Boolean) as { x: number; y: number }[];
-    await playAttackAnim({
-      g, attackId: attackId ?? '', attackerPx, targetPx,
-      secondaryPx, damage, size: s, statusApplied, pushMovePx, healAmount,
-      shieldConsumed, energyCost,
-    });
+    const statusChecks = extraEvents
+      .filter(e => (e.kind === 'status_applied' || e.kind === 'status_resisted') && e.payload['roll'] !== undefined)
+      .flatMap(e => {
+        const bot = this.currentState().bots.find(b => b.id === e.botId);
+        if (!bot) return [];
+        return [{ bot, roll: e.payload['roll'] as number, resisted: e.kind === 'status_resisted', statusKind: (e.payload['kind'] as string) ?? 'STATUS' }];
+      });
+
+    const panelPromise = statusChecks.length > 0
+      ? this.playStatusChecksAnim(statusChecks)
+      : null;
+
+    const selfHitEv = extraEvents.find(e => e.kind === 'attack_hit' && e.payload['selfInflicted'] === true);
+    const recoilBugEv = extraEvents.find(e => e.kind === 'bug_added' && e.payload['recoil'] === true);
+    const buffEv = extraEvents.find(e => e.kind === 'buff_applied' && e.botId === attacker.id);
+    const selfPromise = healAmount !== undefined
+      ? this.playSelfEffectAnim(attacker, 'heal', healAmount)
+      : selfHitEv !== undefined
+        ? this.playSelfEffectAnim(attacker, 'selfdmg', selfHitEv.payload['damage'] as number, buffEv ? (buffEv.payload['kind'] as string) : undefined)
+        : recoilBugEv !== undefined
+          ? this.playSelfEffectAnim(attacker, 'bugrecoil', 1)
+          : null;
+
+    await Promise.all([
+      playAttackAnim({
+        g, attackId: attackId ?? '', attackerPx, targetPx,
+        secondaryPx, damage, size: s, statusApplied, statusRoll, statusResisted,
+        pushMovePx, healAmount, shieldConsumed, energyCost,
+      }),
+      panelPromise,
+      selfPromise,
+    ]);
+  }
+
+  private async playSelfEffectAnim(
+    attacker: BattleBot,
+    kind: 'heal' | 'selfdmg' | 'bugrecoil',
+    amount: number,
+    extra?: string,
+  ): Promise<void> {
+    const pid = attacker.playerId;
+    this.animatingPlayers.update(s => new Set([...s, pid]));
+    this.selfEffectAnim.set({ botName: attacker.name, playerId: pid, rolling: true, kind, amount: 0, extra });
+    await new Promise(r => setTimeout(r, 650));
+    this.selfEffectAnim.set({ botName: attacker.name, playerId: pid, rolling: false, kind, amount, extra });
+    await new Promise(r => setTimeout(r, 2200));
+    this.selfEffectAnim.set(null);
+    this.animatingPlayers.update(s => { const n = new Set(s); n.delete(pid); return n; });
+  }
+
+  private async playStatusChecksAnim(
+    checks: Array<{ bot: BattleBot; roll: number; resisted: boolean; statusKind: string }>,
+  ): Promise<void> {
+    const playerIds = [...new Set(checks.map(c => c.bot.playerId))] as PlayerId[];
+    const toEntries = (rolling: boolean) => checks.map(c => ({
+      botId: c.bot.id,
+      botName: c.bot.name,
+      playerId: c.bot.playerId,
+      rolling,
+      roll: rolling ? 0 : c.roll,
+      resisted: rolling ? false : c.resisted,
+      statusKind: c.statusKind,
+    }));
+    this.animatingPlayers.update(s => new Set([...s, ...playerIds]));
+    this.statusCheckAnim.set(toEntries(true));
+    await new Promise(r => setTimeout(r, 650));
+    this.statusCheckAnim.set(toEntries(false));
+    await new Promise(r => setTimeout(r, 2200));
+    this.statusCheckAnim.set([]);
+    this.animatingPlayers.update(s => { const n = new Set(s); playerIds.forEach(p => n.delete(p)); return n; });
   }
 
   isActive(p: PlayerId): boolean {
@@ -898,6 +973,35 @@ export class SimulatorPlay implements OnInit {
     if (!deployer) return 'active';
     return deployer === p ? 'active' : 'waiting';
   }
+
+  readonly mainPhaseLabel = computed(() => {
+    const sub = this.subPhaseLabel();
+    return sub ? sub.split(' · ')[0] : phaseLabel(this.currentState().phase);
+  });
+
+  readonly interceptOpInfo = computed<{ opKind: string; typeLabel: string; fnName: string; comparator: string } | null>(() => {
+    const rs = this.runState();
+    if (rs.step !== 'intercept-prompt') return null;
+    const bot = rs.botId ? this.currentState().bots.find(b => b.id === rs.botId) : null;
+    const op = bot?.compiledProgram?.operations[rs.opIdx] ?? null;
+    if (!op) return null;
+    const opKind = OPERATION_LABEL[op.kind] ?? '';
+    // pendingFn is null at intercept-prompt time (evaluated later in pickNumber);
+    // use op.primary as the action the rival is about to attempt
+    const fn = rs.pendingFn ?? op.primary;
+    let typeLabel: string;
+    let fnName: string;
+    if (fn.type === 'shield') {
+      typeLabel = 'SHIELD'; fnName = '';
+    } else if (fn.type === 'move') {
+      typeLabel = 'MOVE'; fnName = `${fn.moveDistance} hex`;
+    } else {
+      typeLabel = 'ATTACK';
+      const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : null;
+      fnName = entry?.func_name ?? fn.attackFunctionId ?? '?';
+    }
+    return { opKind, typeLabel, fnName, comparator: rs.opFace ?? '?' };
+  });
 
   subPhaseLabel(): string | null {
     const phase = this.currentState().phase;
