@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firmware Wars — Checklist de Verificación del Simulador</title>
+<style>
+  :root {
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --green-faint: #14532d;
+    --cyan: #22d3ee;
+    --yellow: #facc15;
+    --red: #f87171;
+    --orange: #fb923c;
+    --fuchsia: #e879f9;
+    --bg: #050e08;
+    --bg2: #0a1a0d;
+    --bg3: #0f2413;
+    --border: #1a3d1f;
+    --border2: #22533b;
+    --text: #bbf7d0;
+    --text-dim: #4ade8050;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 32px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 18px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--green);
+    border-bottom: 1px solid var(--green-dim);
+    padding-bottom: 10px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: #4ade8070;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .section {
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header .phase-tag {
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border: 1px solid;
+    line-height: 1;
+  }
+
+  .section-header h2 {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  .section-body {
+    padding: 10px 14px;
+  }
+
+  .subsection {
+    margin-bottom: 14px;
+  }
+
+  .subsection-title {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 6px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #164e63;
+  }
+
+  .checks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 3px;
+  }
+
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+
+  .check:hover {
+    background: #0f2413;
+    border-color: #1a3d1f;
+  }
+
+  .check input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    min-width: 13px;
+    border: 1px solid var(--green-dim);
+    background: #050e08;
+    cursor: pointer;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .check input[type="checkbox"]:checked {
+    background: var(--green-dim);
+    border-color: var(--green);
+  }
+
+  .check input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 1px;
+    font-size: 10px;
+    color: #052e10;
+    font-weight: bold;
+  }
+
+  .check.done label {
+    color: #4ade8040;
+    text-decoration: line-through;
+    text-decoration-color: #16a34a60;
+  }
+
+  label {
+    color: var(--text);
+    font-size: 11px;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+
+  label code {
+    background: #0f2413;
+    border: 1px solid #1a4020;
+    padding: 0 4px;
+    border-radius: 2px;
+    color: var(--cyan);
+    font-size: 10px;
+  }
+
+  label .tag {
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    padding: 1px 5px;
+    border: 1px solid;
+    vertical-align: middle;
+    margin-left: 4px;
+    line-height: 1;
+    display: inline-block;
+  }
+
+  .tag-bug { color: var(--orange); border-color: var(--orange); }
+  .tag-overload { color: var(--red); border-color: var(--red); }
+  .tag-loop { color: var(--fuchsia); border-color: var(--fuchsia); }
+  .tag-special { color: var(--yellow); border-color: var(--yellow); }
+  .tag-v1 { color: #86efac; border-color: #16a34a; }
+  .tag-v2 { color: var(--cyan); border-color: #0e7490; }
+  .tag-v3 { color: var(--fuchsia); border-color: #a21caf; }
+
+  .attack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .attack-card {
+    border: 1px solid var(--border);
+    background: #050e08;
+    padding: 0;
+  }
+
+  .attack-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .attack-card-header code {
+    color: var(--yellow);
+    font-size: 11px;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .attack-card-meta {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    color: #4ade8070;
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .attack-card-meta span { color: var(--text); }
+
+  .attack-card-checks {
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .attack-card-checks .check {
+    padding: 3px 4px;
+  }
+
+  .progress-bar-wrap {
+    margin-bottom: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+  }
+
+  .progress-title {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #4ade8070;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green-dim);
+    transition: width 0.3s ease;
+  }
+
+  .progress-count {
+    font-size: 10px;
+    color: var(--green);
+    text-align: right;
+  }
+
+  @media print {
+    body { background: white; color: black; }
+    .check:hover { background: none; }
+    .progress-bar-wrap { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>// Firmware Wars — Simulator Checklist</h1>
+<div class="subtitle">Verificación completa de mecánicas del simulador · v1.0 · 2026</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-title">Progreso general</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="progress-count" id="progress-count">0 / 0</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ INIT -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#facc15;border-color:#facc15">INIT()</span>
+    <h2>Iniciativa y Orden de Activación</h2>
+  </div>
+  <div class="section-body">
+    <div class="subsection">
+      <div class="subsection-title">PPT Protocol</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>El ganador del PPT obtiene Prioridad de CPU y activa primero</label></div>
+        <div class="check"><input type="checkbox"><label>En caso de empate en PPT se repite el lanzamiento</label></div>
+        <div class="check"><input type="checkbox"><label>El orden de activación alterna un Bot por jugador hasta completar todos</label></div>
+        <div class="check"><input type="checkbox"><label>El orden fijado en INIT() permanece toda la ronda</label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">Upgrades por ronda</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Ronda 3 → todos los Bots pasan a <code>version</code> 2 <span class="tag tag-v2">V2</span></label></div>
+        <div class="check"><input type="checkbox"><label>Ronda 5 → todos los Bots pasan a <code>version</code> 3 <span class="tag tag-v3">V3</span></label></div>
+        <div class="check"><input type="checkbox"><label>Al subir a V2: <code>MAX_NUMBERS</code> → 7, dado operaciones → Dado V2</label></div>
+        <div class="check"><input type="checkbox"><label>Al subir a V3: <code>MAX_NUMBERS</code> → 8, dado operaciones → Dado V3</label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ BOOT -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#86efac;border-color:#16a34a">BOOT()</span>
+    <h2>Arranque y Recuperación</h2>
+  </div>
+  <div class="section-body">
+    <div class="subsection">
+      <div class="subsection-title">Chequeo de estado y efectos</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Bot con <code>life</code> ≤ 0 queda destruido (irreversible) al inicio de BOOT</label></div>
+        <div class="check"><input type="checkbox"><label>Los efectos temporales expirados se limpian en BOOT</label></div>
+        <div class="check"><input type="checkbox"><label>Los efectos que se activan en BOOT se aplican correctamente</label></div>
+        <div class="check"><input type="checkbox"><label>Estado <code>REBOOTING</code>: el Bot pierde el turno y se restaura <span class="tag tag-special">ESPECIAL</span></label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">getEnergy(n) — Recuperación de energía</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Se lanza el dado de energía correcto (nd6, n=1..3 según bot)</label></div>
+        <div class="check"><input type="checkbox"><label>La energía se acumula sin sobrepasar <code>MAX_ENERGY</code></label></div>
+        <div class="check"><input type="checkbox"><label>Si la energía supera <code>MAX_ENERGY</code>, el exceso se ignora y el Bot recibe 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">getNumbers() — Carga de RAM</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Se rellenan los huecos vacíos de <code>numbers</code> hasta <code>MAX_NUMBERS</code></label></div>
+        <div class="check"><input type="checkbox"><label>Si <code>numbers</code> ya está lleno no se añaden más</label></div>
+        <div class="check"><input type="checkbox"><label>V1: máximo 5 números; V2: máximo 7; V3: máximo 8</label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">Carga de Operaciones</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Operaciones base = 3 (<code>MAX_OPERATIONS</code>)</label></div>
+        <div class="check"><input type="checkbox"><label>Cada <code>BUG</code> activo resta 1 ranura de operación</label></div>
+        <div class="check"><input type="checkbox"><label>V1 solo puede obtener IF / IF-ELSE</label></div>
+        <div class="check"><input type="checkbox"><label>V2 puede obtener IF / IF-ELSE / FOR / WHILE</label></div>
+        <div class="check"><input type="checkbox"><label>V3 puede obtener IF / IF-ELSE / FOR / WHILE / TRY-CATCH</label></div>
+        <div class="check"><input type="checkbox"><label>Solo puede salir un bucle (FOR o WHILE) por turno; si ya salió uno, se vuelve a tirar <span class="tag tag-loop">BUCLE</span></label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">Mantenimiento manual</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Si el programador salta a DEBUG voluntariamente, el Bot no ejecuta acciones ofensivas</label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ COMPILE -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#22d3ee;border-color:#0e7490">COMPILE()</span>
+    <h2>Programación del BattleScript</h2>
+  </div>
+  <div class="section-body">
+    <div class="checks-grid">
+      <div class="check"><input type="checkbox"><label>Las Operaciones se ordenan libremente en el terminal</label></div>
+      <div class="check"><input type="checkbox"><label>No es obligatorio usar todas las operaciones disponibles</label></div>
+      <div class="check"><input type="checkbox"><label>Toda Función requiere una Operación para ejecutarse</label></div>
+      <div class="check"><input type="checkbox"><label>IF-ELSE y TRY-CATCH tienen ranura primaria (obligatoria) y secundaria (opcional)</label></div>
+      <div class="check"><input type="checkbox"><label>No se puede asignar la misma Función en ambas ranuras de una misma Operación <span class="tag tag-bug">BUG</span></label></div>
+      <div class="check"><input type="checkbox"><label>Si no se puede programar ninguna operación, se salta directamente a DEBUG</label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ RUN -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#e879f9;border-color:#a21caf">RUN()</span>
+    <h2>Ejecución del Código</h2>
+  </div>
+  <div class="section-body">
+
+    <div class="subsection">
+      <div class="subsection-title">Resolución de Condiciones</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>1. Lanzar Dado de Operaciones → determina el comparador (&lt;, ≤, ≥, &gt;, ≠, ==)</label></div>
+        <div class="check"><input type="checkbox"><label>2. Lanzar 1d6 → valor del dado</label></div>
+        <div class="check"><input type="checkbox"><label>3. El programador elige un número de su <code>numbers</code></label></div>
+        <div class="check"><input type="checkbox"><label>4. Se evalúa la condición (dado [comparador] número) → TRUE o FALSE</label></div>
+        <div class="check"><input type="checkbox"><label>Las condiciones se evalúan en tiempo de ejecución, no en COMPILE</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Interceptar</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>El Bot enemigo MÁS CERCANO (en hexes) puede declarar intercepción</label></div>
+        <div class="check"><input type="checkbox"><label>El interceptor sustituye el d6 de la condición por cualquier número de su <code>numbers</code></label></div>
+        <div class="check"><input type="checkbox"><label>Cada Bot solo puede interceptar UNA vez por turno del rival</label></div>
+        <div class="check"><input type="checkbox"><label>Varios bots a igual distancia: cada uno recibe la oferta en secuencia</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">OVERLOAD — Falta de energía</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Si no hay energía suficiente: la Función NO se ejecuta <span class="tag tag-overload">OVERLOAD</span></label></div>
+        <div class="check"><input type="checkbox"><label>El Bot pierde 1 punto de <code>life</code> por cada punto de energía que no puede pagar</label></div>
+        <div class="check"><input type="checkbox"><label>En bucles: si una iteración no puede pagarse, esa iteración no se ejecuta, hay OVERLOAD y el bucle se detiene</label></div>
+        <div class="check"><input type="checkbox"><label>TRY: si la función del TRY no puede ejecutarse por falta de energía → NO hay OVERLOAD, se ejecuta CATCH</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Operación IF</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Condición TRUE → ejecuta función primaria</label></div>
+        <div class="check"><input type="checkbox"><label>Condición FALSE → no se ejecuta nada</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Operación IF-ELSE</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Condición TRUE → ejecuta función primaria</label></div>
+        <div class="check"><input type="checkbox"><label>Condición FALSE → ejecuta función secundaria</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Operación FOR <span class="tag tag-v2">V2+</span></div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Se lanza 1d6 y se elige un número de <code>numbers</code>; la diferencia (mayor − menor) = iteraciones</label></div>
+        <div class="check"><input type="checkbox"><label>Si la diferencia es 0 → Infinite Loop → no se ejecuta + 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+        <div class="check"><input type="checkbox"><label>Si la diferencia es &gt; 3 → Infinite Loop → no se ejecuta + 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+        <div class="check"><input type="checkbox"><label>Solo puede haber 1 bucle (FOR o WHILE) por turno <span class="tag tag-loop">BUCLE</span></label></div>
+        <div class="check"><input type="checkbox"><label>La función se ejecuta el número correcto de veces (1, 2 ó 3)</label></div>
+        <div class="check"><input type="checkbox"><label>OVERLOAD en iteración intermedia → esa iteración no se ejecuta, bucle se detiene</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Operación WHILE <span class="tag tag-v2">V2+</span></div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Cada iteración evalúa una nueva condición</label></div>
+        <div class="check"><input type="checkbox"><label>Condición TRUE → ejecuta función y evalúa otra iteración</label></div>
+        <div class="check"><input type="checkbox"><label>Condición FALSE → detiene el bucle sin ejecutar</label></div>
+        <div class="check"><input type="checkbox"><label>Si la función no se ejecuta ni una sola vez → 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+        <div class="check"><input type="checkbox"><label>Solo puede haber 1 bucle (FOR o WHILE) por turno <span class="tag tag-loop">BUCLE</span></label></div>
+        <div class="check"><input type="checkbox"><label>OVERLOAD en iteración intermedia → esa iteración no se ejecuta, OVERLOAD y bucle se detiene</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Operación TRY-CATCH <span class="tag tag-v3">V3</span></div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Si TRY no puede ejecutarse por falta de energía → NO hay OVERLOAD, se ejecuta CATCH</label></div>
+        <div class="check"><input type="checkbox"><label>Si TRY generaría un <code>BUG</code> al ejecutarse → no se ejecuta, se ejecuta CATCH</label></div>
+        <div class="check"><input type="checkbox"><label>Si CATCH no puede ejecutarse → SÍ hay OVERLOAD normal</label></div>
+        <div class="check"><input type="checkbox"><label>Si CATCH generaría un <code>BUG</code> → SÍ se genera</label></div>
+        <div class="check"><input type="checkbox"><label>Si NINGUNA de las dos funciones llega a ejecutarse → Critical Exception + 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">move(valor) — Movimiento</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>El coste energético = valor declarado</label></div>
+        <div class="check"><input type="checkbox"><label>Si valor &gt; <code>MAX_MOVEMENT</code> → la función no se ejecuta + 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+        <div class="check"><input type="checkbox"><label>Estado <code>LAG</code>: el movimiento efectivo = valor − 1</label></div>
+        <div class="check"><input type="checkbox"><label>No puede moverse a través de obstáculos (cara negra del hex)</label></div>
+        <div class="check"><input type="checkbox"><label>No puede moverse a través de Bots (aliados o enemigos)</label></div>
+        <div class="check"><input type="checkbox"><label>Solo puede moverse a hexes adyacentes (no saltar)</label></div>
+        <div class="check"><input type="checkbox"><label>OVERLOAD si no hay suficiente energía para pagar el coste</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">shield() — Escudo</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Coste energético = 2</label></div>
+        <div class="check"><input type="checkbox"><label>Añade +1 a <code>shield</code>, sin superar <code>MAX_SHIELD</code></label></div>
+        <div class="check"><input type="checkbox"><label>Si <code>shield</code> ya está al máximo, no sube más (pero sí cuesta energía)</label></div>
+        <div class="check"><input type="checkbox"><label>El escudo absorbe daño 1:1 y se pierde al hacerlo</label></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">attack() — Reglas generales</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>El objetivo debe estar dentro del rango del ataque</label></div>
+        <div class="check"><input type="checkbox"><label>Requiere línea de visión (LOS) salvo indicación contraria</label></div>
+        <div class="check"><input type="checkbox"><label>LOS se bloquea por obstáculos y otros Bots</label></div>
+        <div class="check"><input type="checkbox"><label>Daño = daño del ataque − <code>shield</code> del defensor (escudo se consume)</label></div>
+        <div class="check"><input type="checkbox"><label>Si no hay objetivos en rango → la función no se ejecuta + 1 <code>BUG</code> <span class="tag tag-bug">BUG</span></label></div>
+        <div class="check"><input type="checkbox"><label>Si no hay energía suficiente → OVERLOAD, la función no se ejecuta</label></div>
+        <div class="check"><input type="checkbox"><label>Bot con <code>DMZ</code>: no puede ejecutar funciones de ataque <span class="tag tag-special">DMZ</span></label></div>
+        <div class="check"><input type="checkbox"><label>Bot destruido (<code>life</code> ≤ 0) al recibir daño se retira</label></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ATAQUES V1 -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#86efac;border-color:#16a34a">V1</span>
+    <h2>Funciones de Ataque — Versión 1</h2>
+  </div>
+  <div class="section-body">
+    <div class="attack-grid">
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>powerSmash()</code>
+          <div class="attack-card-meta">Rango <span>1</span> · Daño <span>2</span> · Coste <span>2⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1 (cuerpo a cuerpo, requiere LOS)</label></div>
+          <div class="check"><input type="checkbox"><label>Daño fijo = 2 (menos escudo del defensor)</label></div>
+          <div class="check"><input type="checkbox"><label>Empuja al objetivo 1 hex en la dirección del ataque <span class="tag tag-special">PUSH</span></label></div>
+          <div class="check"><input type="checkbox"><label>Si no hay espacio para empujar, el objetivo no se mueve (obstáculo o borde)</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>rocketPunch()</code>
+          <div class="attack-card-meta">Rango <span>1</span> · Daño <span>1d4</span> · Coste <span>2⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1 (cuerpo a cuerpo, requiere LOS)</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d4 (variable) menos escudo</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>laserBeam()</code>
+          <div class="attack-card-meta">Rango <span>2–8 LR</span> · Daño <span>2</span> · Coste <span>3⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–8, tipo LR (líneas rectas, no LOS estándar)</label></div>
+          <div class="check"><input type="checkbox"><label>No puede apuntar a objetivos a rango 1 (mínimo 2)</label></div>
+          <div class="check"><input type="checkbox"><label>Daño fijo = 2 menos escudo</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>dashStrike()</code>
+          <div class="attack-card-meta">Rango <span>1–2</span> · Daño <span>1d4</span> · Coste <span>2⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–2 (LOS estándar)</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d4 menos escudo</label></div>
+          <div class="check"><input type="checkbox"><label>Después del ataque el atacante puede moverse 1 hex gratis <span class="tag tag-special">POST-MOVE</span></label></div>
+          <div class="check"><input type="checkbox"><label>El movimiento post-ataque no cuesta energía adicional</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>pinpointBurst()</code>
+          <div class="attack-card-meta">Rango <span>2–4 LR</span> · Daño <span>1d4</span> · Coste <span>2⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–4, tipo LR (no puede apuntar a rango 1)</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d4 menos escudo</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>pulseShot()</code>
+          <div class="attack-card-meta">Rango <span>1–2</span> · Daño <span>2 (+1)</span> · Coste <span>1⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–2, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño base = 2 menos escudo</label></div>
+          <div class="check"><input type="checkbox"><label>Si el objetivo está a exactamente rango 1 → daño +1 (total 3) <span class="tag tag-special">BONUS</span></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>stabilizerHit()</code>
+          <div class="attack-card-meta">Rango <span>1</span> · Daño <span>1</span> · Coste <span>2⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1 menos escudo</label></div>
+          <div class="check"><input type="checkbox"><label>El objetivo lanza 1d6: si saca ≥4 no pasa nada; si saca &lt;4 recibe estado <code>LAG</code> <span class="tag tag-special">LAG</span></label></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ATAQUES V2 -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#22d3ee;border-color:#0e7490">V2</span>
+    <h2>Funciones de Ataque — Versión 2</h2>
+  </div>
+  <div class="section-body">
+    <div class="attack-grid">
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>nanoRepair()</code>
+          <div class="attack-card-meta">Rango <span>— (self)</span> · Coste <span>4⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>No es un ataque: objetivo es el propio Bot (sin LOS)</label></div>
+          <div class="check"><input type="checkbox"><label>Recupera 1d4 puntos de <code>life</code> (no supera <code>MAX_LIFE</code>)</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>traceShot()</code>
+          <div class="attack-card-meta">Rango <span>2–6 SLDV</span> · Daño <span>1d4</span> · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–6, tipo SLDV</label></div>
+          <div class="check"><input type="checkbox"><label>No puede apuntar a rango 1</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d4 menos escudo</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>ghostProtocol()</code>
+          <div class="attack-card-meta">Rango <span>1–2</span> · Sin daño · Coste <span>3⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–2, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Sin daño directo</label></div>
+          <div class="check"><input type="checkbox"><label>El objetivo elige uno de sus <code>numbers</code> y lo pierde <span class="tag tag-special">MEMORIA</span></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>peekMemory()</code>
+          <div class="attack-card-meta">Rango <span>1–2</span> · Sin daño · Coste <span>3⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–2, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Sin daño directo</label></div>
+          <div class="check"><input type="checkbox"><label>El atacante ve todos los <code>numbers</code> del objetivo <span class="tag tag-special">VISIÓN</span></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>shadowStep()</code>
+          <div class="attack-card-meta">Rango <span>— (self)</span> · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Teleporta al Bot hasta 3 hexes ignorando obstáculos y otros Bots <span class="tag tag-special">TELEPORT</span></label></div>
+          <div class="check"><input type="checkbox"><label>No puede aterrizar en un hex ocupado por otro Bot u obstáculo</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>overclockStrike()</code>
+          <div class="attack-card-meta">Rango <span>— (self)</span> · Coste <span>4⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>No hace daño directo</label></div>
+          <div class="check"><input type="checkbox"><label>Añade +1 a todos los ataques realizados durante este turno <span class="tag tag-special">BUFF</span></label></div>
+          <div class="check"><input type="checkbox"><label>El buff se aplica a los ataques posteriores del mismo turno, no retroactivamente</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>plasmaBolt()</code>
+          <div class="attack-card-meta">Rango <span>2–3</span> · Daño <span>1d6</span> · Coste <span>4⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–3, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d6 menos escudo</label></div>
+          <div class="check"><input type="checkbox"><label>Si el dado de daño saca 6 → el atacante pierde 2 puntos de <code>energy</code> por Sobrecalentamiento <span class="tag tag-special">SELF</span></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>chainLightning()</code>
+          <div class="attack-card-meta">Rango <span>1–5 R(2)</span> · Daño <span>1d4</span> · Coste <span>4⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–5, tipo R(2): el objetivo es el centro y afecta a un radio de 2 desde él</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d4 menos escudo (a todos los Bots afectados)</label></div>
+          <div class="check"><input type="checkbox"><label>Afecta tanto a aliados como a enemigos en el radio</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>berserkProtocol()</code>
+          <div class="attack-card-meta">Rango <span>— (self)</span> · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Dobla el daño del próximo ataque del mismo turno <span class="tag tag-special">BUFF</span></label></div>
+          <div class="check"><input type="checkbox"><label>El Bot atacante recibe 1d4 de daño propio (sin escudo) <span class="tag tag-special">SELF</span></label></div>
+          <div class="check"><input type="checkbox"><label>El buff solo aplica al SIGUIENTE ataque del turno</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>firewall()</code>
+          <div class="attack-card-meta">Rango <span>— (self)</span> · Coste <span>4⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>El Bot recibe estado <code>SAFE_MODE</code> <span class="tag tag-special">ESTADO</span></label></div>
+          <div class="check"><input type="checkbox"><label>SAFE_MODE: inmune a recibir nuevos <code>bugs</code> durante el turno actual</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>gravityWell()</code>
+          <div class="attack-card-meta">Rango <span>3–4 R(2)</span> · Daño <span>1d6</span> · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 3–4, tipo R(2): afecta a radio 2 desde el punto de impacto</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d6 menos escudo (a todos los Bots en el área)</label></div>
+          <div class="check"><input type="checkbox"><label>Todos los Bots afectados son atraídos 1 hex hacia el centro del impacto <span class="tag tag-special">PULL</span></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>swapProtocol()</code>
+          <div class="attack-card-meta">Rango <span>1–5</span> · Sin daño · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–5, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Sin daño directo</label></div>
+          <div class="check"><input type="checkbox"><label>Intercambia la posición del atacante con la del objetivo <span class="tag tag-special">SWAP</span></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>ionCannon()</code>
+          <div class="attack-card-meta">Rango <span>2–8 LR</span> · Daño <span>1d6</span> · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–8, tipo LR</label></div>
+          <div class="check"><input type="checkbox"><label>No puede apuntar a rango 1</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d6 menos escudo</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>deployBarrier()</code>
+          <div class="attack-card-meta">Rango <span>1</span> · Sin daño · Coste <span>5⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Crea una Barrera (obstáculo) en un hex adyacente libre <span class="tag tag-special">ENTIDAD</span></label></div>
+          <div class="check"><input type="checkbox"><label>La Barrera tiene <code>life</code> = 3 y actúa como obstáculo</label></div>
+          <div class="check"><input type="checkbox"><label>La Barrera bloquea LOS y movimiento como un obstáculo normal</label></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ATAQUES V3 -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#e879f9;border-color:#a21caf">V3</span>
+    <h2>Funciones de Ataque — Versión 3</h2>
+  </div>
+  <div class="section-body">
+    <div class="attack-grid">
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>overdriveStrike()</code>
+          <div class="attack-card-meta">Rango <span>1</span> · Daño <span>⚡/2</span> · Coste <span>Toda ⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1 (cuerpo a cuerpo)</label></div>
+          <div class="check"><input type="checkbox"><label>Gasta TODA la energía disponible; mínimo requerido = 2</label></div>
+          <div class="check"><input type="checkbox"><label>Si energía &lt; 2 → OVERLOAD (pierde la diferencia en vida) <span class="tag tag-overload">OVERLOAD</span></label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1 punto por cada 2 puntos de energía gastada (entero inferior)</label></div>
+          <div class="check"><input type="checkbox"><label>Después del ataque la energía queda a 0</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>railgun()</code>
+          <div class="attack-card-meta">Rango <span>2–5</span> · Daño <span>1d8 −2/bot</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–5, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño base = 1d8</label></div>
+          <div class="check"><input type="checkbox"><label>Atraviesa objetivos en línea recta <span class="tag tag-special">PIERCING</span></label></div>
+          <div class="check"><input type="checkbox"><label>Por cada Bot atravesado el daño disminuye en 2</label></div>
+          <div class="check"><input type="checkbox"><label>El daño no puede ser negativo (mínimo 0)</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>chargedStrike()</code>
+          <div class="attack-card-meta">Rango <span>1</span> · Daño <span>acumulado d4</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1 (cuerpo a cuerpo)</label></div>
+          <div class="check"><input type="checkbox"><label>Se lanza 1d4 recursivamente acumulando el daño</label></div>
+          <div class="check"><input type="checkbox"><label>El atacante puede parar en cualquier momento y descargar el daño acumulado al objetivo</label></div>
+          <div class="check"><input type="checkbox"><label>Si sale 1 → BUST: el atacante recibe TODO el daño acumulado (incluyendo el 1) <span class="tag tag-special">BUST</span></label></div>
+          <div class="check"><input type="checkbox"><label>El daño del BUST es daño a vida del atacante (no se absorbe con escudo propio)</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>dataSpike()</code>
+          <div class="attack-card-meta">Rango <span>1–2</span> · Daño <span>1d8 + BUG</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 1–2, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d8 menos escudo</label></div>
+          <div class="check"><input type="checkbox"><label>El objetivo recibe 1 <code>BUG</code> adicional <span class="tag tag-bug">BUG</span></label></div>
+          <div class="check"><input type="checkbox"><label>Si el objetivo tiene <code>SAFE_MODE</code>, no recibe el <code>BUG</code></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>flashSpin()</code>
+          <div class="attack-card-meta">Rango <span>0 R(1)</span> · Daño <span>1d8</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 0 (el atacante es el centro), radio R(1) → afecta a todos los hexes adyacentes</label></div>
+          <div class="check"><input type="checkbox"><label>Sin LOS necesaria (área desde la posición propia)</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d8 menos escudo (a todos los Bots en radio 1)</label></div>
+          <div class="check"><input type="checkbox"><label>Puede afectar a aliados en el radio 1</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>syncBlast()</code>
+          <div class="attack-card-meta">Rango <span>2–4</span> · Daño <span>4 (+1)</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–4, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño base = 4 menos escudo</label></div>
+          <div class="check"><input type="checkbox"><label>Si el atacante tenía <code>energy</code> &gt; 10 al declarar el ataque → daño +1 (total 5) <span class="tag tag-special">BONUS</span></label></div>
+          <div class="check"><input type="checkbox"><label>Se comprueba la energía ANTES de descontar el coste del ataque</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>relayNode()</code>
+          <div class="attack-card-meta">Rango <span>2</span> · Daño <span>2 (adyacente)</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Despliega un Nodo Relay en un hex a rango ≤ 2 <span class="tag tag-special">ENTIDAD</span></label></div>
+          <div class="check"><input type="checkbox"><label>El Nodo tiene <code>life</code> = 2 y puede recibir daño</label></div>
+          <div class="check"><input type="checkbox"><label>Máximo 2 Nodos simultáneos por Bot</label></div>
+          <div class="check"><input type="checkbox"><label>Cualquier Bot que entre o salga de un hex adyacente al Nodo recibe 2 de daño</label></div>
+          <div class="check"><input type="checkbox"><label>El daño del Nodo afecta a todos (aliados incluidos)</label></div>
+          <div class="check"><input type="checkbox"><label>Si el Nodo es destruido, deja de producir daño</label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>novaBlast()</code>
+          <div class="attack-card-meta">Rango <span>2–5</span> · Daño <span>1d10 + BUG self</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–5, LOS estándar</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d10 menos escudo del objetivo</label></div>
+          <div class="check"><input type="checkbox"><label>El Bot atacante recibe 1 <code>BUG</code> por retroceso <span class="tag tag-bug">BUG self</span></label></div>
+          <div class="check"><input type="checkbox"><label>Si el atacante tiene <code>SAFE_MODE</code>, no recibe el <code>BUG</code></label></div>
+        </div>
+      </div>
+
+      <div class="attack-card">
+        <div class="attack-card-header">
+          <code>empField()</code>
+          <div class="attack-card-meta">Rango <span>2–5 R(1)</span> · Daño <span>1d6 + DMZ</span> · Coste <span>6⚡</span></div>
+        </div>
+        <div class="attack-card-checks">
+          <div class="check"><input type="checkbox"><label>Rango 2–5, tipo R(1): afecta a radio 1 desde el punto de impacto</label></div>
+          <div class="check"><input type="checkbox"><label>Daño = 1d6 menos escudo (a todos los Bots en el área)</label></div>
+          <div class="check"><input type="checkbox"><label>Cada Bot afectado lanza 1d6: si saca &lt; 4 recibe estado <code>DMZ</code> <span class="tag tag-special">DMZ</span></label></div>
+          <div class="check"><input type="checkbox"><label>Si el bot afectado tiene <code>SAFE_MODE</code>, no recibe el <code>DMZ</code></label></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ESTADOS -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#fb923c;border-color:#c2410c">ESTADOS</span>
+    <h2>Estados Alterados</h2>
+  </div>
+  <div class="section-body">
+    <div class="checks-grid">
+      <div class="check"><input type="checkbox"><label><code>LAG</code>: pierde 1 punto de <code>MAX_MOVEMENT</code> durante el turno actual</label></div>
+      <div class="check"><input type="checkbox"><label><code>LAG</code>: no reduce MAX_MOVEMENT a negativo (mínimo 0)</label></div>
+      <div class="check"><input type="checkbox"><label><code>LAG</code>: se limpia al final del turno (efecto temporal)</label></div>
+      <div class="check"><input type="checkbox"><label><code>SAFE_MODE</code>: el Bot es inmune a recibir nuevos <code>bugs</code> durante el turno actual</label></div>
+      <div class="check"><input type="checkbox"><label><code>SAFE_MODE</code>: se limpia al final del turno</label></div>
+      <div class="check"><input type="checkbox"><label><code>DMZ</code>: el Bot no puede ejecutar funciones de ataque durante el turno actual</label></div>
+      <div class="check"><input type="checkbox"><label><code>DMZ</code>: el Bot puede usar <code>move()</code>, <code>shield()</code> y funciones no ofensivas con normalidad</label></div>
+      <div class="check"><input type="checkbox"><label><code>DMZ</code>: se limpia al final del turno</label></div>
+      <div class="check"><input type="checkbox"><label><code>REBOOTING</code>: el Bot pierde el siguiente turno completo (no COMPILE, no RUN, no DEBUG)</label></div>
+      <div class="check"><input type="checkbox"><label><code>REBOOTING</code>: se activa en BOOT del siguiente turno</label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PASIVAS -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#a78bfa;border-color:#7c3aed">PASIVAS</span>
+    <h2>Funciones Pasivas</h2>
+  </div>
+  <div class="section-body">
+    <div class="checks-grid">
+      <div class="check"><input type="checkbox"><label><code>reinforcedChassis()</code>: el Bot empieza con <code>MAX_SHIELD</code> +1 permanente</label></div>
+      <div class="check"><input type="checkbox"><label><code>energyRecycler()</code>: cada vez que el Bot daña a un enemigo, recupera 1 de <code>energy</code> inmediatamente</label></div>
+      <div class="check"><input type="checkbox"><label><code>energyRecycler()</code>: aplica por ataque (no por punto de daño)</label></div>
+      <div class="check"><input type="checkbox"><label><code>bufferedMemory()</code>: ignora el primer <code>BUG</code> recibido en cada turno</label></div>
+      <div class="check"><input type="checkbox"><label><code>bufferedMemory()</code>: a partir del segundo <code>BUG</code> del mismo turno, sí se aplican</label></div>
+      <div class="check"><input type="checkbox"><label><code>reactiveServos()</code>: si un enemigo falla un ataque contra este Bot, puede moverse 1 hex gratis</label></div>
+      <div class="check"><input type="checkbox"><label><code>criticalEvasion()</code>: al recibir daño, puede intentar esquivar (lanza 1d6 &gt;4)</label></div>
+      <div class="check"><input type="checkbox"><label><code>criticalEvasion()</code>: si esquiva con éxito (1d6 &gt;4) → no recibe daño</label></div>
+      <div class="check"><input type="checkbox"><label><code>criticalEvasion()</code>: si falla la evasión (1d6 ≤4) → recibe el DOBLE de daño</label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ DEBUG -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#facc15;border-color:#a16207">DEBUG()</span>
+    <h2>Fase de Mantenimiento</h2>
+  </div>
+  <div class="section-body">
+    <div class="subsection">
+      <div class="subsection-title">Reglas generales</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Las funciones DEBUG no requieren Operación para ejecutarse</label></div>
+        <div class="check"><input type="checkbox"><label>Se pueden ejecutar varias funciones DEBUG en un turno siempre que se pueda pagar</label></div>
+        <div class="check"><input type="checkbox"><label>Si no hay energía para una función DEBUG → OVERLOAD normal</label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">Funciones</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label><code>debug()</code> — Coste 2⚡: elimina 1 <code>BUG</code> activo de <code>bugs</code></label></div>
+        <div class="check"><input type="checkbox"><label><code>debug()</code>: si no hay bugs, no hace nada (pero sí cuesta energía)</label></div>
+        <div class="check"><input type="checkbox"><label><code>patch()</code> — Coste 5⚡: elimina TODOS los <code>bugs</code> activos</label></div>
+        <div class="check"><input type="checkbox"><label><code>optimize(n)</code> — Coste n⚡: elimina n números de <code>numbers</code> (el programador elige cuáles)</label></div>
+        <div class="check"><input type="checkbox"><label><code>optimize(n)</code>: el coste es exactamente n (igual que los números eliminados)</label></div>
+        <div class="check"><input type="checkbox"><label><code>reboot()</code> — Coste 0⚡: el Bot pierde el próximo turno (<code>REBOOTING</code>)</label></div>
+        <div class="check"><input type="checkbox"><label><code>reboot()</code>: resetea <code>energy</code>=0, <code>numbers</code>=[], <code>bugs</code>=0 al ejecutarse</label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ BUGS -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#fb923c;border-color:#c2410c">BUGS</span>
+    <h2>Causas de BUG — Verificación cruzada</h2>
+  </div>
+  <div class="section-body">
+    <div class="checks-grid">
+      <div class="check"><input type="checkbox"><label>Overflow de energía en BOOT → 1 BUG</label></div>
+      <div class="check"><input type="checkbox"><label>FOR con diferencia = 0 → 1 BUG (Infinite Loop)</label></div>
+      <div class="check"><input type="checkbox"><label>FOR con diferencia &gt; 3 → 1 BUG (Infinite Loop)</label></div>
+      <div class="check"><input type="checkbox"><label>WHILE que nunca se ejecuta → 1 BUG (Bucle Fallido)</label></div>
+      <div class="check"><input type="checkbox"><label>TRY-CATCH donde ninguna función se ejecuta → 1 BUG (Critical Exception)</label></div>
+      <div class="check"><input type="checkbox"><label>move() con valor &gt; MAX_MOVEMENT → 1 BUG (Movimiento Excedido)</label></div>
+      <div class="check"><input type="checkbox"><label>attack() sin objetivos en rango → 1 BUG (no hay objetivo)</label></div>
+      <div class="check"><input type="checkbox"><label>novaBlast() atacante recibe 1 BUG al disparar</label></div>
+      <div class="check"><input type="checkbox"><label>dataSpike() objetivo recibe 1 BUG</label></div>
+      <div class="check"><input type="checkbox"><label>SAFE_MODE bloquea correctamente la recepción de BUGs</label></div>
+      <div class="check"><input type="checkbox"><label>bufferedMemory() absorbe el primer BUG del turno</label></div>
+      <div class="check"><input type="checkbox"><label>Cada BUG activo resta 1 operación disponible (aplica en el siguiente turno)</label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ FIN DE PARTIDA -->
+<div class="section">
+  <div class="section-header">
+    <span class="phase-tag" style="color:#facc15;border-color:#a16207">END()</span>
+    <h2>Fin de Turno y Fin de Partida</h2>
+  </div>
+  <div class="section-body">
+    <div class="subsection">
+      <div class="subsection-title">Fin de turno del Bot</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Las Operaciones utilizadas se descartan</label></div>
+        <div class="check"><input type="checkbox"><label>Los <code>numbers</code> se conservan para el siguiente turno</label></div>
+        <div class="check"><input type="checkbox"><label>La <code>energy</code> restante se conserva para el siguiente turno</label></div>
+        <div class="check"><input type="checkbox"><label>El turno pasa al siguiente Bot del orden de iniciativa</label></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">Fin de ronda y fin de partida</div>
+      <div class="checks-grid">
+        <div class="check"><input type="checkbox"><label>Cuando todos los Bots han actuado, termina la ronda y se vuelve a INIT()</label></div>
+        <div class="check"><input type="checkbox"><label>Si solo un jugador tiene Bots activos, ese jugador gana</label></div>
+        <div class="check"><input type="checkbox"><label>Si ambos jugadores quedan sin Bots simultáneamente → empate</label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const checks = document.querySelectorAll('.check');
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.check input[type="checkbox"]');
+    const done = document.querySelectorAll('.check input[type="checkbox"]:checked');
+    const pct = all.length ? Math.round((done.length / all.length) * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-count').textContent = done.length + ' / ' + all.length + ' (' + pct + '%)';
+  }
+
+  checks.forEach(c => {
+    const cb = c.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', () => {
+      c.classList.toggle('done', cb.checked);
+      updateProgress();
+    });
+    c.addEventListener('click', e => {
+      if (e.target !== cb) cb.click();
+    });
+  });
+
+  updateProgress();
+</script>
+</body>
+</html>

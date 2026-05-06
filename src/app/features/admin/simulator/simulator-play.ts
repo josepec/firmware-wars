@@ -15,6 +15,7 @@ import {
   type BattleState,
   type CompiledOperation,
   type CompiledProgram,
+  type FunctionCall,
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie } from './engine/dice';
@@ -100,6 +101,7 @@ export class SimulatorPlay implements OnInit {
   bootRollingFor = signal<string | null>(null);
   statusCheckAnim = signal<Array<{ botId: string; botName: string; playerId: PlayerId; rolling: boolean; roll: number; resisted: boolean; statusKind: string }>>([]);
   selfEffectAnim = signal<{ botName: string; playerId: PlayerId; rolling: boolean; kind: 'heal' | 'selfdmg' | 'bugrecoil'; amount: number; extra?: string } | null>(null);
+  chargedStrikeAnim = signal<{ roll: number; rolling: boolean; accum: number } | null>(null);
   animatingPlayers = signal<ReadonlySet<PlayerId>>(new Set());
 
   pendingSaves = signal(0);
@@ -850,6 +852,14 @@ export class SimulatorPlay implements OnInit {
     this.animatingPlayers.update(s => { const n = new Set(s); n.delete(pid); return n; });
   }
 
+  private playBugAnim(bot: BattleBot): void {
+    if (!this.animationEnabled()) return;
+    const g = this.hexMapComp()?.getAnimLayer();
+    if (!g) return;
+    const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+    floatingText(g, px.x + this.MAP_SIZE * 0.3, px.y - this.MAP_SIZE * 0.4, '+🐛', '#f97316', this.MAP_SIZE);
+  }
+
   private async playStatusChecksAnim(
     checks: Array<{ bot: BattleBot; roll: number; resisted: boolean; statusKind: string }>,
   ): Promise<void> {
@@ -1360,6 +1370,7 @@ export class SimulatorPlay implements OnInit {
           timestamp: new Date().toISOString(), botId: bot.id,
           kind: 'bug_added', payload: { count: 1, reason: 'infinite-loop' },
         }]);
+        this.playBugAnim(bot);
         this.runState.update(st => ({ ...st, pickedNumber: n, step: 'op-done', condResult: 0 }));
         return;
       }
@@ -1395,6 +1406,7 @@ export class SimulatorPlay implements OnInit {
             timestamp: new Date().toISOString(), botId: bot.id,
             kind: 'bug_added', payload: { count: 1, reason: 'while-never-executed' },
           }]);
+          this.playBugAnim(bot);
         }
         this.runState.update(st => ({ ...st, pickedNumber: n, condResult, step: 'op-done' }));
       }
@@ -1489,7 +1501,8 @@ export class SimulatorPlay implements OnInit {
           const g = this.hexMapComp()?.getAnimLayer();
           if (g) {
             const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
-            floatingText(g, px.x, px.y, 'MISS', '#6b7280', this.MAP_SIZE);
+            floatingText(g, px.x - this.MAP_SIZE * 0.2, px.y, 'MISS', '#6b7280', this.MAP_SIZE);
+            floatingText(g, px.x + this.MAP_SIZE * 0.3, px.y - this.MAP_SIZE * 0.4, '+🐛', '#f97316', this.MAP_SIZE);
           }
         }
         await this.afterFnExecuted();
@@ -1597,6 +1610,24 @@ export class SimulatorPlay implements OnInit {
       return;
     }
 
+    if (fn.attackFunctionId === 'chargedStrike') {
+      this.runState.update(s => ({ ...s, step: 'charged-rolling', chargedAccum: 0, chargedTargetId: targetId }));
+      this.chargedStrikeAnim.set({ roll: 0, rolling: true, accum: 0 });
+      await new Promise(r => setTimeout(r, 500));
+      const firstRoll = rollDN(4);
+      if (firstRoll === 1) {
+        this.chargedStrikeAnim.set({ roll: 1, rolling: false, accum: 1 });
+        await new Promise(r => setTimeout(r, 800));
+        this.chargedStrikeAnim.set(null);
+        this.runState.update(s => ({ ...s, step: 'evaluated', chargedAccum: 0, chargedTargetId: null }));
+        await this.resolveChargedBust(bot, 1, fn, cost, ts);
+        return;
+      }
+      this.runState.update(s => ({ ...s, chargedAccum: firstRoll }));
+      this.chargedStrikeAnim.set({ roll: firstRoll, rolling: false, accum: firstRoll });
+      return;
+    }
+
     const ctx: AttackResolveContext = {
       attacker: bot, target, bots: s.bots, map: s.hexMap,
       rangeMin: parseRangeMin(entry?.range),
@@ -1645,6 +1676,88 @@ export class SimulatorPlay implements OnInit {
 
     await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, extraEvents);
 
+    await this.afterFnExecuted();
+  }
+
+  async chargedRollMore(): Promise<void> {
+    const rs = this.runState();
+    if (rs.step !== 'charged-rolling' || !rs.chargedTargetId) return;
+    const bot = this.currentRunBot()!;
+    const fn = rs.pendingFn!;
+    const cost = fnEnergyCost(fn, this.functionsMap());
+    const ts = new Date().toISOString();
+
+    this.chargedStrikeAnim.set({ roll: 0, rolling: true, accum: rs.chargedAccum });
+    await new Promise(r => setTimeout(r, 500));
+    const d4 = rollDN(4);
+    const newAccum = rs.chargedAccum + d4;
+
+    if (d4 === 1) {
+      this.chargedStrikeAnim.set({ roll: 1, rolling: false, accum: newAccum });
+      await new Promise(r => setTimeout(r, 800));
+      this.chargedStrikeAnim.set(null);
+      this.runState.update(s => ({ ...s, step: 'evaluated', chargedAccum: 0, chargedTargetId: null }));
+      await this.resolveChargedBust(bot, newAccum, fn, cost, ts);
+      return;
+    }
+
+    this.runState.update(s => ({ ...s, chargedAccum: newAccum }));
+    this.chargedStrikeAnim.set({ roll: d4, rolling: false, accum: newAccum });
+  }
+
+  async chargedStop(): Promise<void> {
+    const rs = this.runState();
+    if (rs.step !== 'charged-rolling' || !rs.chargedTargetId) return;
+    const bot = this.currentRunBot()!;
+    const target = this.currentState().bots.find(b => b.id === rs.chargedTargetId)!;
+    const fn = rs.pendingFn!;
+    const cost = fnEnergyCost(fn, this.functionsMap());
+    const accum = rs.chargedAccum;
+
+    this.chargedStrikeAnim.set(null);
+    this.runState.update(s => ({ ...s, step: 'evaluated', chargedAccum: 0, chargedTargetId: null }));
+    await this.resolveChargedHit(bot, target, accum, fn, cost, new Date().toISOString());
+  }
+
+  private async resolveChargedHit(
+    bot: BattleBot, target: BattleBot, damage: number,
+    fn: FunctionCall, cost: number, ts: string,
+  ): Promise<void> {
+    const s = this.currentState();
+    const shieldConsumed = Math.min(target.shield, damage);
+    const dealt = Math.max(0, damage - shieldConsumed);
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run', timestamp: ts,
+      botId: bot.id, kind: 'attack_hit',
+      payload: { targetId: target.id, damage: dealt, shieldConsumed, energyCost: cost, functionId: fn.attackFunctionId },
+    }]);
+    if (target.life - dealt <= 0) {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run', timestamp: ts,
+        botId: target.id, kind: 'destroyed', payload: {},
+      }]);
+    }
+    await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, []);
+    await this.afterFnExecuted();
+  }
+
+  private async resolveChargedBust(
+    bot: BattleBot, totalDamage: number,
+    fn: FunctionCall, cost: number, ts: string,
+  ): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run', timestamp: ts,
+      botId: bot.id, kind: 'attack_hit',
+      payload: { targetId: bot.id, damage: totalDamage, shieldConsumed: 0, energyCost: cost, functionId: fn.attackFunctionId, selfInflicted: true, chargedBust: true },
+    }]);
+    if (bot.life - totalDamage <= 0) {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: 'run', timestamp: ts,
+        botId: bot.id, kind: 'destroyed', payload: { sourceFn: 'chargedStrike' },
+      }]);
+    }
+    await this.playSelfEffectAnim(bot, 'selfdmg', totalDamage);
     await this.afterFnExecuted();
   }
 
@@ -1825,6 +1938,7 @@ export class SimulatorPlay implements OnInit {
       timestamp: new Date().toISOString(), botId: bot.id,
       kind: 'bug_added', payload: { count: 1, reason: 'critical-exception' },
     }]);
+    this.playBugAnim(bot);
     this.runState.update(st => ({ ...st, step: 'op-done' }));
   }
 
@@ -1875,26 +1989,17 @@ export class SimulatorPlay implements OnInit {
   /** Emit a turn_ended-skip for a rebooted bot, then chain to round_ended or next compile. */
   private async skipRebootedBot(botId: string): Promise<void> {
     const s = this.currentState();
-    await this.appendEvents([{
+    const ts = new Date().toISOString();
+    const turnEndedEv: BattleEvent = {
       turn: s.turn, activation: s.currentActivationIdx, phase: 'end',
-      timestamp: new Date().toISOString(), botId,
-      kind: 'turn_ended', payload: { reason: 'reboot-skip' },
-    }]);
+      timestamp: ts, botId, kind: 'turn_ended', payload: { reason: 'reboot-skip' },
+    };
+    const isLastBot = s.currentActivationIdx + 1 >= s.activationOrder.length;
+    const chainEv: BattleEvent = isLastBot
+      ? { turn: s.turn, activation: 0, phase: 'end', timestamp: ts, kind: 'round_ended', payload: { nextTurn: s.turn + 1 } }
+      : { turn: s.turn, activation: s.currentActivationIdx + 1, phase: 'compile', timestamp: ts, kind: 'phase_changed', payload: { from: 'end', to: 'compile' } };
+    await this.appendEvents([turnEndedEv, chainEv]);
     this.runState.set(initialRunState);
-    const after = this.currentState();
-    if (after.currentActivationIdx >= after.activationOrder.length) {
-      await this.appendEvents([{
-        turn: after.turn, activation: 0, phase: 'end',
-        timestamp: new Date().toISOString(),
-        kind: 'round_ended', payload: { nextTurn: after.turn + 1 },
-      }]);
-    } else {
-      await this.appendEvents([{
-        turn: after.turn, activation: after.currentActivationIdx, phase: 'compile',
-        timestamp: new Date().toISOString(),
-        kind: 'phase_changed', payload: { from: 'end', to: 'compile' },
-      }]);
-    }
   }
 
   async finishBotRun(_botId?: string): Promise<void> {
@@ -1904,42 +2009,33 @@ export class SimulatorPlay implements OnInit {
       this.runState.set(initialRunState);
       return;
     }
-    await this.appendEvents([{
-      turn: s.turn, activation: s.currentActivationIdx, phase: 'end',
-      timestamp: new Date().toISOString(), botId: bot?.id ?? _botId,
-      kind: 'turn_ended', payload: {},
-    }]);
-    this.runState.set(initialRunState);
 
-    // END phase: check victory — si solo un jugador tiene bots vivos, finaliza la partida
+    const ts = new Date().toISOString();
+    const turnEndedEv: BattleEvent = {
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'end',
+      timestamp: ts, botId: bot?.id ?? _botId, kind: 'turn_ended', payload: {},
+    };
+
+    // Victory check can run before turn_ended is saved (it only reads bot life values,
+    // not activation index, so the result is identical).
     const winner = this.checkVictory();
     if (winner) {
-      const st = this.currentState();
-      await this.appendEvents([{
-        turn: st.turn, activation: st.currentActivationIdx, phase: 'finished',
-        timestamp: new Date().toISOString(),
-        kind: 'victory', payload: { winner },
-      }]);
+      await this.appendEvents([
+        turnEndedEv,
+        { turn: s.turn, activation: s.currentActivationIdx, phase: 'finished', timestamp: ts, kind: 'victory', payload: { winner } },
+      ]);
+      this.runState.set(initialRunState);
       return;
     }
 
-    const after = this.currentState();
-    if (after.currentActivationIdx >= after.activationOrder.length) {
-      // Round ended — wait for INIT of next round (handled separately)
-      await this.appendEvents([{
-        turn: after.turn, activation: 0, phase: 'end',
-        timestamp: new Date().toISOString(),
-        kind: 'round_ended', payload: { nextTurn: after.turn + 1 },
-      }]);
-    } else {
-      // Next bot starts its COMPILE
-      await this.appendEvents([{
-        turn: after.turn, activation: after.currentActivationIdx, phase: 'compile',
-        timestamp: new Date().toISOString(),
-        kind: 'phase_changed',
-        payload: { from: 'end', to: 'compile' },
-      }]);
-    }
+    // Batch turn_ended + chain event so both are applied in one signal update,
+    // preventing the momentary phase='end' flash between bots.
+    const isLastBot = s.currentActivationIdx + 1 >= s.activationOrder.length;
+    const chainEv: BattleEvent = isLastBot
+      ? { turn: s.turn, activation: 0, phase: 'end', timestamp: ts, kind: 'round_ended', payload: { nextTurn: s.turn + 1 } }
+      : { turn: s.turn, activation: s.currentActivationIdx + 1, phase: 'compile', timestamp: ts, kind: 'phase_changed', payload: { from: 'end', to: 'compile' } };
+    await this.appendEvents([turnEndedEv, chainEv]);
+    this.runState.set(initialRunState);
   }
 
   async bootRollFor(botId: string, chosen: 1 | 2 | 3): Promise<void> {

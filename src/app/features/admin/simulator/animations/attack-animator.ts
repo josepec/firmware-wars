@@ -182,6 +182,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
     if (!ctx.targetPx) return;
     await projectile(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, ctx.targetPx.x, ctx.targetPx.y, '#10b981', 3.5, 450);
     statusGlitch(ctx.g, ctx.targetPx.x, ctx.targetPx.y, 'BUG', ctx.size);
+    floatingText(ctx.g, ctx.targetPx.x + ctx.size * 0.35, ctx.targetPx.y - ctx.size * 0.5, '+🐛', '#f97316', ctx.size);
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
   },
 
@@ -201,6 +202,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
       impact(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, RED, ctx.size * 0.9),
     ]);
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    floatingText(ctx.g, ctx.attackerPx.x + ctx.size * 0.35, ctx.attackerPx.y - ctx.size * 0.5, '+🐛', '#f97316', ctx.size);
   },
 
   flashSpin: async ctx => {

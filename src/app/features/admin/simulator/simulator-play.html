@@ -345,6 +345,53 @@
     <app-simulator-run-panel [bot]="rb" [state]="runState()" [functionsMap]="functionsMap()"
       (opStarted)="resolveCurrentOp()" (numberPicked)="pickNumber($event)" (nextOp)="advanceOp()"
       (finishRun)="finishBotRun()" (debugAction)="applyDebugFn($event)" />
+    @if (chargedStrikeAnim(); as csa) {
+    <div class="pt-2 border-t border-red-500/20 space-y-2">
+      <div class="text-[8px] tracking-[0.2em] text-red-400/80 uppercase">CHARGED STRIKE · Cargando daño...</div>
+      @if (csa.rolling) {
+      <div class="flex items-center gap-2 py-1">
+        <span class="dice-spin text-2xl">🎲</span>
+        <span class="text-green-500/40 italic text-[10px]">tirando d4...</span>
+      </div>
+      } @else {
+      <div class="border border-green-500/15 bg-black/40 px-3 py-2 space-y-2">
+        <div class="flex items-center gap-3">
+          <div class="flex flex-col items-center gap-0.5">
+            <div class="w-9 h-9 border-2 flex items-center justify-center text-lg font-bold"
+              [class.border-red-500\/50]="csa.roll === 1"
+              [class.text-red-300]="csa.roll === 1"
+              [class.bg-red-500\/10]="csa.roll === 1"
+              [class.border-yellow-500\/50]="csa.roll > 1"
+              [class.text-yellow-300]="csa.roll > 1"
+              [class.bg-yellow-500\/10]="csa.roll > 1">
+              {{ csa.roll }}
+            </div>
+            <div class="text-[7px] text-green-500/40 tracking-[0.15em] uppercase">d4</div>
+          </div>
+          <div class="text-[10px] tracking-wider">
+            <span class="text-green-500/40">Acumulado:</span>
+            <span class="text-xl font-bold text-yellow-300 ml-1">{{ csa.accum }}</span>
+            <span class="text-green-500/40 text-[9px]"> ♥</span>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" (click)="chargedRollMore()" [disabled]="csa.rolling"
+            class="flex-1 px-2 py-1.5 text-[9px] tracking-[0.15em] uppercase
+                   bg-red-500/10 border border-red-500/40 text-red-300
+                   hover:bg-red-500/20 disabled:opacity-40 cursor-pointer">
+            +d4 · arriesgar
+          </button>
+          <button type="button" (click)="chargedStop()" [disabled]="csa.rolling"
+            class="flex-1 px-2 py-1.5 text-[9px] tracking-[0.15em] uppercase
+                   bg-yellow-500/10 border border-yellow-500/40 text-yellow-300
+                   hover:bg-yellow-500/20 disabled:opacity-40 cursor-pointer">
+            Descargar {{ csa.accum }}♥
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+    }
     } @else {
     @if ((runState().step === 'intercept-prompt' || runState().step === 'intercept-picking') && canIntercept(p)) {
     @let ib = getInterceptBot();

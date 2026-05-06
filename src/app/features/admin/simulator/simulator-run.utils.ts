@@ -21,6 +21,7 @@ export type RunStep =
   | 'evaluated'
   | 'picking-hex'
   | 'picking-target'
+  | 'charged-rolling'
   | 'between-iters'
   | 'op-done'
   | 'debug'
@@ -41,6 +42,8 @@ export interface RunState {
   /** Bots that were offered intercept this op and declined — excluded from further offers this op. */
   interceptDeclinedIds: string[];
   loopExecuted: boolean;
+  chargedAccum: number;
+  chargedTargetId: string | null;
 }
 
 export const initialRunState: RunState = {
@@ -57,6 +60,8 @@ export const initialRunState: RunState = {
   interceptBotId: null,
   interceptDeclinedIds: [],
   loopExecuted: false,
+  chargedAccum: 0,
+  chargedTargetId: null,
 };
 
 export function hasStatus(bot: BattleBot, kind: StatusEffectKind): boolean {
