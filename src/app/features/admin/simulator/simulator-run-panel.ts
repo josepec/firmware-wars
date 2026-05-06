@@ -145,6 +145,13 @@ import type { FunctionEntry } from './simulator-bot-card';
         </div>
       }
 
+      <!-- Op notice (e.g. no-targets bug) -->
+      @if (state().lastOpNotice) {
+        <div class="border border-orange-500/30 bg-orange-500/8 px-3 py-2 text-[9px] text-orange-300/90 tracking-wider leading-relaxed">
+          ⚠ {{ state().lastOpNotice }}
+        </div>
+      }
+
       <!-- Continue / advance -->
       @if (state().step === 'op-done' || state().step === 'evaluated') {
         <button type="button" (click)="nextOp.emit()"

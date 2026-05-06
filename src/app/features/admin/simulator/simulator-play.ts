@@ -19,7 +19,7 @@ import {
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie } from './engine/dice';
-import { hexDistance, reachableHexes } from './engine/pathfinding';
+import { attackableHexes, hexDistance, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
@@ -34,7 +34,7 @@ import {
   parseRangeMin,
   type RunState,
 } from './simulator-run.utils';
-import { getAttackFn, type AttackResolveContext } from './attack-fns/index';
+import { getAttackFn, lrHexes, sldvHexes, type AttackResolveContext } from './attack-fns/index';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -273,6 +273,30 @@ export class SimulatorPlay implements OnInit {
     if (rs.step === 'picking-target') return '#ef4444';
     const c = this.pendingRoll();
     return c ? COLOR_HEX[c] : '#3b82f6';
+  });
+
+  readonly attackRangeHexes = computed<Set<string> | null>(() => {
+    const rs = this.runState();
+    if (rs.step !== 'picking-target' || !rs.pendingFn) return null;
+    const bot = this.currentState().bots.find(b => b.id === rs.botId);
+    if (!bot || rs.pendingFn.type !== 'attack') return null;
+    const attackFnDef = getAttackFn(rs.pendingFn.attackFunctionId ?? '');
+    const rangeKind = attackFnDef?.rangeKind ?? 'normal';
+    if (rangeKind === 'self') return null;
+    const entry = rs.pendingFn.attackFunctionId ? this.functionsMap().get(rs.pendingFn.attackFunctionId) : undefined;
+    const rangeMin = parseRangeMin(entry?.range);
+    const rangeMax = parseRangeMax(entry?.range);
+    const s = this.currentState();
+    if (rangeKind === 'SLDV') return sldvHexes(bot.q, bot.r, rangeMin, rangeMax, s.hexMap);
+    if (rangeKind === 'LR') return lrHexes(bot.q, bot.r, rangeMin, rangeMax, s.hexMap, s.bots);
+    const reachable = attackableHexes(bot.q, bot.r, rangeMax, s.hexMap, s.bots);
+    if (rangeMin > 1) {
+      for (const k of [...reachable]) {
+        const [q, r] = k.split(',').map(Number);
+        if (hexDistance(bot.q, bot.r, q, r) < rangeMin) reachable.delete(k);
+      }
+    }
+    return reachable.size > 0 ? reachable : null;
   });
 
   readonly canPickHex = computed(() => {
@@ -1322,7 +1346,7 @@ export class SimulatorPlay implements OnInit {
   }
 
   private async resolveIfLike(_op: CompiledOperation, bot: BattleBot): Promise<void> {
-    this.runState.update(s => ({ ...s, step: 'rolling' }));
+    this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
     const opFace = rollOperationDie(bot.version);
     const interceptBot = this.findInterceptBot(bot);
@@ -1335,7 +1359,7 @@ export class SimulatorPlay implements OnInit {
   }
 
   private async resolveWhile(_op: CompiledOperation, bot: BattleBot): Promise<void> {
-    this.runState.update(s => ({ ...s, step: 'rolling' }));
+    this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
     const opFace = rollOperationDie(bot.version);
     const interceptBot = this.findInterceptBot(bot);
@@ -1497,6 +1521,7 @@ export class SimulatorPlay implements OnInit {
           timestamp: new Date().toISOString(), botId: bot.id,
           kind: 'bug_added', payload: { count: 1, reason: 'no-targets-in-range' },
         }]);
+        this.runState.update(rs => ({ ...rs, lastOpNotice: 'Sin objetivos en rango — ataque fallido · +1 🐛' }));
         if (this.animationEnabled()) {
           const g = this.hexMapComp()?.getAnimLayer();
           if (g) {
@@ -1610,7 +1635,7 @@ export class SimulatorPlay implements OnInit {
       return;
     }
 
-    if (fn.attackFunctionId === 'chargedStrike') {
+    if (attackFnDef?.id === 'chargedStrike') {
       this.runState.update(s => ({ ...s, step: 'charged-rolling', chargedAccum: 0, chargedTargetId: targetId }));
       this.chargedStrikeAnim.set({ roll: 0, rolling: true, accum: 0 });
       await new Promise(r => setTimeout(r, 500));
@@ -1816,7 +1841,7 @@ export class SimulatorPlay implements OnInit {
   }
 
   private async resolveFor(__op: CompiledOperation, bot: BattleBot): Promise<void> {
-    this.runState.update(s => ({ ...s, step: 'rolling' }));
+    this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
     // Intercept offered BEFORE d6 roll
     const interceptBot = this.findInterceptBot(bot);

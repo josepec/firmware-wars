@@ -161,6 +161,12 @@ interface RenderedDeployment {
         }
       }
 
+      <!-- Attack range overlay (subtle fill, below highlight strokes) -->
+      @for (h of rangeHexOverlays(); track h.key) {
+        <polygon [attr.points]="h.points" fill="#ef4444" fill-opacity="0.10"
+                 stroke="none" class="pointer-events-none" />
+      }
+
       <!-- Highlight overlay -->
       @for (h of highlightOverlays(); track h.key) {
         <polygon [attr.points]="h.points" fill="none"
@@ -231,6 +237,7 @@ export class HexMap {
   readonly highlightColor = input<string>('#3b82f6');
   readonly selectable = input<Set<string> | null>(null);
   readonly dotOpacity = input(1.0);
+  readonly rangeHexes = input<Set<string> | null>(null);
   readonly mapEntities = input<HexMapEntity[]>([]);
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
@@ -382,6 +389,21 @@ export class HexMap {
         dotColor: dotDef?.hex ?? null,
       };
     });
+  });
+
+  rangeHexOverlays = computed(() => {
+    const set = this.rangeHexes();
+    if (!set || set.size === 0) return [];
+    const s = this.size();
+    const out: { key: string; points: string }[] = [];
+    for (const key of set) {
+      const [qStr, rStr] = key.split(',');
+      const q = Number(qStr), r = Number(rStr);
+      if (!Number.isFinite(q) || !Number.isFinite(r)) continue;
+      const { x, y } = hexToPixel(q, r, s);
+      out.push({ key: `range-${key}`, points: hexPoints(x, y, s * 0.84) });
+    }
+    return out;
   });
 
   highlightOverlays = computed(() => {

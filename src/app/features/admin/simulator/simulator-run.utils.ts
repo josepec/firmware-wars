@@ -44,6 +44,7 @@ export interface RunState {
   loopExecuted: boolean;
   chargedAccum: number;
   chargedTargetId: string | null;
+  lastOpNotice: string | null;
 }
 
 export const initialRunState: RunState = {
@@ -62,6 +63,7 @@ export const initialRunState: RunState = {
   loopExecuted: false,
   chargedAccum: 0,
   chargedTargetId: null,
+  lastOpNotice: null,
 };
 
 export function hasStatus(bot: BattleBot, kind: StatusEffectKind): boolean {
