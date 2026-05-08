@@ -110,6 +110,8 @@ export interface BattleState {
   hexMap: HexMapData;
   entities?: MapEntity[];
   winner?: PlayerId;
+  /** Marcada como Debug — true tras emitir 'debug_enabled'. Una vez true, no vuelve a false. */
+  debug?: boolean;
 }
 
 export type BattleEventKind =
@@ -149,7 +151,10 @@ export type BattleEventKind =
   | 'turn_ended'
   | 'round_ended'
   | 'phase_changed'
-  | 'victory';
+  | 'victory'
+  | 'debug_enabled'
+  | 'debug_override'
+  | 'debug_dice_forced';
 
 export interface BattleEvent {
   turn: number;
@@ -186,6 +191,7 @@ export interface BattleReportSummary {
   player1Alias: string;
   player2Alias: string;
   createdAt: string;
+  isDebug?: boolean;
 }
 
 export const OPERATION_LABEL: Record<OperationKind, string> = {

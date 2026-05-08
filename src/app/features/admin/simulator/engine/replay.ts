@@ -1,8 +1,9 @@
-import type { BattleBot, BattleEvent, BattleState, MapEntity, PlayerId, StatusEffectKind, TempBuffKind } from '../../../../shared/types/battle.types';
+import type { BattleBot, BattleEvent, BattleState, MapEntity, PlayerId, StatusEffect, StatusEffectKind, TempBuff, TempBuffKind } from '../../../../shared/types/battle.types';
 
 function cloneState(s: BattleState): BattleState {
   return {
     ...s,
+    debug: s.debug,
     players: { 1: { ...s.players[1] }, 2: { ...s.players[2] } },
     bots: s.bots.map(b => ({
       ...b,
@@ -308,6 +309,24 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       if (entityId) state.entities = (state.entities ?? []).filter(e => e.id !== entityId);
       break;
     }
+    case 'debug_enabled': {
+      state.debug = true;
+      break;
+    }
+    case 'debug_override': {
+      const target = p['target'] as 'bot' | 'state' | undefined;
+      const patch = p['patch'] as Record<string, unknown> | undefined;
+      if (!patch) break;
+      if (target === 'bot' && bot) {
+        applyBotPatch(bot, patch);
+      } else if (target === 'state') {
+        applyStatePatch(state, patch);
+      }
+      break;
+    }
+    case 'debug_dice_forced':
+      // Marcador para el log: el override real ocurre en memoria al consumir el dado.
+      break;
     case 'status_resisted':
     case 'criterion_chosen':
     case 'ppt_rolled':
@@ -317,6 +336,59 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     case 'phase_changed':
       break;
   }
+}
+
+/** Aplica un patch genérico a un bot (solo campos seguros / mutables). */
+function applyBotPatch(bot: BattleBot, patch: Record<string, unknown>): void {
+  for (const [key, value] of Object.entries(patch)) {
+    switch (key) {
+      case 'life': if (typeof value === 'number') bot.life = clamp(value, 0, bot.maxLife); break;
+      case 'energy': if (typeof value === 'number') bot.energy = clamp(value, 0, bot.maxEnergy); break;
+      case 'shield': if (typeof value === 'number') bot.shield = clamp(value, 0, bot.maxShield); break;
+      case 'bugs': if (typeof value === 'number') bot.bugs = Math.max(0, value); break;
+      case 'numbers': if (Array.isArray(value)) bot.numbers = (value as number[]).slice(0, bot.maxNumbers); break;
+      case 'destroyed': if (typeof value === 'boolean') {
+        bot.destroyed = value;
+        if (!value && bot.life <= 0) bot.life = 1;
+      } break;
+      case 'q': if (typeof value === 'number') bot.q = value; break;
+      case 'r': if (typeof value === 'number') bot.r = value; break;
+      case 'version': if (value === 1 || value === 2 || value === 3) {
+        bot.version = value;
+        const maxNumbersByVersion: Record<1 | 2 | 3, number> = { 1: 5, 2: 7, 3: 8 };
+        bot.maxNumbers = maxNumbersByVersion[value];
+      } break;
+      case 'attacks': if (value && typeof value === 'object') {
+        const a = value as BattleBot['attacks'];
+        bot.attacks = {
+          v1: (a.v1 ?? []).map(x => x ? { ...x } : null),
+          v2: (a.v2 ?? []).map(x => x ? { ...x } : null),
+          v3: a.v3 ? { ...a.v3 } : null,
+        };
+      } break;
+      case 'statusEffects': if (Array.isArray(value)) {
+        bot.statusEffects = (value as StatusEffect[]).map(s => ({ ...s }));
+      } break;
+      case 'tempBuffs': if (Array.isArray(value)) {
+        bot.tempBuffs = (value as TempBuff[]).map(b => ({ ...b }));
+      } break;
+    }
+  }
+}
+
+function applyStatePatch(state: BattleState, patch: Record<string, unknown>): void {
+  for (const [key, value] of Object.entries(patch)) {
+    switch (key) {
+      case 'currentActivationIdx': if (typeof value === 'number') state.currentActivationIdx = value; break;
+      case 'cpuPriority': if (value === 1 || value === 2) state.cpuPriority = value; break;
+      case 'turn': if (typeof value === 'number') state.turn = value; break;
+      case 'activationOrder': if (Array.isArray(value)) state.activationOrder = [...(value as string[])]; break;
+    }
+  }
+}
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
 }
 
 export function replayTo(

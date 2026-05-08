@@ -18,13 +18,14 @@ import {
   type FunctionCall,
   type PlayerId,
 } from '../../../shared/types/battle.types';
-import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie } from './engine/dice';
+import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie, type OperationFace } from './engine/dice';
 import { attackableHexes, hexDistance, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
 import { SimulatorBotCard, type FunctionEntry } from './simulator-bot-card';
 import { SimulatorRunPanel } from './simulator-run-panel';
+import { SimulatorDebugPanel } from './simulator-debug-panel';
 import {
   computeAttackTargets,
   fnEnergyCost,
@@ -57,7 +58,7 @@ import {
 
 @Component({
   selector: 'app-simulator-play',
-  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard, CompileEditor, SimulatorRunPanel],
+  imports: [RouterLink, HexMap, NgTemplateOutlet, JsonPipe, SimulatorBotCard, CompileEditor, SimulatorRunPanel, SimulatorDebugPanel],
   templateUrl: './simulator-play.html',
   styleUrl: './simulator-play.scss',
 })
@@ -115,6 +116,12 @@ export class SimulatorPlay implements OnInit {
   selectedBotIdx = signal<Record<PlayerId, number>>({ 1: 0, 2: 0 });
   expandedAttackVersion = signal<Record<string, 1 | 2 | 3 | null>>({});
   manualBotSelectionFor = signal<Set<PlayerId>>(new Set());
+
+  /** Próximas tiradas forzadas (debug). Se consumen al usarlas. */
+  forcedRolls = signal<{ d6?: number; d4?: number; opFace?: OperationFace }>({});
+
+  /** ¿La partida actual está marcada como Debug? */
+  readonly debugMode = computed(() => this.currentState().debug === true);
 
   readonly subPhase = computed<DeploySubPhase>(() => {
     if (this.deployStarter()) return 'done';
@@ -1348,26 +1355,26 @@ export class SimulatorPlay implements OnInit {
   private async resolveIfLike(_op: CompiledOperation, bot: BattleBot): Promise<void> {
     this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
-    const opFace = rollOperationDie(bot.version);
+    const opFace = this.consumeOpFace(bot.version);
     const interceptBot = this.findInterceptBot(bot);
     if (interceptBot) {
       this.runState.update(s => ({ ...s, opFace, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
       return;
     }
-    const d6 = rollD6();
+    const d6 = this.consumeD6();
     this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
   }
 
   private async resolveWhile(_op: CompiledOperation, bot: BattleBot): Promise<void> {
     this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
-    const opFace = rollOperationDie(bot.version);
+    const opFace = this.consumeOpFace(bot.version);
     const interceptBot = this.findInterceptBot(bot);
     if (interceptBot) {
       this.runState.update(s => ({ ...s, opFace, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
       return;
     }
-    const d6 = rollD6();
+    const d6 = this.consumeD6();
     this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
   }
 
@@ -1639,7 +1646,7 @@ export class SimulatorPlay implements OnInit {
       this.runState.update(s => ({ ...s, step: 'charged-rolling', chargedAccum: 0, chargedTargetId: targetId }));
       this.chargedStrikeAnim.set({ roll: 0, rolling: true, accum: 0 });
       await new Promise(r => setTimeout(r, 500));
-      const firstRoll = rollDN(4);
+      const firstRoll = this.consumeD4();
       if (firstRoll === 1) {
         this.chargedStrikeAnim.set({ roll: 1, rolling: false, accum: 1 });
         await new Promise(r => setTimeout(r, 800));
@@ -1714,7 +1721,7 @@ export class SimulatorPlay implements OnInit {
 
     this.chargedStrikeAnim.set({ roll: 0, rolling: true, accum: rs.chargedAccum });
     await new Promise(r => setTimeout(r, 500));
-    const d4 = rollDN(4);
+    const d4 = this.consumeD4();
     const newAccum = rs.chargedAccum + d4;
 
     if (d4 === 1) {
@@ -1801,13 +1808,13 @@ export class SimulatorPlay implements OnInit {
       // New condition check for next iteration
       this.runState.update(s => ({ ...s, step: 'rolling', opFace: null, d6: null, pickedNumber: null, condResult: null, pendingFn: null }));
       await this.animateDelay();
-      const opFace = rollOperationDie(bot.version);
+      const opFace = this.consumeOpFace(bot.version);
       const interceptBot = this.findInterceptBot(bot);
       if (interceptBot) {
         this.runState.update(s => ({ ...s, opFace, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
         return;
       }
-      const d6 = rollD6();
+      const d6 = this.consumeD6();
       this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
       return;
     }
@@ -1849,7 +1856,7 @@ export class SimulatorPlay implements OnInit {
       this.runState.update(s => ({ ...s, d6: null, step: 'intercept-prompt', interceptBotId: interceptBot.id }));
       return;
     }
-    const d6 = rollD6();
+    const d6 = this.consumeD6();
     this.runState.update(s => ({ ...s, d6, step: 'picking-number' }));
   }
 
@@ -1912,7 +1919,7 @@ export class SimulatorPlay implements OnInit {
     }
 
     // No more candidates → roll d6, clear declined list, proceed.
-    const d6 = rollD6();
+    const d6 = this.consumeD6();
     this.runState.update(s => ({
       ...s, d6, step: 'picking-number',
       interceptBotId: null, interceptDeclinedIds: [],
@@ -2009,6 +2016,114 @@ export class SimulatorPlay implements OnInit {
       kind: 'debug_action',
       payload: { action: action.action, energyCost, bugsRemoved, numbersRemoved },
     }]);
+  }
+
+  /* ── Forced dice consumption (debug) ─────────────────────────── */
+
+  private consumeD6(): number {
+    const f = this.forcedRolls();
+    if (typeof f.d6 === 'number') {
+      this.forcedRolls.set({ ...f, d6: undefined });
+      this.logForcedDice('d6', f.d6);
+      return f.d6;
+    }
+    return rollD6();
+  }
+
+  private consumeD4(): number {
+    const f = this.forcedRolls();
+    if (typeof f.d4 === 'number') {
+      this.forcedRolls.set({ ...f, d4: undefined });
+      this.logForcedDice('d4', f.d4);
+      return f.d4;
+    }
+    return rollDN(4);
+  }
+
+  private consumeOpFace(version: 1 | 2 | 3): OperationFace {
+    const f = this.forcedRolls();
+    if (f.opFace) {
+      this.forcedRolls.set({ ...f, opFace: undefined });
+      this.logForcedDice('opFace', f.opFace);
+      return f.opFace;
+    }
+    return rollOperationDie(version);
+  }
+
+  private logForcedDice(kind: 'd6' | 'd4' | 'opFace', value: number | OperationFace): void {
+    void this.appendEvents([{
+      turn: this.currentState().turn, activation: this.currentState().currentActivationIdx,
+      phase: this.currentState().phase, timestamp: new Date().toISOString(),
+      kind: 'debug_dice_forced', payload: { kind, value },
+    }]);
+  }
+
+  /* ── Debug mode actions ──────────────────────────────────────── */
+
+  setForcedRoll(kind: 'd6' | 'd4' | 'opFace', value: number | OperationFace | null): void {
+    this.forcedRolls.update(f => ({ ...f, [kind]: value ?? undefined }));
+  }
+
+  clearForcedRolls(): void {
+    this.forcedRolls.set({});
+  }
+
+  async enableDebugMode(): Promise<void> {
+    if (this.debugMode()) return;
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: s.phase,
+      timestamp: new Date().toISOString(), kind: 'debug_enabled', payload: {},
+    }]);
+  }
+
+  async applyDebugOverride(target: 'bot' | 'state', botId: string | undefined, patch: Record<string, unknown>): Promise<void> {
+    if (!this.debugMode()) return;
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: s.phase,
+      timestamp: new Date().toISOString(), botId,
+      kind: 'debug_override', payload: { target, patch },
+    }]);
+  }
+
+  /** Drag&drop de un bot (sólo en debug mode). */
+  async onDebugBotMoved(ev: { fromQ: number; fromR: number; toQ: number; toR: number }): Promise<void> {
+    if (!this.debugMode()) return;
+    const bot = this.currentState().bots.find(b => b.q === ev.fromQ && b.r === ev.fromR);
+    if (!bot) return;
+    await this.applyDebugOverride('bot', bot.id, { q: ev.toQ, r: ev.toR });
+  }
+
+  /** Trunca los últimos N eventos en el backend y refresca el log local. */
+  async rewindEvents(count: number): Promise<void> {
+    if (!this.debugMode() || count <= 0) return;
+    const r = this.report();
+    if (!r) return;
+    const prev = this.events();
+    const keepFirst = Math.max(0, prev.length - count);
+    if (keepFirst === prev.length) return;
+    this.saveError.set(null);
+    this.pendingSaves.update(n => n + 1);
+    try {
+      const resp = await fetch(`${API_URL}/api/battles/${r.id}/events/truncate`, {
+        method: 'POST',
+        headers: this.auth.authHeaders(),
+        body: JSON.stringify({ keepFirst }),
+      });
+      if (!resp.ok) {
+        let detail = '';
+        try { detail = (await resp.text()).slice(0, 200); } catch { /* ignore */ }
+        this.saveError.set(`Rewind falló (${resp.status})${detail ? ' · ' + detail : ''}.`);
+        return;
+      }
+      this.events.set(prev.slice(0, keepFirst));
+      this.runState.set(initialRunState);
+    } catch (e) {
+      this.saveError.set(String(e));
+    } finally {
+      this.pendingSaves.update(n => n - 1);
+    }
   }
 
   /** Emit a turn_ended-skip for a rebooted bot, then chain to round_ended or next compile. */

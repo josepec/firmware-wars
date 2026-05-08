@@ -45,7 +45,21 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
                    border-b border-green-500/10 last:border-b-0
                    hover:bg-green-500/3 transition-colors">
           <div>
-            <div class="text-sm text-green-400 tracking-wider">{{ b.title }}</div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm text-green-400 tracking-wider">{{ b.title }}</span>
+              @if (b.status === 'finished') {
+                <span class="px-1.5 py-0.5 text-[8px] tracking-[0.2em] uppercase font-bold
+                             border border-green-400/50 bg-green-500/10 text-green-300">
+                  Finalizada
+                </span>
+              }
+              @if (b.isDebug) {
+                <span class="px-1.5 py-0.5 text-[8px] tracking-[0.2em] uppercase font-bold
+                             border border-orange-400/60 bg-orange-500/15 text-orange-300">
+                  Debug
+                </span>
+              }
+            </div>
             <div class="text-[9px] text-green-500/35 tracking-wider mt-0.5">
               {{ b.player1Alias }} vs {{ b.player2Alias }}
               &middot;
@@ -53,7 +67,7 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
                 @if (b.winner) {
                   <span class="text-green-400/70">Ganador: P{{ b.winner }}</span>
                 } @else {
-                  <span>Terminada</span>
+                  <span>Empate</span>
                 }
               } @else {
                 <span class="text-yellow-400/60">En curso</span>

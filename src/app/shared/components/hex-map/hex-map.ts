@@ -94,7 +94,9 @@ interface RenderedDeployment {
           <g [attr.transform]="'translate(' + d.cx + ',' + d.cy + ') rotate(' + (-rotateAngle()) + ')'"
              [attr.opacity]="!d.destroyed && !d.active && hasAnyTurnBot() ? 0.65 : 1"
              [class.cursor-pointer]="interactive()"
+             [class.cursor-grab]="interactive() && dragMode() === 'move'"
              (mouseenter)="onBotHover(d)" (mouseleave)="hoveredTooltip.set(null)"
+             (mousedown)="onDragStart($event, d.q, d.r)"
              (click)="onHexClick(d.q, d.r)">
             <!-- Team ring: tenue siempre, brillante cuando active (seleccionado en panel) -->
             @if (!d.destroyed) {
@@ -239,6 +241,12 @@ export class HexMap {
   readonly dotOpacity = input(1.0);
   readonly rangeHexes = input<Set<string> | null>(null);
   readonly mapEntities = input<HexMapEntity[]>([]);
+  /**
+   * Drag&drop mode:
+   * - 'expand': drop on EMPTY neighbor cells (used by map editor to grow the map)
+   * - 'move': drop on ANY existing hex (used by simulator debug to move bots)
+   */
+  readonly dragMode = input<'expand' | 'move'>('expand');
   readonly hexClicked = output<{ q: number; r: number }>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
@@ -483,16 +491,28 @@ export class HexMap {
       const s = this.size();
       const data = this.mapData();
       let bestDist = Infinity, bestQ = 0, bestR = 0;
-      const existing = new Set(data.hexes.map(h => `${h.q},${h.r}`));
-      for (const h of data.hexes) {
-        for (const n of hexNeighbors(h.q, h.r)) {
-          const nk = `${n.q},${n.r}`;
-          if (existing.has(nk) && !(n.q === this.dragging!.q && n.r === this.dragging!.r)) continue;
-          const { x, y } = hexToPixel(n.q, n.r, s);
+
+      if (this.dragMode() === 'move') {
+        // Drop on any existing hex (closest to drop point)
+        for (const h of data.hexes) {
+          const { x, y } = hexToPixel(h.q, h.r, s);
           const dist = Math.sqrt((svgPt.x - x) ** 2 + (svgPt.y - y) ** 2);
-          if (dist < s && dist < bestDist) { bestDist = dist; bestQ = n.q; bestR = n.r; }
+          if (dist < s && dist < bestDist) { bestDist = dist; bestQ = h.q; bestR = h.r; }
+        }
+      } else {
+        // 'expand': drop on empty neighbor cells (map editor)
+        const existing = new Set(data.hexes.map(h => `${h.q},${h.r}`));
+        for (const h of data.hexes) {
+          for (const n of hexNeighbors(h.q, h.r)) {
+            const nk = `${n.q},${n.r}`;
+            if (existing.has(nk) && !(n.q === this.dragging!.q && n.r === this.dragging!.r)) continue;
+            const { x, y } = hexToPixel(n.q, n.r, s);
+            const dist = Math.sqrt((svgPt.x - x) ** 2 + (svgPt.y - y) ** 2);
+            if (dist < s && dist < bestDist) { bestDist = dist; bestQ = n.q; bestR = n.r; }
+          }
         }
       }
+
       if (bestDist < s && !(bestQ === this.dragging!.q && bestR === this.dragging!.r)) {
         this.hexMoved.emit({ fromQ: this.dragging!.q, fromR: this.dragging!.r, toQ: bestQ, toR: bestR });
       }
