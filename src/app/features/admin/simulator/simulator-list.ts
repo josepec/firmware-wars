@@ -3,12 +3,13 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import type { BattleReportSummary } from '../../../shared/types/battle.types';
+import { SimulatorBattleStats } from './simulator-battle-stats';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
 @Component({
   selector: 'app-simulator-list',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, SimulatorBattleStats],
   template: `
     <div class="min-h-screen p-6 md:p-10 max-w-5xl mx-auto">
 
@@ -117,6 +118,8 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
         }
       </ul>
       }
+
+      <app-simulator-battle-stats />
 
     </div>
   `,

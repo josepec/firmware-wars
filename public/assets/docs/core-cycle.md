@@ -210,18 +210,17 @@ Se puede utilizar para atacar o realizar acciones con seguridad.
 
 Todos los Bots tienen acceso a las Funciones Comunes `COMMON.INTERFACE` para poder usarlas en sus Operaciones.
 
-### move()
+### move(n)
 
-- **Uso:** Recibe un valor numérico ≤ `MAX_MOVEMENT`. Mueve el Bot ese número de casillas.
-- **Coste energético:** El valor numérico recibido.
-- **Bug:** Si el valor numérico supera `MAX_MOVEMENT`, la operación no se ejecuta y el Bot obtiene un `BUG`.
+- **Uso:** Mueve el Bot n número de casillas, siendo n ≤ `MAX_MOVEMENT`. 
+- **Coste energético:** El valor de n.
 
 ```bs
 IF (condición)
   THEN move(3)
 ```
 
-> El valor numérico se ha establecido en la fase de `COMPILE()`. Este número **no pertenece a la reserva de `numbers`**.
+> El valor numérico n se establece en la fase de `RUN()`.
 
 ---
 
@@ -311,7 +310,7 @@ La mayoría de Operaciones han de determinar el resultado de una condición para
 5. Resuelve la Operación y ejecuta la Función si procede.
 
 #### Interceptar
-Cada Bot puede **interceptar una Operación enemiga por turno**. Cuando un Bot enemigo declara una Operación, **el Bot rival más cercano** (en Hexes) puede declarar una Intercepción. El Bot que intercepta puede **sustituir el dado en una condición** por cualquier valor de su propia reserva de `numbers`. Una vez realizada, el Bot no puede volver a interceptar hasta el inicio de su siguiente turno.
+Cada Bot puede **interceptar una Operación enemiga por turno**. Cuando un Bot enemigo declara una Operación, **el Bot rival más cercano** (en Hexes) puede declarar una Intercepción, en caso de empate, puede interceptar uno de ellos. Los Obstáculos no cuentan para calcular la distancia de interceptar. El Bot que intercepta puede **sustituir el dado en una condición** por cualquier valor de su propia reserva de `numbers`. Una vez realizada, el Bot no puede volver a interceptar hasta el inicio de su siguiente turno.
 
 ### 4. Coste Energético
 
@@ -330,7 +329,7 @@ Al ejecutar un movimiento mediante la Función `move()` el Bot puede moverse el 
 - Obstáculos (Hexes con la cara negra)
 - Hexes ocupados por otros Bots (aliados o enemigos)
 
-El desplazamiento debe realizarse siempre hacia Hexes adyacentes.
+El desplazamiento debe realizarse siempre hacia Hexes adyacentes. Los Bots destruidos pueden atravesarse.
 
 ---
 
@@ -341,10 +340,10 @@ El ataque se ejecutará siempre que tenga Energía suficiente y cumpla cualquier
 
 #### 1. Selección del Objetivo
 
-El Programador elige un Bot dentro **del rango del ataque** especificado por su Función de ataque.
+El Programador elige un Bot dentro **del rango del ataque** especificado por su Función de ataque. Si no hay ningún Bot en el rango de ataque, se genera un `BUG` y la Energía se consume igualmente.
 
 #### Rango de los ataques
-Excepto si el ataque indica lo contrario, todos los ataques requieren **línea de visión del objetivo**. La distancia, o rango, será el número mínimo de casillas hexagonales contiguas entre el Bot atacante y el Bot defensor, **sin atravesar obstáculos u otros Bots**. Esta distancia debe estar dentro del rango del ataque.
+Excepto si el ataque indica lo contrario, todos los ataques requieren **línea de visión del objetivo**. La distancia, o rango, será el número mínimo de casillas hexagonales contiguas entre el Bot atacante y el Bot defensor, **sin atravesar obstáculos u otros Bots no destruidos**. Esta distancia debe estar dentro del rango del ataque.
 
 Algunos ataques calculan su rango de otras maneras:
 
