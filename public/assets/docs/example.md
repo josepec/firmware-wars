@@ -52,7 +52,7 @@ START
     THEN attack(RocketPunch)
 
   IF-ELSE (energy >= 8)
-    THEN move(2)
+    THEN move()
     ELSE debug()
 
   FOR (3)

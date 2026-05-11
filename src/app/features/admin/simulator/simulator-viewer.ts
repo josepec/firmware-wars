@@ -78,7 +78,8 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'upgrade':
       return `Upgrade → V${p['version']}`;
     case 'boot_energy_rolled': {
-      const chosen = p['chosen'];
+      const chosen = p['chosen'] as number;
+      if (chosen === 0) return `getEnergy(0) → sin dados · ${(p['energy'] ?? p['combined'] ?? 0)}⚡`;
       const dice = (p['dice'] as number[] ?? []).join('+');
       const combined = (p['combined'] ?? p['total']) as number;
       const overflow = p['overflow'] as boolean | undefined;

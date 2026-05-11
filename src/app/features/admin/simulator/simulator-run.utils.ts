@@ -101,7 +101,7 @@ export function parseDamage(s: string | undefined | null): number {
 }
 
 export function fnEnergyCost(fn: FunctionCall, fmap: Map<string, FunctionEntry>, bot?: BattleBot): number {
-  if (fn.type === 'move') return fn.moveDistance ?? 0;
+  if (fn.type === 'move') return bot?.maxMovement ?? 0;
   if (fn.type === 'shield') return 2;
   const attackFnDef = fn.attackFunctionId ? getAttackFn(fn.attackFunctionId) : undefined;
   if (attackFnDef?.computeEnergyCost && bot) return attackFnDef.computeEnergyCost(bot);

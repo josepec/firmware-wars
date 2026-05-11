@@ -7,13 +7,13 @@ interface DraftSlot { op: OperationKind; primary: string | null; secondary: stri
 
 function parseFnKey(key: string): CompiledOperation['primary'] {
   if (key === 'shield') return { type: 'shield' };
-  if (key.startsWith('move:')) return { type: 'move', moveDistance: parseInt(key.slice(5)) };
+  if (key === 'move') return { type: 'move' };
   return { type: 'attack', attackFunctionId: key.slice(7) };
 }
 
 function funcSig(key: string | null): string {
   if (!key) return '';
-  if (key.startsWith('move:')) return 'move';
+  if (key === 'move') return 'move';
   if (key === 'shield') return 'shield';
   return 'attack';
 }
@@ -158,7 +158,7 @@ export class CompileEditor {
     const bot = this.bot();
     const fmap = this.functionsMap();
     const opts: FnOption[] = [];
-    for (let n = 1; n <= bot.maxMovement; n++) opts.push({ value: `move:${n}`, label: `move(${n})` });
+    opts.push({ value: 'move', label: 'move()' });
     opts.push({ value: 'shield', label: 'shield()' });
     if (!this.hasDMZ()) {
       const addAttacks = (refs: (AttackRef | null)[], vLabel: string) => {

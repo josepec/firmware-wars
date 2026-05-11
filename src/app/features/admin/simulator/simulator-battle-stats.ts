@@ -1,17 +1,26 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { NgIf } from '@angular/common';
+import {
+  Component, ElementRef, OnDestroy, OnInit,
+  ViewChild, effect, inject, signal,
+} from '@angular/core';
+import {
+  BarController, BarElement, CategoryScale, Chart,
+  LinearScale, Tooltip,
+} from 'chart.js';
 import { AdminAuth } from '../../../core/services/admin-auth';
+
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
+const C1 = { fill: 'rgba(34,211,238,0.75)', border: 'rgba(34,211,238,0.9)' };
+const C2 = { fill: 'rgba(232,121,249,0.7)',  border: 'rgba(232,121,249,0.85)' };
+
 interface FormatStats {
-  count: number;
-  avgRounds: number;
+  count: number; avgRounds: number;
   winP1: number; winP2: number; draw: number;
-  roundDist: number[];
-  deathsByRound: number[];
-  firstDeathByRound: number[];
-  avgDamageByRound: number[];
+  roundDist: number[]; deathsByRound: number[];
+  firstDeathByRound: number[]; avgDamageByRound: number[];
   bugsAddedByRound: number[];
 }
 
@@ -21,24 +30,41 @@ interface StatsResponse {
   '2v2': FormatStats;
 }
 
-interface BarGroup {
-  label: string;
-  x1: number; h1: number;
-  x2: number; h2: number;
-  bw: number; xl: number;
-}
-
-interface ChartSet {
-  roundDist: BarGroup[];    maxRoundDist: number;
-  deaths: BarGroup[];       maxDeaths: number;
-  firstDeath: BarGroup[];   maxFirstDeath: number;
-  damage: BarGroup[];       maxDamage: number;
-  bugs: BarGroup[];         maxBugs: number;
-}
+const CHART_OPTIONS: Chart['options'] = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 700 },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(0,0,0,0.92)',
+      borderColor: 'rgba(34,211,238,0.25)',
+      borderWidth: 1,
+      titleColor: '#22d3ee',
+      bodyColor: 'rgba(34,211,238,0.65)',
+      padding: 8,
+      titleFont: { family: "'Orbitron', monospace", size: 9 } as never,
+      bodyFont: { family: 'monospace', size: 9 } as never,
+    },
+  },
+  scales: {
+    x: {
+      grid: { color: 'rgba(34,211,238,0.05)' },
+      border: { color: 'rgba(34,211,238,0.15)' },
+      ticks: { color: 'rgba(34,211,238,0.45)', font: { family: 'monospace', size: 9 } as never },
+    },
+    y: {
+      beginAtZero: true,
+      grid: { color: 'rgba(34,211,238,0.05)' },
+      border: { color: 'transparent' },
+      ticks: { color: 'rgba(34,211,238,0.45)', font: { family: 'monospace', size: 9 } as never, precision: 0 },
+    },
+  },
+};
 
 @Component({
   selector: 'app-simulator-battle-stats',
-  imports: [NgTemplateOutlet],
+  imports: [NgIf],
   template: `
     <div class="mt-10 pt-6 border-t border-green-500/10">
       <div class="text-[10px] tracking-[0.3em] text-green-500/40 mb-1">// ESTADÍSTICAS</div>
@@ -59,9 +85,10 @@ interface ChartSet {
       }
 
       @if (!loading() && stats(); as s) {
+
         @if (s.total === 0) {
           <div class="text-[9px] text-green-500/25 tracking-wider py-4">
-            > No hay suficientes datos todavía.
+            > No hay datos suficientes todavía.
           </div>
         } @else {
 
@@ -117,105 +144,90 @@ interface ChartSet {
           </div>
 
           <!-- Legend -->
-          <div class="flex items-center gap-4 mb-4 text-[8px] tracking-[0.15em]">
+          <div class="flex items-center gap-5 mb-4 text-[8px] tracking-[0.15em]">
             <span class="flex items-center gap-1.5">
-              <span class="w-3 h-2 inline-block" style="background:rgba(34,211,238,0.65)"></span>
+              <span class="w-3 h-2 inline-block rounded-sm" style="background:rgba(34,211,238,0.75)"></span>
               <span class="text-cyan-400/60">1v1</span>
             </span>
             <span class="flex items-center gap-1.5">
-              <span class="w-3 h-2 inline-block" style="background:rgba(232,121,249,0.65)"></span>
+              <span class="w-3 h-2 inline-block rounded-sm" style="background:rgba(232,121,249,0.7)"></span>
               <span class="text-fuchsia-400/60">2v2</span>
             </span>
           </div>
 
-          <!-- Charts -->
-          @if (charts(); as c) {
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Charts 2×2 grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              <ng-container *ngTemplateOutlet="chartTpl; context:{
-                title:'DURACIÓN (RONDAS POR PARTIDA)', bars:c.roundDist, maxV:c.maxRoundDist
-              }"></ng-container>
-
-              <ng-container *ngTemplateOutlet="chartTpl; context:{
-                title:'MUERTES POR RONDA', bars:c.deaths, maxV:c.maxDeaths
-              }"></ng-container>
-
-              <ng-container *ngTemplateOutlet="chartTpl; context:{
-                title:'PRIMERA MUERTE (RONDA)', bars:c.firstDeath, maxV:c.maxFirstDeath
-              }"></ng-container>
-
-              <ng-container *ngTemplateOutlet="chartTpl; context:{
-                title:'DAÑO PROMEDIO POR RONDA', bars:c.damage, maxV:c.maxDamage
-              }"></ng-container>
-
-              @if (c.maxBugs > 0) {
-                <ng-container *ngTemplateOutlet="chartTpl; context:{
-                  title:'BUGS AÑADIDOS POR RONDA', bars:c.bugs, maxV:c.maxBugs
-                }"></ng-container>
-              }
-
+            <div>
+              <div class="text-[8px] tracking-[0.15em] text-green-500/35 mb-1.5">// DURACIÓN (RONDAS POR PARTIDA)</div>
+              <div class="bg-black/25 border border-green-500/10 p-3" style="height:170px">
+                <canvas #roundDistCanvas></canvas>
+              </div>
             </div>
-          }
 
+            <div>
+              <div class="text-[8px] tracking-[0.15em] text-green-500/35 mb-1.5">// MUERTES POR RONDA</div>
+              <div class="bg-black/25 border border-green-500/10 p-3" style="height:170px">
+                <canvas #deathsCanvas></canvas>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[8px] tracking-[0.15em] text-green-500/35 mb-1.5">// PRIMERA MUERTE (RONDA)</div>
+              <div class="bg-black/25 border border-green-500/10 p-3" style="height:170px">
+                <canvas #firstDeathCanvas></canvas>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[8px] tracking-[0.15em] text-green-500/35 mb-1.5">// DAÑO PROMEDIO POR RONDA</div>
+              <div class="bg-black/25 border border-green-500/10 p-3" style="height:170px">
+                <canvas #damageCanvas></canvas>
+              </div>
+            </div>
+
+            @if (s['1v1'].bugsAddedByRound.length > 0 || s['2v2'].bugsAddedByRound.length > 0) {
+              <div class="md:col-span-2">
+                <div class="text-[8px] tracking-[0.15em] text-green-500/35 mb-1.5">// BUGS AÑADIDOS POR RONDA</div>
+                <div class="bg-black/25 border border-green-500/10 p-3" style="height:170px">
+                  <canvas #bugsCanvas></canvas>
+                </div>
+              </div>
+            }
+
+          </div>
         }
       }
     </div>
-
-    <ng-template #chartTpl let-title="title" let-bars="bars" let-maxV="maxV">
-      <div>
-        <div class="text-[8px] tracking-[0.15em] text-green-500/35 mb-1.5">// {{title}}</div>
-        <div class="bg-black/25 border border-green-500/10 p-3">
-          <svg viewBox="0 0 300 100" class="w-full" preserveAspectRatio="xMinYMin meet">
-            <line x1="25" y1="5"  x2="295" y2="5"  stroke="rgba(34,211,238,0.05)" stroke-width="0.5"/>
-            <line x1="25" y1="43" x2="295" y2="43" stroke="rgba(34,211,238,0.05)" stroke-width="0.5"/>
-            <line x1="25" y1="80" x2="295" y2="80" stroke="rgba(34,211,238,0.12)" stroke-width="0.5"/>
-            <text x="22" y="9"  text-anchor="end" font-size="6" fill="rgba(34,211,238,0.3)" font-family="monospace">{{fmt(maxV)}}</text>
-            <text x="22" y="47" text-anchor="end" font-size="6" fill="rgba(34,211,238,0.3)" font-family="monospace">{{fmt(maxV/2)}}</text>
-            <text x="22" y="83" text-anchor="end" font-size="6" fill="rgba(34,211,238,0.3)" font-family="monospace">0</text>
-            @for (b of bars; track $index) {
-              @if (b.h1 > 0) {
-                <rect [attr.x]="b.x1" [attr.y]="80-b.h1" [attr.width]="b.bw" [attr.height]="b.h1" fill="#22d3ee" fill-opacity="0.6"/>
-                <rect [attr.x]="b.x1" [attr.y]="80-b.h1" [attr.width]="b.bw" height="1" fill="#22d3ee" fill-opacity="0.9"/>
-              }
-              @if (b.h2 > 0) {
-                <rect [attr.x]="b.x2" [attr.y]="80-b.h2" [attr.width]="b.bw" [attr.height]="b.h2" fill="#e879f9" fill-opacity="0.6"/>
-                <rect [attr.x]="b.x2" [attr.y]="80-b.h2" [attr.width]="b.bw" height="1" fill="#e879f9" fill-opacity="0.9"/>
-              }
-              <text [attr.x]="b.xl" y="93" text-anchor="middle" font-size="5.5"
-                    fill="rgba(34,211,238,0.35)" font-family="monospace">{{b.label}}</text>
-            }
-          </svg>
-        </div>
-      </div>
-    </ng-template>
   `,
 })
-export class SimulatorBattleStats implements OnInit {
+export class SimulatorBattleStats implements OnInit, OnDestroy {
   private readonly auth = inject(AdminAuth);
+
+  @ViewChild('roundDistCanvas') roundDistRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('deathsCanvas')    deathsRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('firstDeathCanvas') firstDeathRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('damageCanvas')    damageRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('bugsCanvas')      bugsRef?: ElementRef<HTMLCanvasElement>;
 
   stats = signal<StatsResponse | null>(null);
   loading = signal(false);
 
-  readonly charts = computed((): ChartSet | null => {
-    const s = this.stats();
-    if (!s) return null;
-    const v1 = s['1v1'];
-    const v2 = s['2v2'];
-    return {
-      roundDist:  this.makeBars(v1.roundDist, v2.roundDist),
-      maxRoundDist: this.cmax(v1.roundDist, v2.roundDist),
-      deaths:     this.makeBars(v1.deathsByRound, v2.deathsByRound),
-      maxDeaths:  this.cmax(v1.deathsByRound, v2.deathsByRound),
-      firstDeath: this.makeBars(v1.firstDeathByRound, v2.firstDeathByRound),
-      maxFirstDeath: this.cmax(v1.firstDeathByRound, v2.firstDeathByRound),
-      damage:     this.makeBars(v1.avgDamageByRound, v2.avgDamageByRound),
-      maxDamage:  this.cmax(v1.avgDamageByRound, v2.avgDamageByRound),
-      bugs:       this.makeBars(v1.bugsAddedByRound, v2.bugsAddedByRound),
-      maxBugs:    this.cmax(v1.bugsAddedByRound, v2.bugsAddedByRound),
-    };
-  });
+  private instances: Chart[] = [];
+
+  constructor() {
+    effect(() => {
+      const s = this.stats();
+      this.destroyAll();
+      if (s && s.total > 0) {
+        setTimeout(() => this.buildCharts(s), 0);
+      }
+    });
+  }
 
   ngOnInit(): void { this.load(); }
+
+  ngOnDestroy(): void { this.destroyAll(); }
 
   async load(): Promise<void> {
     this.loading.set(true);
@@ -226,29 +238,52 @@ export class SimulatorBattleStats implements OnInit {
     this.loading.set(false);
   }
 
-  private makeBars(d1: number[], d2: number[]): BarGroup[] {
-    const n = Math.max(d1.length, d2.length, 1);
-    const max = this.cmax(d1, d2);
-    const groupW = 270 / n;
-    const bw = Math.max(3, Math.min(12, groupW * 0.36));
-    return Array.from({ length: n }, (_, i) => {
-      const gx = 25 + i * groupW;
-      const x1 = gx + groupW * 0.08;
-      return {
-        label: `R${i + 1}`,
-        x1, h1: Math.round((d1[i] ?? 0) / max * 72),
-        x2: x1 + bw + 2, h2: Math.round((d2[i] ?? 0) / max * 72),
-        bw, xl: gx + groupW / 2,
-      };
-    });
+  private buildCharts(s: StatsResponse): void {
+    const v1 = s['1v1'];
+    const v2 = s['2v2'];
+    this.make(this.roundDistRef, this.labels(v1.roundDist, v2.roundDist, 'r'), v1.roundDist, v2.roundDist);
+    this.make(this.deathsRef,    this.labels(v1.deathsByRound, v2.deathsByRound, 'R'), v1.deathsByRound, v2.deathsByRound);
+    this.make(this.firstDeathRef, this.labels(v1.firstDeathByRound, v2.firstDeathByRound, 'R'), v1.firstDeathByRound, v2.firstDeathByRound);
+    this.make(this.damageRef,    this.labels(v1.avgDamageByRound, v2.avgDamageByRound, 'R'), v1.avgDamageByRound, v2.avgDamageByRound);
+    if (this.bugsRef) {
+      this.make(this.bugsRef, this.labels(v1.bugsAddedByRound, v2.bugsAddedByRound, 'R'), v1.bugsAddedByRound, v2.bugsAddedByRound);
+    }
   }
 
-  private cmax(d1: number[], d2: number[]): number {
-    return Math.max(...d1, ...d2, 1);
+  private make(ref: ElementRef<HTMLCanvasElement> | undefined, labels: string[], d1: number[], d2: number[]): void {
+    if (!ref?.nativeElement) return;
+    const ctx = ref.nativeElement.getContext('2d')!;
+    const n = labels.length;
+    const g1 = ctx.createLinearGradient(0, 0, 0, 160);
+    g1.addColorStop(0, 'rgba(34,211,238,0.75)'); g1.addColorStop(1, 'rgba(34,211,238,0.05)');
+    const g2 = ctx.createLinearGradient(0, 0, 0, 160);
+    g2.addColorStop(0, 'rgba(232,121,249,0.7)'); g2.addColorStop(1, 'rgba(232,121,249,0.05)');
+    const pad = (arr: number[]) => [...arr, ...Array(Math.max(0, n - arr.length)).fill(0)];
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: '1v1', data: pad(d1), backgroundColor: g1, borderColor: C1.border, borderWidth: 1, borderRadius: 2 },
+          { label: '2v2', data: pad(d2), backgroundColor: g2, borderColor: C2.border, borderWidth: 1, borderRadius: 2 },
+        ],
+      },
+      options: CHART_OPTIONS,
+    });
+    this.instances.push(chart);
+  }
+
+  private destroyAll(): void {
+    this.instances.forEach(c => c.destroy());
+    this.instances = [];
+  }
+
+  private labels(d1: number[], d2: number[], prefix: string): string[] {
+    const n = Math.max(d1.length, d2.length);
+    return Array.from({ length: n }, (_, i) => `${prefix}${i + 1}`);
   }
 
   fmt(n: number): string {
-    if (n === 0) return '0';
     return n % 1 === 0 ? String(n) : n.toFixed(1);
   }
 

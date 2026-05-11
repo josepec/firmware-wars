@@ -28,7 +28,7 @@ function d6(): number {
 
 export function rollBoot(
   bot: BattleBot,
-  chosen: 1 | 2 | 3,
+  chosen: 0 | 1 | 2 | 3,
   turn: number,
   activation: number,
 ): BootRollResult {
@@ -46,7 +46,7 @@ export function rollBoot(
   const total = dice.reduce((s, x) => s + x, 0);
   const combined = bot.energy + total;
   const energy = Math.min(bot.maxEnergy, combined);
-  const overflow = combined > bot.maxEnergy;
+  const overflow = chosen > 0 && combined > bot.maxEnergy;
 
   const events: BattleEvent[] = [];
   events.push({

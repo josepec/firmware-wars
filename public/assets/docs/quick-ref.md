@@ -12,7 +12,7 @@
 ## BOOT() — Simultáneo
 
 1. **Estado.** `life` ≤ 0 → Destruido. Limpiar efectos temporales.
-2. **Energía.** `getEnergy(n)` — nd6 (n=1–3), suma a `energy`.<br> Si > `MAX_ENERGY` → `BUG`.
+2. **Energía.** `getEnergy(n)` — nd6 (n=0–3), suma a `energy`.<br> Si > `MAX_ENERGY` → `BUG`.
 3. **Números.** `getNumbers()` — Rellena `numbers` con d6 hasta `MAX_NUMBERS`.
 4. **Operaciones.** Dado de Versión × ranura (`MAX_OPERATIONS` − `bugs`). Solo 1 bucle/turno.
 5. Puede saltar directo a `DEBUG()`.

@@ -694,8 +694,11 @@
       <span class="text-green-500/40 italic text-[10px]">Tirando...</span>
     </div>
     } @else if (!br.energy) {
-    <div class="text-[9px] text-green-500/60">getEnergy(n) · elige n dados d6:</div>
+    <div class="text-[9px] text-green-500/60">getEnergy(n) · elige cuántos dados d6 tirar:</div>
     <div class="flex gap-2">
+      <button type="button" (click)="bootRollFor(bot.id, 0)" class="flex-1 py-2 text-[10px] tracking-wider uppercase
+                 bg-black/20 border border-green-500/20 text-green-500/50
+                 hover:bg-green-500/10 hover:text-green-400 cursor-pointer">0</button>
       <button type="button" (click)="bootRollFor(bot.id, 1)" class="flex-1 py-2 text-[10px] tracking-wider uppercase
                  bg-green-500/10 border border-green-500/30 text-green-400
                  hover:bg-green-500/20 cursor-pointer">1d6</button>
@@ -707,7 +710,7 @@
                  hover:bg-green-500/20 cursor-pointer">3d6</button>
     </div>
     <div class="text-[8px] tracking-wider text-green-500/40">
-      Si la suma supera MAX_ENERGY, el exceso se pierde y se añade un BUG.
+      0 = sin tirar. Si la suma supera MAX_ENERGY, el exceso se pierde y se añade un BUG.
     </div>
     } @else {
     <div class="space-y-1.5">

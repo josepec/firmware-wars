@@ -52,7 +52,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 ### 3. Recuperación de Energía
 
-- El Bot ejecuta `getEnergy(n)`: Lanza nd6, siendo n del 1 al 3, y almacena la Energía obtenida en `energy`. Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
+- El Bot ejecuta `getEnergy(n)`: Lanza nd6, siendo n del 0 al 3, y almacena la Energía obtenida en `energy`. Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
 
 ### 4. Carga de números en RAM
 
@@ -212,12 +212,12 @@ Todos los Bots tienen acceso a las Funciones Comunes `COMMON.INTERFACE` para pod
 
 ### move(n)
 
-- **Uso:** Mueve el Bot n número de casillas, siendo n ≤ `MAX_MOVEMENT`. 
+- **Uso:** Mueve el Bot n número de casillas, siendo: 1 ≤ n ≤ `MAX_MOVEMENT`. 
 - **Coste energético:** El valor de n.
 
 ```bs
 IF (condición)
-  THEN move(3)
+  THEN move()
 ```
 
 > El valor numérico n se establece en la fase de `RUN()`.
@@ -257,7 +257,7 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 
 ### getEnergy(n)
 
-- **Uso:** Tira nd6, siendo n del 1 al 3, y almacena la Energía en `energy`, hasta llenar `MAX_ENERGY`.
+- **Uso:** Tira nd6, siendo n del 0 al 3, y almacena la Energía en `energy`, hasta llenar `MAX_ENERGY`.
 - **Cuando:** En la fase de `BOOT()`.
 - **Detalles:** Si la Energía total es mayor que tu `MAX_ENERGY`, el Bot no puede procesar el exceso: ignora la energía excedente y recibe automáticamente un `BUG` por sobrecarga.
 

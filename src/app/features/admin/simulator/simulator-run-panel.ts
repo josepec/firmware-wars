@@ -319,7 +319,7 @@ export class SimulatorRunPanel {
   }
 
   fnLabel(fn: FunctionCall): string {
-    if (fn.type === 'move') return `move(${fn.moveDistance})`;
+    if (fn.type === 'move') return 'move()';
     if (fn.type === 'shield') return 'shield()';
     const entry = this.functionsMap().get(fn.attackFunctionId ?? '');
     const cb = entry?.func_name ?? fn.attackFunctionId ?? '?';

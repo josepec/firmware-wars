@@ -250,8 +250,7 @@ export class SimulatorPlay implements OnInit {
       const bot = this.currentState().bots.find(b => b.id === rs.botId);
       if (!bot) return null;
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
-        const dist = rs.pendingFn.moveDistance ?? 0;
-        const effectiveDist = Math.max(0, dist - (hasStatus(bot, 'LAG') ? 1 : 0));
+        const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
         const maxByEnergy = Math.min(effectiveDist, bot.energy);
         if (maxByEnergy <= 0) return new Set();
         const reachable = reachableHexes(bot.q, bot.r, maxByEnergy, this.currentState().hexMap, this.currentState().bots, bot.id);
@@ -1035,7 +1034,7 @@ export class SimulatorPlay implements OnInit {
     if (fn.type === 'shield') {
       typeLabel = 'SHIELD'; fnName = '';
     } else if (fn.type === 'move') {
-      typeLabel = 'MOVE'; fnName = `${fn.moveDistance} hex`;
+      typeLabel = 'MOVE'; fnName = 'move()';
     } else {
       typeLabel = 'ATTACK';
       const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : null;
@@ -1510,9 +1509,8 @@ export class SimulatorPlay implements OnInit {
       return;
     }
     if (fn.type === 'move') {
-      // Pre-check: if no energy at all, OVERLOAD with full requested cost
       if (bot.energy <= 0) {
-        await this.applyOverload(bot, fn.moveDistance ?? 0, 'move');
+        await this.applyOverload(bot, 1, 'move');
         await this.afterFnExecuted();
         return;
       }
@@ -1574,8 +1572,8 @@ export class SimulatorPlay implements OnInit {
     const bot = this.currentRunBot();
     const fn = rs.pendingFn;
     if (!bot || !fn || fn.type !== 'move') return;
-    const requested = Math.max(0, (fn.moveDistance ?? 0) - (hasStatus(bot, 'LAG') ? 1 : 0));
-    const cost = requested; // move(n) cuesta n; LAG reduces both range and cost by 1
+    const actualDist = hexDistance(bot.q, bot.r, q, r);
+    const cost = Math.max(0, actualDist - (hasStatus(bot, 'LAG') ? 1 : 0));
     const s = this.currentState();
     if (bot.energy < cost) {
       await this.applyOverload(bot, cost, 'move');
@@ -2178,7 +2176,7 @@ export class SimulatorPlay implements OnInit {
     this.runState.set(initialRunState);
   }
 
-  async bootRollFor(botId: string, chosen: 1 | 2 | 3): Promise<void> {
+  async bootRollFor(botId: string, chosen: 0 | 1 | 2 | 3): Promise<void> {
     if (this.bootRollingFor()) return;
     const bot = this.currentState().bots.find(b => b.id === botId);
     if (!bot) return;
