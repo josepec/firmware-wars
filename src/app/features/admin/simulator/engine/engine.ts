@@ -179,7 +179,7 @@ export class BattleEngine {
   addBug(botId: string, count = 1, reason = 'syntax'): void {
     const bot = this.getBot(botId);
     if (!bot) return;
-    bot.bugs += count;
+    bot.bugs = Math.min(bot.maxOperations, bot.bugs + count);
     this.push('bug_added', { count, reason }, botId);
   }
 

@@ -1351,7 +1351,19 @@ export class SimulatorPlay implements OnInit {
     if (op.kind === 'WHILE') return this.resolveWhile(op, bot);
   }
 
-  private async resolveIfLike(_op: CompiledOperation, bot: BattleBot): Promise<void> {
+  private async skipOp(bot: BattleBot, kind: string): Promise<void> {
+    const s = this.currentState();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: new Date().toISOString(), botId: bot.id,
+      kind: 'operation_resolved',
+      payload: { opIdx: this.runState().opIdx, kind, skipped: true, reason: 'no-numbers' },
+    }]);
+    this.runState.update(st => ({ ...st, step: 'op-done', lastOpNotice: 'Sin números en RAM — operación saltada' }));
+  }
+
+  private async resolveIfLike(op: CompiledOperation, bot: BattleBot): Promise<void> {
+    if (bot.numbers.length === 0) { await this.skipOp(bot, op.kind); return; }
     this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
     const opFace = this.consumeOpFace(bot.version);
@@ -1364,7 +1376,8 @@ export class SimulatorPlay implements OnInit {
     this.runState.update(s => ({ ...s, opFace, d6, step: 'picking-number' }));
   }
 
-  private async resolveWhile(_op: CompiledOperation, bot: BattleBot): Promise<void> {
+  private async resolveWhile(op: CompiledOperation, bot: BattleBot): Promise<void> {
+    if (bot.numbers.length === 0) { await this.skipOp(bot, op.kind); return; }
     this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
     const opFace = this.consumeOpFace(bot.version);
@@ -1803,6 +1816,11 @@ export class SimulatorPlay implements OnInit {
         this.runState.update(s => ({ ...s, step: 'op-done', pendingFn: null }));
         return;
       }
+      // Si se quedó sin números, el bucle termina
+      if (bot.numbers.length === 0) {
+        this.runState.update(s => ({ ...s, step: 'op-done', pendingFn: null, lastOpNotice: 'Sin números en RAM — bucle WHILE terminado' }));
+        return;
+      }
       // New condition check for next iteration
       this.runState.update(s => ({ ...s, step: 'rolling', opFace: null, d6: null, pickedNumber: null, condResult: null, pendingFn: null }));
       await this.animateDelay();
@@ -1845,7 +1863,8 @@ export class SimulatorPlay implements OnInit {
     return null;
   }
 
-  private async resolveFor(__op: CompiledOperation, bot: BattleBot): Promise<void> {
+  private async resolveFor(op: CompiledOperation, bot: BattleBot): Promise<void> {
+    if (bot.numbers.length === 0) { await this.skipOp(bot, op.kind); return; }
     this.runState.update(s => ({ ...s, step: 'rolling', lastOpNotice: null }));
     await this.animateDelay();
     // Intercept offered BEFORE d6 roll
@@ -2180,8 +2199,10 @@ export class SimulatorPlay implements OnInit {
     if (this.bootRollingFor()) return;
     const bot = this.currentState().bots.find(b => b.id === botId);
     if (!bot) return;
-    this.bootRollingFor.set(botId);
-    await this.animateDelay();
+    if (chosen > 0) {
+      this.bootRollingFor.set(botId);
+      await this.animateDelay();
+    }
     const s = this.currentState();
     const result = rollBoot(bot, chosen, s.turn, s.currentActivationIdx);
     await this.appendEvents(result.events);

@@ -59,7 +59,8 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 ### Costes y Errores
 
 - **`OVERLOAD`.** Sin `energy` → 1 `life` por punto faltante. Función **no se ejecuta**.
-- **Sintaxis.** Error de regla o ejecución → 1 `BUG`.
+
+/json tables/code-errors.json
 
 ### Combate
 

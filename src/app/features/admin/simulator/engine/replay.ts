@@ -162,7 +162,7 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'bug_added': {
       if (bot && !(bot.statusEffects ?? []).some(s => s.kind === 'SAFE_MODE')) {
-        bot.bugs += (p['count'] as number) ?? 1;
+        bot.bugs = Math.min(bot.maxOperations, bot.bugs + ((p['count'] as number) ?? 1));
       }
       break;
     }
@@ -345,7 +345,7 @@ function applyBotPatch(bot: BattleBot, patch: Record<string, unknown>): void {
       case 'life': if (typeof value === 'number') bot.life = clamp(value, 0, bot.maxLife); break;
       case 'energy': if (typeof value === 'number') bot.energy = clamp(value, 0, bot.maxEnergy); break;
       case 'shield': if (typeof value === 'number') bot.shield = clamp(value, 0, bot.maxShield); break;
-      case 'bugs': if (typeof value === 'number') bot.bugs = Math.max(0, value); break;
+      case 'bugs': if (typeof value === 'number') bot.bugs = clamp(value, 0, bot.maxOperations); break;
       case 'numbers': if (Array.isArray(value)) bot.numbers = (value as number[]).slice(0, bot.maxNumbers); break;
       case 'destroyed': if (typeof value === 'boolean') {
         bot.destroyed = value;

@@ -43,7 +43,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 ### 1. Chequeo de Estado
 
-- Si el valor de `life` ≤ 0, el Bot se considera **destruido** y se apaga de manera irreversible. El procesador principal se apaga, y el cuerpo queda como chatarra sobre el campo de batalla (obstáculo).
+- Si el valor de `life` ≤ 0, el Bot se considera **destruido** y se apaga de manera irreversible. El procesador principal se apaga, y el cuerpo queda como chatarra sobre el campo de batalla.
 
 ### 2. Depuración de Efectos Temporales
 
@@ -62,7 +62,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 ### 5. Carga de Operaciones del Turno
 
-- Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación.
+- Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación. El máximo de BUGS acumulables es **3** — con 3 BUGs el Bot no puede compilar ninguna Operación y debe pasar directamente a `DEBUG()`.
 - Cada Operación requiere el lanzamiento de un dado. El dado utilizado depende directamente de la `version` del Bot (V1, V2 o V3). Utiliza el dado correspondiente a la `version` de tu Bot (Dado V1, Dado V2 o Dado V3). 
 
 > Solo un bucle (FOR o WHILE) por turno. Si ya ha salido uno, vuelve a tirar.
@@ -98,6 +98,7 @@ Toda **Función** requiere una **Operación** para ser procesada; **no es posibl
 Los Bots tienen Funciones comunes (`COMMON.INTERFACE`) y Funciones elegidas durante la construcción.
 
 Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven `TRUE` o `FALSE`. Los Bots utilizan sus **números** (`numbers`) guardados en los condicionales, obtenidos mediante `getNumbers()`.
+//
 
 ### BattleScript
 
@@ -113,7 +114,7 @@ START
 END
 ```
 
-> **Recuerda:** Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación.
+> **Recuerda:** Cada Bot tiene 3 Operaciones base por turno `MAX_OPERATIONS`, pero por cada `BUG` activo en `bugs`, pierde una Operación. Máximo acumulable: **3 BUGS**.
 
 ---
 
@@ -202,7 +203,7 @@ TRY funcionA()
   CATCH funcionB()
 ```
 
-Se puede utilizar para atacar o realizar acciones con seguridad.
+Se puede utilizar para atacar o realizar acciones con seguridad. No requiere `numbers` y **no se puede interceptar**.
 
 ---
 
@@ -297,7 +298,7 @@ Si una línea contiene un error — instrucción incompleta, mal expresada o imp
 /page
 ### 3. Ejecución de Operaciones
 
-La mayoría de Operaciones han de determinar el resultado de una condición para poder ejecutar Funciones o resolver Bucles. Para determinar el resultado de una condición:
+La mayoría de Operaciones han de determinar el resultado de una condición para poder ejecutar Funciones o resolver Bucles. Si la Operación requiere, y no tiene, un número de `numbers`, no se ejecutará. Para determinar el resultado de una condición:
 
 ```
 (dado [comparador] numero)
@@ -328,8 +329,9 @@ Al ejecutar un movimiento mediante la Función `move()` el Bot puede moverse el 
 
 - Obstáculos (Hexes con la cara negra)
 - Hexes ocupados por otros Bots (aliados o enemigos)
+- Hexes ocupados por Bots destruidos
 
-El desplazamiento debe realizarse siempre hacia Hexes adyacentes. Los Bots destruidos pueden atravesarse.
+El desplazamiento debe realizarse siempre hacia Hexes adyacentes.
 
 ---
 

@@ -102,7 +102,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       if (ops.length === 0) return `Programa compilado (vacío)`;
       const fmt = (fn: { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined) => {
         if (!fn) return '?';
-        if (fn.type === 'move') return `move(${fn.moveDistance ?? '?'})`;
+        if (fn.type === 'move') return 'move()';
         if (fn.type === 'shield') return 'shield()';
         return `attack(${fn.attackFunctionId ?? '?'})`;
       };
@@ -115,6 +115,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       return `Programa (${ops.length} ops): [${opStrs.join(', ')}]`;
     }
     case 'operation_resolved': {
+      if (p['skipped']) return `${p['kind'] ?? 'op'} saltada — sin números en RAM`;
       const kind = p['kind'] ?? '';
       const face = p['opFace'] as string | undefined;
       const compMap: Record<string, string> = { '<': '<', '<=': '≤', '>=': '≥', '>': '>', '!=': '≠', '==': '=' };
@@ -127,7 +128,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       const secondary = p['secondary'] as { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined;
       const fmtFn = (fn: { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined) => {
         if (!fn) return null;
-        if (fn.type === 'move') return `move(${fn.moveDistance ?? '?'})`;
+        if (fn.type === 'move') return 'move()';
         if (fn.type === 'shield') return 'shield()';
         return `attack(${fn.attackFunctionId ?? '?'})`;
       };
