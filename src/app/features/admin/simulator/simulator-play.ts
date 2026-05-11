@@ -1514,7 +1514,8 @@ export class SimulatorPlay implements OnInit {
           const g = this.hexMapComp()?.getAnimLayer();
           if (g) {
             const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
-            playShieldAnim(g, px.x, px.y, 1, cost, this.MAP_SIZE);
+            const gained = Math.min(1, bot.maxShield - bot.shield);
+            playShieldAnim(g, px.x, px.y, gained, cost, this.MAP_SIZE);
           }
         }
       }
@@ -1964,9 +1965,11 @@ export class SimulatorPlay implements OnInit {
   }
 
   private async resolveTryCatch(op: CompiledOperation, bot: BattleBot): Promise<void> {
-    // TRY: execute primary if energy/possible; else CATCH (if any). Both fail → BUG.
+    // TRY: execute primary if energy/possible and wouldn't BUG; else CATCH (if any). Both fail → BUG.
     const primaryCost = fnEnergyCost(op.primary, this.functionsMap());
-    if (bot.energy >= primaryCost) {
+    const tryNoTargets = op.primary?.type === 'attack' &&
+      computeAttackTargets(bot, op.primary, this.currentState().bots, this.currentState().hexMap, this.functionsMap()).size === 0;
+    if (bot.energy >= primaryCost && !tryNoTargets) {
       // Execute primary directly without condition check
       this.runState.update(s => ({ ...s, branch: 'primary', pendingFn: op.primary, step: 'evaluated', condResult: true }));
       await this.executePendingFn();

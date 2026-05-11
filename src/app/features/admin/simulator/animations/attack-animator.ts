@@ -287,8 +287,8 @@ export function playShieldAnim(
   g: SVGGElement, cx: number, cy: number, amount: number, energyCost: number, size: number,
 ): void {
   selfAura(g, cx, cy, '#60a5fa', 'shield', size);
-  floatingText(g, cx, cy, `+${amount}🛡`, '#60a5fa', size);
-  if (energyCost > 0) floatingText(g, cx + 6, cy, `-${energyCost}⚡`, '#fbbf24', size);
+  if (amount > 0) floatingText(g, cx - size * 0.25, cy, `+${amount}🛡`, '#60a5fa', size);
+  if (energyCost > 0) floatingText(g, cx + size * 0.45, cy + size * 0.2, `-${energyCost}⚡`, '#fbbf24', size);
 }
 
 /** Move energy cost text at origin hex */
