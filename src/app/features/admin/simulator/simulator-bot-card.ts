@@ -80,6 +80,12 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
                       [class.border-violet-500\\/40]="se.kind === 'DMZ'"
                       [class.text-violet-300]="se.kind === 'DMZ'"
                       [class.bg-violet-500\\/10]="se.kind === 'DMZ'"
+                      [class.border-yellow-400\\/50]="se.kind === 'OVERCLOCK'"
+                      [class.text-yellow-200]="se.kind === 'OVERCLOCK'"
+                      [class.bg-yellow-500\\/10]="se.kind === 'OVERCLOCK'"
+                      [class.border-red-600\\/60]="se.kind === 'BERSERK'"
+                      [class.text-red-300]="se.kind === 'BERSERK'"
+                      [class.bg-red-600\\/15]="se.kind === 'BERSERK'"
                       (mouseenter)="hoveredStatusKind.set(se.kind)"
                       (mouseleave)="hoveredStatusKind.set(null)"
                       style="line-height:1;">{{ statusLabel(se.kind) }}
@@ -363,6 +369,7 @@ export class SimulatorBotCard {
   statusLabel(kind: StatusEffectKind): string {
     const labels: Record<StatusEffectKind, string> = {
       REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ',
+      OVERCLOCK: 'OVERCLOCK', BERSERK: 'BERSERK',
     };
     return labels[kind] ?? kind;
   }

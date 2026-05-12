@@ -126,19 +126,15 @@ const RECIPES: Partial<Record<string, Recipe>> = {
   },
 
   overclockStrike: async ctx => {
-    if (!ctx.targetPx) return;
     selfAura(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, '#facc15', 'buff', ctx.size);
-    await projectile(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, ctx.targetPx.x, ctx.targetPx.y, '#facc15', 4.5, 435);
-    impact(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#facc15', ctx.size);
-    floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    await new Promise(r => setTimeout(r, 200));
+    floatingText(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y - ctx.size * 0.3, '👊 OVERCLOCK', '#facc15', ctx.size);
   },
 
   berserkProtocol: async ctx => {
-    if (!ctx.targetPx) return;
     selfAura(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, '#dc2626', 'rage', ctx.size);
     await impact(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, '#dc2626', ctx.size * 0.9);
-    await impact(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#dc2626', ctx.size);
-    floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    floatingText(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y - ctx.size * 0.3, '🔥 BERSERK', '#dc2626', ctx.size);
   },
 
   chainLightning: async ctx => {

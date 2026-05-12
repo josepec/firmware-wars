@@ -2,5 +2,7 @@
   { "Estado": "`LAG`", "Efecto en el Bot": "Pierde 1 punto de `MAX_MOVEMENT` durante el turno actual." },
   { "Estado": "`SAFE_MODE`", "Efecto en el Bot": "El Bot es inmune a recibir nuevos `bugs` durante el turno actual." },
   { "Estado": "`DMZ`", "Efecto en el Bot": "El Bot no puede ejecutar funciones de ataque durante el turno actual." },
+  { "Estado": "`OVERCLOCK`", "Efecto en el Bot": "El Bot añade +1 al daño de ataque durante el turno actual." },
+  { "Estado": "`BERSERK`", "Efecto en el Bot": "El Bot duplica el daño de ataque durante el turno actual." },
   { "Estado": "`REBOOTING`", "Efecto en el Bot": "El Bot se está reiniciando y pierde el próximo turno." }
 ]

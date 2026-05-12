@@ -1,13 +1,12 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { BattleBot, StatusEffectKind, TempBuffKind } from '../../../shared/types/battle.types';
+import type { BattleBot, StatusEffectKind } from '../../../shared/types/battle.types';
 import type { OperationFace } from './engine/dice';
 import type { FunctionEntry } from './simulator-bot-card';
 
 type DebugSection = 'dice' | 'bot' | 'rewind' | null;
 
-const STATUS_KINDS: StatusEffectKind[] = ['LAG', 'SAFE_MODE', 'DMZ', 'REBOOTING'];
-const BUFF_KINDS: TempBuffKind[] = ['DAMAGE_PLUS_1', 'DAMAGE_DOUBLE'];
+const STATUS_KINDS: StatusEffectKind[] = ['LAG', 'SAFE_MODE', 'DMZ', 'REBOOTING', 'OVERCLOCK', 'BERSERK'];
 const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
 
 @Component({
@@ -250,24 +249,6 @@ const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
                     </div>
                   </div>
 
-                  <!-- Buffs -->
-                  <div class="flex items-start gap-2 pt-1 border-t border-orange-500/10">
-                    <span class="text-green-500/60 w-16 tracking-wider uppercase text-[8px] mt-1">BUFFS</span>
-                    <div class="flex flex-wrap gap-1 flex-1">
-                      @for (b of buffKinds; track b) {
-                        <button type="button" (click)="toggleBuff(bot, b)"
-                          class="px-1.5 h-6 text-[8px] tracking-wider border cursor-pointer"
-                          [class.border-cyan-400\\/60]="hasBuff(bot, b)"
-                          [class.bg-cyan-500\\/15]="hasBuff(bot, b)"
-                          [class.text-cyan-200]="hasBuff(bot, b)"
-                          [class.border-green-500\\/20]="!hasBuff(bot, b)"
-                          [class.text-green-500\\/50]="!hasBuff(bot, b)">
-                          {{ b }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-
                   <!-- Destroyed toggle -->
                   <div class="flex items-center gap-2 pt-1 border-t border-orange-500/10">
                     <span class="text-green-500/60 w-16 tracking-wider uppercase text-[8px]">ESTADO</span>
@@ -368,7 +349,6 @@ export class SimulatorDebugPanel {
     { key: 'rewind', label: '⏪ Rewind' },
   ];
   readonly statusKinds = STATUS_KINDS;
-  readonly buffKinds = BUFF_KINDS;
   readonly opFaces = OP_FACES;
 
   openSection = signal<DebugSection>('bot');
@@ -427,18 +407,6 @@ export class SimulatorDebugPanel {
       ? cur.filter(x => x.kind !== s)
       : [...cur, { kind: s, appliedTurn: 0 }];
     this.override.emit({ target: 'bot', botId: bot.id, patch: { statusEffects: next } });
-  }
-
-  hasBuff(bot: BattleBot, b: TempBuffKind): boolean {
-    return (bot.tempBuffs ?? []).some(x => x.kind === b);
-  }
-
-  toggleBuff(bot: BattleBot, b: TempBuffKind): void {
-    const cur = bot.tempBuffs ?? [];
-    const next = this.hasBuff(bot, b)
-      ? cur.filter(x => x.kind !== b)
-      : [...cur, { kind: b, appliedTurn: 0 }];
-    this.override.emit({ target: 'bot', botId: bot.id, patch: { tempBuffs: next } });
   }
 
   toggleDestroyed(bot: BattleBot): void {

@@ -875,6 +875,11 @@ export class SimulatorPlay implements OnInit {
       ? floatingText(g, attackerPx.x - s * 0.3, attackerPx.y + s * 0.35, `-${overheatEv.payload['energyCost']}⚡`, '#fbbf24', s)
       : null;
 
+    const selfDmg = selfHitEv ? (selfHitEv.payload['damage'] as number) ?? 0 : 0;
+    const selfDmgPromise = selfHitEv && selfDmg > 0
+      ? floatingText(g, attackerPx.x, attackerPx.y - s * 0.35, `-${selfDmg}♥`, '#ef4444', s)
+      : null;
+
     await Promise.all([
       playAttackAnim({
         g, attackId: attackId ?? '', attackerPx, targetPx,
@@ -885,6 +890,7 @@ export class SimulatorPlay implements OnInit {
       selfPromise,
       dicePromise,
       overheatPromise,
+      selfDmgPromise,
     ]);
   }
 
@@ -1793,23 +1799,9 @@ export class SimulatorPlay implements OnInit {
     const rollDamageBase = ctx.damage;
     ctx.rollD = rollDN; // restore plain rollD so onHit dice don't pollute rollDResult
 
-    // Consume temporary damage buffs
-    const buffPlus1 = (bot.tempBuffs ?? []).filter(b => b.kind === 'DAMAGE_PLUS_1');
-    const buffDouble = (bot.tempBuffs ?? []).find(b => b.kind === 'DAMAGE_DOUBLE');
-    for (const buff of buffPlus1) {
-      ctx.damage += 1;
-      await this.appendEvents([{
-        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
-        timestamp: ts, botId: bot.id, kind: 'buff_consumed', payload: { kind: buff.kind },
-      }]);
-    }
-    if (buffDouble) {
-      ctx.damage *= 2;
-      await this.appendEvents([{
-        turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
-        timestamp: ts, botId: bot.id, kind: 'buff_consumed', payload: { kind: buffDouble.kind },
-      }]);
-    }
+    // Apply turn-scoped damage status effects (cleared at turn_ended)
+    if (hasStatus(bot, 'OVERCLOCK')) ctx.damage += 1;
+    if (hasStatus(bot, 'BERSERK')) ctx.damage *= 2;
 
     const shieldConsumed = Math.min(target.shield, ctx.damage);
     const dealt = Math.max(0, ctx.damage - shieldConsumed);

@@ -98,7 +98,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       return `Operaciones (${slots} slots, ${bugs} bugs): [${ops}]`;
     }
     case 'compile_committed': {
-      const ops = ((p['program'] as { operations?: Array<{ kind: string; primary?: { type: string; moveDistance?: number; attackFunctionId?: string }; secondary?: { type: string; moveDistance?: number; attackFunctionId?: string } | null; forCount?: number } > })?.operations ?? []);
+      const ops = ((p['program'] as { operations?: Array<{ kind: string; primary?: { type: string; moveDistance?: number; attackFunctionId?: string }; secondary?: { type: string; moveDistance?: number; attackFunctionId?: string } | null; forCount?: number }> })?.operations ?? []);
       if (ops.length === 0) return `Programa compilado (vacío)`;
       const fmt = (fn: { type: string; moveDistance?: number; attackFunctionId?: string } | null | undefined) => {
         if (!fn) return '?';
@@ -171,19 +171,19 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'debug_action':
       return `DEBUG: ${p['action'] ?? '?'}`;
     case 'status_applied': {
-      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
+      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ', OVERCLOCK: 'OVERCLOCK', BERSERK: 'BERSERK' };
       const k = p['kind'] as string ?? '?';
       const rollStr = typeof p['roll'] === 'number' ? ` [d6: ${p['roll']}/${p['threshold'] ?? '?'}]` : '';
       return `Estado aplicado: ${labels[k] ?? k}${rollStr}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
     }
     case 'status_resisted': {
-      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
+      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ', OVERCLOCK: 'OVERCLOCK', BERSERK: 'BERSERK' };
       const k = p['kind'] as string ?? '?';
       const rollStr = typeof p['roll'] === 'number' ? ` [d6: ${p['roll']}/${p['threshold'] ?? '?'}]` : '';
       return `Estado resistido: ${labels[k] ?? k}${rollStr}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
     }
     case 'status_expired': {
-      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ' };
+      const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ', OVERCLOCK: 'OVERCLOCK', BERSERK: 'BERSERK' };
       const k = p['kind'] as string ?? '?';
       return `Estado eliminado: ${labels[k] ?? k}`;
     }

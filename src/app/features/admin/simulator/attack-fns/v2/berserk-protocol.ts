@@ -24,8 +24,8 @@ export const berserkProtocol: AttackFnDef = {
       events.push({
         turn, activation, phase: 'run', timestamp,
         botId: attacker.id,
-        kind: 'buff_applied',
-        payload: { kind: 'DAMAGE_DOUBLE', sourceFn: 'berserkProtocol' },
+        kind: 'status_applied',
+        payload: { kind: 'BERSERK', sourceFn: 'berserkProtocol' },
       });
     }
     return events;

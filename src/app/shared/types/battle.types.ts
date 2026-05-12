@@ -1,13 +1,13 @@
 import type { HexMapData } from '../components/hex-map/hex-map.types';
 
-export type StatusEffectKind = 'LAG' | 'SAFE_MODE' | 'DMZ' | 'REBOOTING';
+export type StatusEffectKind = 'LAG' | 'SAFE_MODE' | 'DMZ' | 'REBOOTING' | 'OVERCLOCK' | 'BERSERK';
 
 export interface StatusEffect {
   kind: StatusEffectKind;
   appliedTurn: number;
 }
 
-export type TempBuffKind = 'DAMAGE_PLUS_1' | 'DAMAGE_DOUBLE';
+export type TempBuffKind = never;
 
 export interface TempBuff {
   kind: TempBuffKind;

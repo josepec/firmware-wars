@@ -8,7 +8,7 @@ export const overclockStrike: AttackFnDef = {
   onHit: ({ attacker, turn, activation, timestamp }): BattleEvent[] => [{
     turn, activation, phase: 'run', timestamp,
     botId: attacker.id,
-    kind: 'buff_applied',
-    payload: { kind: 'DAMAGE_PLUS_1', sourceFn: 'overclockStrike' },
+    kind: 'status_applied',
+    payload: { kind: 'OVERCLOCK', sourceFn: 'overclockStrike' },
   }],
 };
