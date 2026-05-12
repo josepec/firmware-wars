@@ -22,6 +22,7 @@ export type RunStep =
   | 'picking-hex'
   | 'picking-target'
   | 'charged-rolling'
+  | 'dash-move'
   | 'between-iters'
   | 'op-done'
   | 'debug'

@@ -59,4 +59,6 @@ export interface AttackFnDef {
    * adicionales para efectos secundarios (push, status, healing, splash, etc.).
    */
   onHit?: (ctx: AttackResolveContext) => BattleEvent[];
+  /** If true, after a hit the attacker may move 1 hex for free — player chooses the destination. */
+  freeMove?: boolean;
 }

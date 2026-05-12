@@ -102,6 +102,7 @@ export class SimulatorPlay implements OnInit {
   bootRollingFor = signal<string | null>(null);
   statusCheckAnim = signal<Array<{ botId: string; botName: string; playerId: PlayerId; rolling: boolean; roll: number; resisted: boolean; statusKind: string }>>([]);
   selfEffectAnim = signal<{ botName: string; playerId: PlayerId; rolling: boolean; kind: 'heal' | 'selfdmg' | 'bugrecoil'; amount: number; extra?: string } | null>(null);
+  rollDiceAnim = signal<{ botName: string; playerId: PlayerId; sides: number; rolling: boolean; result: number } | null>(null);
   chargedStrikeAnim = signal<{ roll: number; rolling: boolean; accum: number } | null>(null);
   animatingPlayers = signal<ReadonlySet<PlayerId>>(new Set());
 
@@ -249,6 +250,9 @@ export class SimulatorPlay implements OnInit {
     if (rs.botId && rs.pendingFn) {
       const bot = this.currentState().bots.find(b => b.id === rs.botId);
       if (!bot) return null;
+      if (rs.step === 'dash-move') {
+        return reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id);
+      }
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
         const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
         const maxByEnergy = Math.min(effectiveDist, bot.energy);
@@ -275,7 +279,7 @@ export class SimulatorPlay implements OnInit {
   readonly highlightedHexes = computed<Set<string> | null>(() => this.selectableHexes());
   readonly highlightColor = computed<string>(() => {
     const rs = this.runState();
-    if (rs.step === 'picking-hex') return '#3b82f6';
+    if (rs.step === 'picking-hex' || rs.step === 'dash-move') return '#3b82f6';
     if (rs.step === 'picking-target') return '#ef4444';
     const c = this.pendingRoll();
     return c ? COLOR_HEX[c] : '#3b82f6';
@@ -807,6 +811,7 @@ export class SimulatorPlay implements OnInit {
     shieldConsumed: number,
     energyCost: number,
     extraEvents: BattleEvent[],
+    rollDResult?: { sides: number; value: number } | null,
   ): Promise<void> {
     if (!this.animationEnabled()) return;
     const g = this.hexMapComp()?.getAnimLayer();
@@ -855,6 +860,10 @@ export class SimulatorPlay implements OnInit {
           ? this.playSelfEffectAnim(attacker, 'bugrecoil', 1)
           : null;
 
+    const dicePromise = rollDResult
+      ? this.playRollDiceAnim(attacker, rollDResult.sides, rollDResult.value)
+      : null;
+
     await Promise.all([
       playAttackAnim({
         g, attackId: attackId ?? '', attackerPx, targetPx,
@@ -863,6 +872,7 @@ export class SimulatorPlay implements OnInit {
       }),
       panelPromise,
       selfPromise,
+      dicePromise,
     ]);
   }
 
@@ -879,6 +889,17 @@ export class SimulatorPlay implements OnInit {
     this.selfEffectAnim.set({ botName: attacker.name, playerId: pid, rolling: false, kind, amount, extra });
     await new Promise(r => setTimeout(r, 2200));
     this.selfEffectAnim.set(null);
+    this.animatingPlayers.update(s => { const n = new Set(s); n.delete(pid); return n; });
+  }
+
+  private async playRollDiceAnim(bot: BattleBot, sides: number, result: number): Promise<void> {
+    const pid = bot.playerId;
+    this.animatingPlayers.update(s => new Set([...s, pid]));
+    this.rollDiceAnim.set({ botName: bot.name, playerId: pid, sides, rolling: true, result: 0 });
+    await new Promise(r => setTimeout(r, 550));
+    this.rollDiceAnim.set({ botName: bot.name, playerId: pid, sides, rolling: false, result });
+    await new Promise(r => setTimeout(r, 1800));
+    this.rollDiceAnim.set(null);
     this.animatingPlayers.update(s => { const n = new Set(s); n.delete(pid); return n; });
   }
 
@@ -1635,6 +1656,21 @@ export class SimulatorPlay implements OnInit {
     await this.afterFnExecuted();
   }
 
+  async pickDashMoveHex(toQ: number, toR: number): Promise<void> {
+    const bot = this.currentRunBot();
+    if (!bot) return;
+    const s = this.currentState();
+    const ts = new Date().toISOString();
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'moved',
+      payload: { fromQ: bot.q, fromR: bot.r, toQ, toR, sourceFn: 'dashStrike' },
+    }]);
+    this.runState.update(rs => ({ ...rs, step: 'evaluated', lastOpNotice: null }));
+    await this.afterFnExecuted();
+  }
+
   async pickRunTarget(targetId: string): Promise<void> {
     const rs = this.runState();
     const bot = this.currentRunBot();
@@ -1672,15 +1708,22 @@ export class SimulatorPlay implements OnInit {
       return;
     }
 
+    let rollDResult: { sides: number; value: number } | null = null;
+    const trackRollD = (sides: number): number => {
+      const v = rollDN(sides);
+      if (!rollDResult) rollDResult = { sides, value: v };
+      return v;
+    };
     const ctx: AttackResolveContext = {
       attacker: bot, target, bots: s.bots, map: s.hexMap,
       rangeMin: parseRangeMin(entry?.range),
       rangeMax: parseRangeMax(entry?.range),
       energyCost: cost, turn: s.turn, activation: s.currentActivationIdx,
-      timestamp: ts, rollD: rollDN, splashRadius: attackFnDef?.splashRadius,
+      timestamp: ts, rollD: trackRollD, splashRadius: attackFnDef?.splashRadius,
       entities: s.entities, damage: 0,
     };
     ctx.damage = attackFnDef?.rollDamage?.(ctx) ?? rollDamageString(entry?.damage);
+    const rollDamageBase = ctx.damage;
 
     // Consume temporary damage buffs
     const buffPlus1 = (bot.tempBuffs ?? []).filter(b => b.kind === 'DAMAGE_PLUS_1');
@@ -1706,7 +1749,7 @@ export class SimulatorPlay implements OnInit {
       turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
       timestamp: ts, botId: bot.id,
       kind: 'attack_hit',
-      payload: { targetId, damage: dealt, shieldConsumed, energyCost: cost, functionId: fn.attackFunctionId },
+      payload: { targetId, damage: dealt, shieldConsumed, energyCost: cost, functionId: fn.attackFunctionId, baseDamage: rollDamageBase },
     }]);
     if (target.life - dealt <= 0) {
       await this.appendEvents([{
@@ -1718,8 +1761,15 @@ export class SimulatorPlay implements OnInit {
     const extraEvents = attackFnDef?.onHit?.(ctx) ?? [];
     for (const ev of extraEvents) await this.appendEvents([ev]);
 
-    await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, extraEvents);
+    await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, extraEvents, rollDResult);
 
+    if (attackFnDef?.freeMove) {
+      const freeHexes = reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id);
+      if (freeHexes.size > 0) {
+        this.runState.update(rs => ({ ...rs, step: 'dash-move', lastOpNotice: 'Elige hex de destino (movimiento libre)' }));
+        return;
+      }
+    }
     await this.afterFnExecuted();
   }
 
@@ -2238,6 +2288,12 @@ export class SimulatorPlay implements OnInit {
 
   async onHexClick(coord: { q: number; r: number }): Promise<void> {
     const rs = this.runState();
+    if (rs.botId && rs.step === 'dash-move') {
+      const valid = this.selectableHexes();
+      if (!valid?.has(hexKey(coord.q, coord.r))) return;
+      await this.pickDashMoveHex(coord.q, coord.r);
+      return;
+    }
     if (rs.botId && rs.step === 'picking-hex') {
       const valid = this.selectableHexes();
       if (!valid?.has(hexKey(coord.q, coord.r))) return;

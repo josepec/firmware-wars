@@ -146,7 +146,14 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       return `Mueve a (${p['toQ']}, ${p['toR']}) · -${p['energyCost'] ?? 0}⚡`;
     case 'attack_hit': {
       const tgt = name(p['targetId'] as string);
-      return `Impacta a ${tgt} · ${p['damage'] ?? 0} daño (escudo -${p['shieldConsumed'] ?? 0}) · -${p['energyCost'] ?? 0}⚡`;
+      const damage = (p['damage'] as number) ?? 0;
+      const shield = (p['shieldConsumed'] as number) ?? 0;
+      const energyCost = (p['energyCost'] as number) ?? 0;
+      const baseDamage = p['baseDamage'] as number | undefined;
+      let dmgStr = `${damage} daño`;
+      if (baseDamage !== undefined && shield > 0) dmgStr = `${baseDamage} base → ${damage} neto (🛡-${shield})`;
+      else if (shield > 0) dmgStr = `${damage} daño (🛡-${shield})`;
+      return `Impacta a ${tgt} · ${dmgStr} · -${energyCost}⚡`;
     }
     case 'attack_miss':
       return `Ataque fallido · -${p['energyCost'] ?? 0}⚡`;

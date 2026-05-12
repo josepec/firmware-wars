@@ -434,6 +434,26 @@
       }
     </div>
     }
+    @if (runState().step === 'dash-move') {
+    <div class="pt-2 border-t border-blue-500/25 space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="text-[8px] tracking-[0.25em] text-blue-300 uppercase font-bold">
+          ↳ dashStrike()
+        </div>
+        <div class="text-[7px] tracking-[0.15em] text-blue-400/60 uppercase">
+          movimiento libre
+        </div>
+      </div>
+      <div class="border border-blue-500/20 bg-blue-500/5 px-3 py-3 space-y-1.5 text-center">
+        <div class="text-[9px] text-blue-300/80 tracking-wide">
+          Elige un hex adyacente para mover
+        </div>
+        <div class="text-[7px] text-blue-400/50 italic">
+          sin coste de energía
+        </div>
+      </div>
+    </div>
+    }
     } @else {
     @if ((runState().step === 'intercept-prompt' || runState().step === 'intercept-picking') && canIntercept(p)) {
     @let ib = getInterceptBot();
@@ -601,6 +621,34 @@
           + {{ se.extra }}
         </div>
         }
+      </div>
+      }
+    </div>
+    }
+    }
+
+    @if (rollDiceAnim(); as rda) {
+    @if (rda.playerId === p) {
+    <div class="pt-2 border-t border-orange-500/15 space-y-1.5">
+      <div class="text-[8px] tracking-[0.2em] text-orange-400/70 uppercase">
+        {{ rda.botName }} · Tirada d{{ rda.sides }}
+      </div>
+      @if (rda.rolling) {
+      <div class="flex items-center gap-2 py-1">
+        <span class="dice-spin text-2xl">🎲</span>
+        <span class="text-green-500/40 italic text-[10px]">tirando d{{ rda.sides }}...</span>
+      </div>
+      } @else {
+      <div class="border border-orange-500/20 bg-black/40 px-3 py-2">
+        <div class="flex justify-center">
+          <div class="flex flex-col items-center gap-0.5">
+            <div class="w-10 h-10 border-2 border-orange-500/50 text-orange-300 bg-orange-500/10
+                        flex items-center justify-center text-xl font-bold">
+              {{ rda.result }}
+            </div>
+            <div class="text-[7px] text-green-500/40 tracking-[0.15em] uppercase">d{{ rda.sides }}</div>
+          </div>
+        </div>
       </div>
       }
     </div>
