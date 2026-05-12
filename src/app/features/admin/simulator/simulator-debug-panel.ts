@@ -144,22 +144,37 @@ const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
           <!-- Editar bot -->
           @if (openSection() === 'bot') {
             <div class="border border-orange-500/15 bg-black/40 p-3 space-y-3">
-              <!-- Bot selector -->
-              <div class="flex flex-wrap gap-1">
-                @for (b of bots(); track b.id) {
-                  <button type="button" (click)="selectedBotId.set(b.id)"
-                    class="px-2 py-1 text-[8px] tracking-wider border cursor-pointer"
-                    [class.border-cyan-400\\/60]="selectedBotId() === b.id && b.playerId === 1"
-                    [class.bg-cyan-500\\/15]="selectedBotId() === b.id && b.playerId === 1"
-                    [class.text-cyan-200]="selectedBotId() === b.id && b.playerId === 1"
-                    [class.border-fuchsia-400\\/60]="selectedBotId() === b.id && b.playerId === 2"
-                    [class.bg-fuchsia-500\\/15]="selectedBotId() === b.id && b.playerId === 2"
-                    [class.text-fuchsia-200]="selectedBotId() === b.id && b.playerId === 2"
-                    [class.border-green-500\\/20]="selectedBotId() !== b.id"
-                    [class.text-green-500\\/60]="selectedBotId() !== b.id">
-                    P{{ b.playerId }}·{{ b.name }}
-                    @if (b.destroyed) { <span class="text-red-400/70"> ☠</span> }
-                  </button>
+              <!-- Bot selector grouped by player -->
+              <div class="flex gap-2">
+                @for (pid of [1, 2]; track pid) {
+                  <div class="flex flex-wrap items-center gap-1 px-2 py-1.5 border"
+                       [class.border-cyan-500\\/25]="pid === 1"
+                       [class.border-fuchsia-500\\/25]="pid === 2">
+                    <div class="text-[7px] tracking-[0.2em] uppercase mb-0.5"
+                         [class.text-cyan-500\\/50]="pid === 1"
+                         [class.text-fuchsia-500\\/50]="pid === 2">
+                      P{{ pid }}
+                    </div>
+                    @for (b of bots(); track b.id) {
+                      @if (b.playerId === pid) {
+                        @let isSelected = selectedBot()?.id === b.id;
+                        <button type="button" (click)="selectedBotId.set(b.id)"
+                          class="px-2 py-1 text-[8px] tracking-wider border cursor-pointer transition-opacity"
+                          [class.border-cyan-400\\/60]="isSelected && b.playerId === 1"
+                          [class.bg-cyan-500\\/15]="isSelected && b.playerId === 1"
+                          [class.text-cyan-200]="isSelected && b.playerId === 1"
+                          [class.border-fuchsia-400\\/60]="isSelected && b.playerId === 2"
+                          [class.bg-fuchsia-500\\/15]="isSelected && b.playerId === 2"
+                          [class.text-fuchsia-200]="isSelected && b.playerId === 2"
+                          [class.border-green-500\\/20]="!isSelected"
+                          [class.text-green-500\\/60]="!isSelected"
+                          [class.opacity-35]="!isSelected">
+                          {{ b.name }}
+                          @if (b.destroyed) { <span class="text-red-400/70">☠</span> }
+                        </button>
+                      }
+                    }
+                  </div>
                 }
               </div>
 
@@ -333,6 +348,7 @@ const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
 })
 export class SimulatorDebugPanel {
   bots = input.required<BattleBot[]>();
+  activeBotId = input<string | null>(null);
   debugMode = input.required<boolean>();
   forcedRolls = input.required<{ d6?: number; d4?: number; opFace?: OperationFace }>();
   finishing = input.required<boolean>();
@@ -361,7 +377,7 @@ export class SimulatorDebugPanel {
   rewindN = signal<number>(1);
 
   selectedBot = computed<BattleBot | null>(() => {
-    const id = this.selectedBotId();
+    const id = this.selectedBotId() ?? this.activeBotId();
     if (!id) return this.bots()[0] ?? null;
     return this.bots().find(b => b.id === id) ?? this.bots()[0] ?? null;
   });

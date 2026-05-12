@@ -7,11 +7,13 @@ export const ghostProtocol: AttackFnDef = {
   rollDamage: () => 0,
   onHit: ({ target, turn, activation, timestamp }): BattleEvent[] => {
     if (target.numbers.length === 0) return [];
+    const idx = Math.floor(Math.random() * target.numbers.length);
+    const removedValue = target.numbers[idx];
     return [{
       turn, activation, phase: 'run', timestamp,
       botId: target.id,
       kind: 'numbers_lost',
-      payload: { count: 1, sourceFn: 'ghostProtocol' },
+      payload: { count: 1, removedValue, sourceFn: 'ghostProtocol' },
     }];
   },
 };

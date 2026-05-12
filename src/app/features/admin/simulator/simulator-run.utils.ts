@@ -23,6 +23,7 @@ export type RunStep =
   | 'picking-target'
   | 'charged-rolling'
   | 'dash-move'
+  | 'shadow-step'
   | 'between-iters'
   | 'op-done'
   | 'debug'

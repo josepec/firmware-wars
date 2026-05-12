@@ -145,10 +145,11 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
     case 'move':
       return `Mueve a (${p['toQ']}, ${p['toR']}) · -${p['energyCost'] ?? 0}⚡`;
     case 'attack_hit': {
+      const energyCost = (p['energyCost'] as number) ?? 0;
+      if (p['overheat']) return `Sobrecalentamiento · -${energyCost}⚡`;
       const tgt = name(p['targetId'] as string);
       const damage = (p['damage'] as number) ?? 0;
       const shield = (p['shieldConsumed'] as number) ?? 0;
-      const energyCost = (p['energyCost'] as number) ?? 0;
       const baseDamage = p['baseDamage'] as number | undefined;
       let dmgStr = `${damage} daño`;
       if (baseDamage !== undefined && shield > 0) dmgStr = `${baseDamage} base → ${damage} neto (🛡-${shield})`;
@@ -200,8 +201,11 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       const k = p['kind'] as string ?? '?';
       return `Buff consumido: ${buffLabels[k] ?? k}`;
     }
-    case 'numbers_lost':
-      return `-${p['count'] ?? 1} numbers${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+    case 'numbers_lost': {
+      const val = p['removedValue'] as number | undefined;
+      const who = p['sourceFn'] ? ` (${p['sourceFn']})` : '';
+      return val !== undefined ? `Pierde number [${val}]${who}` : `-${p['count'] ?? 1} numbers${who}`;
+    }
     case 'entity_placed': {
       const e = p['entity'] as { kind?: string; q?: number; r?: number } | undefined;
       const kLabel: Record<string, string> = { barrier: 'Barrera', relay_node: 'Nodo Relay' };

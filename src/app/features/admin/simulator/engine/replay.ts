@@ -294,8 +294,14 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'numbers_lost': {
       if (bot) {
-        const count = (p['count'] as number) ?? 1;
-        bot.numbers = bot.numbers.slice(0, Math.max(0, bot.numbers.length - count));
+        const removedValue = p['removedValue'] as number | undefined;
+        if (removedValue !== undefined) {
+          const idx = bot.numbers.indexOf(removedValue);
+          if (idx >= 0) bot.numbers = [...bot.numbers.slice(0, idx), ...bot.numbers.slice(idx + 1)];
+        } else {
+          const count = (p['count'] as number) ?? 1;
+          bot.numbers = bot.numbers.slice(0, Math.max(0, bot.numbers.length - count));
+        }
       }
       break;
     }

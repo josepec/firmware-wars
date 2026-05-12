@@ -8,7 +8,7 @@
   { "Función": "`stabilizerHit()`", "V.~": "1", "Rango~": "1", "Daño~": "1", "Energía~": "2", "Coste~": "10◈", "Efectos": "El objetivo debe superar 1d6 (≥4) o recibe estado `LAG`." },
   { "Función": "`nanoRepair()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "4", "Coste~": "20◈", "Efectos": "El Bot recupera 1d4 puntos de Vida." },
   { "Función": "`traceShot()`", "V.~": "2", "Rango~": "2-6 (SLDV)", "Daño~": "1d4", "Energía~": "5", "Coste~": "30◈", "Efectos": "" },
-  { "Función": "`ghostProtocol()`", "V.~": "2", "Rango~": "1-2", "Daño~": "—", "Energía~": "3", "Coste~": "15◈", "Efectos": "El objetivo pierde un `numbers` elegido por él mismo." },
+  { "Función": "`ghostProtocol()`", "V.~": "2", "Rango~": "1-2", "Daño~": "—", "Energía~": "3", "Coste~": "15◈", "Efectos": "El objetivo pierde un `numbers` al azar." },
   { "Función": "`peekMemory()`", "V.~": "2", "Rango~": "1-2", "Daño~": "—", "Energía~": "3", "Coste~": "15◈", "Efectos": "Mira los `numbers` del objetivo." },
   { "Función": "`shadowStep()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Se teleporta 3 Hexes ignorando obstáculos." },
   { "Función": "`overclockStrike()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "4", "Coste~": "20◈", "Efectos": "+1 Daño a los ataques durante este turno." },

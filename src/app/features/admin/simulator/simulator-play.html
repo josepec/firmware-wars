@@ -118,6 +118,7 @@
 
   <app-simulator-debug-panel
     [bots]="currentState().bots"
+    [activeBotId]="runState().botId"
     [debugMode]="debugMode()"
     [forcedRolls]="forcedRolls()"
     [finishing]="finishing()"
@@ -434,6 +435,26 @@
       }
     </div>
     }
+    @if (runState().step === 'shadow-step') {
+    <div class="pt-2 border-t border-blue-500/25 space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="text-[8px] tracking-[0.25em] text-blue-300 uppercase font-bold">
+          ↳ shadowStep()
+        </div>
+        <div class="text-[7px] tracking-[0.15em] text-blue-400/60 uppercase">
+          teleporte
+        </div>
+      </div>
+      <div class="border border-blue-500/20 bg-blue-500/5 px-3 py-3 space-y-1.5 text-center">
+        <div class="text-[9px] text-blue-300/80 tracking-wide">
+          Elige un hex de destino (radio 3)
+        </div>
+        <div class="text-[7px] text-blue-400/50 italic">
+          sin línea de visión requerida
+        </div>
+      </div>
+    </div>
+    }
     @if (runState().step === 'dash-move') {
     <div class="pt-2 border-t border-blue-500/25 space-y-2">
       <div class="flex items-center justify-between">
@@ -651,6 +672,33 @@
         </div>
       </div>
       }
+    </div>
+    }
+    }
+
+    @if (peekMemoryReveal(); as pmr) {
+    @if (pmr.playerId === p) {
+    <div class="pt-2 border-t border-purple-500/25 space-y-2">
+      <div class="text-[8px] tracking-[0.25em] text-purple-300 uppercase font-bold">
+        ↳ peekMemory() · Numbers de {{ pmr.targetName }}
+      </div>
+      <div class="flex flex-wrap gap-1.5 py-1">
+        @for (n of pmr.numbers; track $index) {
+        <div class="w-7 h-7 border border-purple-400/50 bg-purple-500/10 text-purple-200
+                    flex items-center justify-center text-xs font-bold font-mono">
+          {{ n }}
+        </div>
+        }
+        @if (pmr.numbers.length === 0) {
+        <span class="text-[9px] text-purple-400/50 italic">Sin numbers</span>
+        }
+      </div>
+      <button (click)="acknowledgePeek()"
+              class="w-full py-1 text-[9px] tracking-[0.2em] uppercase font-bold
+                     border border-purple-500/40 bg-purple-500/10 text-purple-300
+                     hover:bg-purple-500/20 transition-colors cursor-pointer">
+        Visto
+      </button>
     </div>
     }
     }

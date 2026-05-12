@@ -76,10 +76,10 @@ const RECIPES: Partial<Record<string, Recipe>> = {
 
   // ── V2 ──────────────────────────────────────────────────────────────────
   nanoRepair: async ctx => {
-    await selfAura(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, '#22c55e', 'heal', ctx.size);
     if ((ctx.healAmount ?? 0) > 0) {
-      floatingText(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, `+${ctx.healAmount}♥`, '#22c55e', ctx.size);
+      floatingText(ctx.g, ctx.attackerPx.x + ctx.size * 0.3, ctx.attackerPx.y, `+${ctx.healAmount}♥`, RED, ctx.size);
     }
+    await selfAura(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, RED, 'buff', ctx.size);
   },
 
   traceShot: async ctx => {

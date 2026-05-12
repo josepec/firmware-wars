@@ -1,4 +1,3 @@
-import { NgIf } from '@angular/common';
 import {
   Component, ElementRef, OnDestroy, OnInit,
   ViewChild, effect, inject, signal,
@@ -64,7 +63,6 @@ const CHART_OPTIONS: Chart['options'] = {
 
 @Component({
   selector: 'app-simulator-battle-stats',
-  imports: [NgIf],
   template: `
     <div class="mt-10 pt-6 border-t border-green-500/10">
       <div class="text-[10px] tracking-[0.3em] text-green-500/40 mb-1">// ESTADÍSTICAS</div>

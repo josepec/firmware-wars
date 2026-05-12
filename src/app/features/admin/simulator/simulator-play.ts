@@ -19,7 +19,7 @@ import {
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie, type OperationFace } from './engine/dice';
-import { attackableHexes, hexDistance, reachableHexes } from './engine/pathfinding';
+import { attackableHexes, buildHexIndex, hexDistance, isTraversable, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
@@ -103,6 +103,7 @@ export class SimulatorPlay implements OnInit {
   statusCheckAnim = signal<Array<{ botId: string; botName: string; playerId: PlayerId; rolling: boolean; roll: number; resisted: boolean; statusKind: string }>>([]);
   selfEffectAnim = signal<{ botName: string; playerId: PlayerId; rolling: boolean; kind: 'heal' | 'selfdmg' | 'bugrecoil'; amount: number; extra?: string } | null>(null);
   rollDiceAnim = signal<{ botName: string; playerId: PlayerId; sides: number; rolling: boolean; result: number } | null>(null);
+  peekMemoryReveal = signal<{ targetName: string; numbers: number[]; playerId: PlayerId } | null>(null);
   chargedStrikeAnim = signal<{ roll: number; rolling: boolean; accum: number } | null>(null);
   animatingPlayers = signal<ReadonlySet<PlayerId>>(new Set());
 
@@ -253,6 +254,9 @@ export class SimulatorPlay implements OnInit {
       if (rs.step === 'dash-move') {
         return reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id);
       }
+      if (rs.step === 'shadow-step') {
+        return this.shadowStepValidHexes(bot);
+      }
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
         const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
         const maxByEnergy = Math.min(effectiveDist, bot.energy);
@@ -279,7 +283,7 @@ export class SimulatorPlay implements OnInit {
   readonly highlightedHexes = computed<Set<string> | null>(() => this.selectableHexes());
   readonly highlightColor = computed<string>(() => {
     const rs = this.runState();
-    if (rs.step === 'picking-hex' || rs.step === 'dash-move') return '#3b82f6';
+    if (rs.step === 'picking-hex' || rs.step === 'dash-move' || rs.step === 'shadow-step') return '#3b82f6';
     if (rs.step === 'picking-target') return '#ef4444';
     const c = this.pendingRoll();
     return c ? COLOR_HEX[c] : '#3b82f6';
@@ -825,7 +829,9 @@ export class SimulatorPlay implements OnInit {
     const statusRoll = statusRollEv ? (statusRollEv.payload['roll'] as number | undefined) : undefined;
     const statusResisted = extraEvents.some(e => e.kind === 'status_resisted');
     const healEv = extraEvents.find(e => e.kind === 'healed');
-    const healAmount = healEv ? (healEv.payload['amount'] as number) : undefined;
+    const healAmount = healEv
+      ? Math.min(attacker.maxLife - attacker.life, healEv.payload['amount'] as number)
+      : undefined;
     const moveEv = extraEvents.find(e => e.kind === 'moved' && e.botId === target.id);
     const pushMovePx = moveEv
       ? hexToPixel(moveEv.payload['toQ'] as number, moveEv.payload['toR'] as number, s)
@@ -864,6 +870,11 @@ export class SimulatorPlay implements OnInit {
       ? this.playRollDiceAnim(attacker, rollDResult.sides, rollDResult.value)
       : null;
 
+    const overheatEv = extraEvents.find(e => e.kind === 'attack_hit' && e.payload['overheat'] === true);
+    const overheatPromise = overheatEv
+      ? floatingText(g, attackerPx.x - s * 0.3, attackerPx.y + s * 0.35, `-${overheatEv.payload['energyCost']}⚡`, '#fbbf24', s)
+      : null;
+
     await Promise.all([
       playAttackAnim({
         g, attackId: attackId ?? '', attackerPx, targetPx,
@@ -873,6 +884,7 @@ export class SimulatorPlay implements OnInit {
       panelPromise,
       selfPromise,
       dicePromise,
+      overheatPromise,
     ]);
   }
 
@@ -1553,6 +1565,23 @@ export class SimulatorPlay implements OnInit {
       return;
     }
     if (fn.type === 'attack') {
+      const attackFnDefEval = fn.attackFunctionId ? getAttackFn(fn.attackFunctionId) : undefined;
+      if (attackFnDefEval?.id === 'shadowStep') {
+        const cost = fnEnergyCost(fn, this.functionsMap(), bot);
+        if (bot.energy < cost) {
+          await this.applyOverload(bot, cost, 'attack');
+          await this.afterFnExecuted();
+          return;
+        }
+        const validHexes = this.shadowStepValidHexes(bot);
+        if (validHexes.size === 0) {
+          this.runState.update(rs => ({ ...rs, lastOpNotice: 'Sin hexes de teleporte disponibles' }));
+          await this.afterFnExecuted();
+          return;
+        }
+        this.runState.update(s => ({ ...s, step: 'shadow-step', lastOpNotice: 'Elige hex de teleporte (radio 3)' }));
+        return;
+      }
       const targets = computeAttackTargets(bot, fn, this.currentState().bots, this.currentState().hexMap, this.functionsMap());
       if (targets.size === 0) {
         const s = this.currentState();
@@ -1671,6 +1700,44 @@ export class SimulatorPlay implements OnInit {
     await this.afterFnExecuted();
   }
 
+  private shadowStepValidHexes(bot: BattleBot): Set<string> {
+    const s = this.currentState();
+    const idx = buildHexIndex(s.hexMap);
+    const occupied = new Set(s.bots.filter(b => !b.destroyed && b.id !== bot.id).map(b => hexKey(b.q, b.r)));
+    const result = new Set<string>();
+    for (const cell of s.hexMap.hexes) {
+      const dist = hexDistance(bot.q, bot.r, cell.q, cell.r);
+      if (dist === 0 || dist > 3) continue;
+      if (!isTraversable(idx.get(hexKey(cell.q, cell.r)), s.hexMap)) continue;
+      if (occupied.has(hexKey(cell.q, cell.r))) continue;
+      result.add(hexKey(cell.q, cell.r));
+    }
+    return result;
+  }
+
+  async pickShadowStepHex(toQ: number, toR: number): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn) return;
+    const s = this.currentState();
+    const ts = new Date().toISOString();
+    const cost = fnEnergyCost(fn, this.functionsMap(), bot);
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'attack_hit',
+      payload: { targetId: bot.id, damage: 0, shieldConsumed: 0, energyCost: cost, sourceFn: 'shadowStep' },
+    }, {
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'moved',
+      payload: { fromQ: bot.q, fromR: bot.r, toQ, toR, sourceFn: 'shadowStep' },
+    }]);
+    this.runState.update(rs2 => ({ ...rs2, step: 'evaluated', lastOpNotice: null }));
+    await this.afterFnExecuted();
+  }
+
   async pickRunTarget(targetId: string): Promise<void> {
     const rs = this.runState();
     const bot = this.currentRunBot();
@@ -1724,6 +1791,7 @@ export class SimulatorPlay implements OnInit {
     };
     ctx.damage = attackFnDef?.rollDamage?.(ctx) ?? rollDamageString(entry?.damage);
     const rollDamageBase = ctx.damage;
+    ctx.rollD = rollDN; // restore plain rollD so onHit dice don't pollute rollDResult
 
     // Consume temporary damage buffs
     const buffPlus1 = (bot.tempBuffs ?? []).filter(b => b.kind === 'DAMAGE_PLUS_1');
@@ -1770,6 +1838,20 @@ export class SimulatorPlay implements OnInit {
         return;
       }
     }
+    if (attackFnDef?.id === 'peekMemory') {
+      const targetNow = this.currentState().bots.find(b => b.id === target.id);
+      this.peekMemoryReveal.set({
+        targetName: target.name,
+        numbers: [...(targetNow?.numbers ?? target.numbers)],
+        playerId: bot.playerId,
+      });
+      return;
+    }
+    await this.afterFnExecuted();
+  }
+
+  async acknowledgePeek(): Promise<void> {
+    this.peekMemoryReveal.set(null);
     await this.afterFnExecuted();
   }
 
@@ -2292,6 +2374,12 @@ export class SimulatorPlay implements OnInit {
       const valid = this.selectableHexes();
       if (!valid?.has(hexKey(coord.q, coord.r))) return;
       await this.pickDashMoveHex(coord.q, coord.r);
+      return;
+    }
+    if (rs.botId && rs.step === 'shadow-step') {
+      const valid = this.selectableHexes();
+      if (!valid?.has(hexKey(coord.q, coord.r))) return;
+      await this.pickShadowStepHex(coord.q, coord.r);
       return;
     }
     if (rs.botId && rs.step === 'picking-hex') {
