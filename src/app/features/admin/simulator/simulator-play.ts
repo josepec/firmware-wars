@@ -20,7 +20,7 @@ import {
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie, type OperationFace } from './engine/dice';
-import { attackableHexes, buildHexIndex, hexDistance, isTraversable, reachableHexes } from './engine/pathfinding';
+import { attackableHexes, buildHexIndex, hexDistance, hexPushDir, isTraversable, reachableHexes } from './engine/pathfinding';
 import { replayTo } from './engine/replay';
 import { rollBoot } from './simulator-boot';
 import { CompileEditor } from './simulator-compile-editor';
@@ -317,6 +317,40 @@ export class SimulatorPlay implements OnInit {
       }
     }
     return reachable.size > 0 ? reachable : null;
+  });
+
+  readonly railgunPiercePreview = computed<{ dim: Set<string>; bright: Set<string> } | null>(() => {
+    const rs = this.runState();
+    if (rs.step !== 'picking-target' || !rs.pendingFn) return null;
+    const attackFnDef = getAttackFn(rs.pendingFn.attackFunctionId ?? '');
+    if (attackFnDef?.id !== 'railgun') return null;
+    const s = this.currentState();
+    const bot = s.bots.find(b => b.id === rs.botId);
+    if (!bot) return null;
+    const idx = buildHexIndex(s.hexMap);
+    const liveBotHexes = new Set(s.bots.filter(b => !b.destroyed && b.id !== bot.id).map(b => hexKey(b.q, b.r)));
+    const barrierHexes = new Set((s.entities ?? []).map(e => hexKey(e.q, e.r)));
+    const HEX_DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]];
+    const dim = new Set<string>();
+    const bright = new Set<string>();
+    for (const [dq, dr] of HEX_DIRS) {
+      let curQ = bot.q, curR = bot.r;
+      let pastFirstBot = false;
+      while (true) {
+        curQ += dq; curR += dr;
+        const k = hexKey(curQ, curR);
+        const cell = idx.get(k);
+        if (!cell || !isTraversable(cell, s.hexMap)) break;
+        if (barrierHexes.has(k)) break;
+        if (pastFirstBot) {
+          if (liveBotHexes.has(k)) bright.add(k);
+          else dim.add(k);
+        } else if (liveBotHexes.has(k)) {
+          pastFirstBot = true;
+        }
+      }
+    }
+    return (dim.size + bright.size) > 0 ? { dim, bright } : null;
   });
 
   readonly canPickHex = computed(() => {
@@ -937,6 +971,30 @@ export class SimulatorPlay implements OnInit {
     await new Promise(r => setTimeout(r, 1800));
     this.rollDiceAnim.set(null);
     this.animatingPlayers.update(s => { const n = new Set(s); n.delete(pid); return n; });
+  }
+
+  private computeRailgunPierce(
+    attacker: BattleBot, target: BattleBot, s: ReturnType<typeof this.currentState>,
+  ): { dim: Set<string>; bright: Set<string> } {
+    const idx = buildHexIndex(s.hexMap);
+    const [dq, dr] = hexPushDir(attacker.q, attacker.r, target.q, target.r);
+    const botHexes = new Set(
+      s.bots.filter(b => !b.destroyed && b.id !== target.id && b.id !== attacker.id).map(b => hexKey(b.q, b.r))
+    );
+    const barrierHexes = new Set((s.entities ?? []).map(e => hexKey(e.q, e.r)));
+    const dim = new Set<string>();
+    const bright = new Set<string>();
+    let curQ = target.q, curR = target.r;
+    while (true) {
+      curQ += dq; curR += dr;
+      const k = hexKey(curQ, curR);
+      const cell = idx.get(k);
+      if (!cell || !isTraversable(cell, s.hexMap)) break;
+      if (barrierHexes.has(k)) break;
+      if (botHexes.has(k)) bright.add(k);
+      else dim.add(k);
+    }
+    return { dim, bright };
   }
 
   private playBugAnim(bot: BattleBot): void {
@@ -2237,9 +2295,10 @@ export class SimulatorPlay implements OnInit {
 
   private async resolveTryCatch(op: CompiledOperation, bot: BattleBot): Promise<void> {
     // TRY: execute primary if energy/possible and wouldn't BUG; else CATCH (if any). Both fail → BUG.
-    const primaryCost = fnEnergyCost(op.primary, this.functionsMap());
+    const s0 = this.currentState();
+    const primaryCost = fnEnergyCost(op.primary, this.functionsMap(), bot);
     const tryNoTargets = op.primary?.type === 'attack' &&
-      computeAttackTargets(bot, op.primary, this.currentState().bots, this.currentState().hexMap, this.functionsMap()).size === 0;
+      computeAttackTargets(bot, op.primary, s0.bots, s0.hexMap, this.functionsMap(), s0.entities).size === 0;
     if (bot.energy >= primaryCost && !tryNoTargets) {
       // Execute primary directly without condition check
       this.runState.update(s => ({ ...s, branch: 'primary', pendingFn: op.primary, step: 'evaluated', condResult: true }));
@@ -2247,7 +2306,7 @@ export class SimulatorPlay implements OnInit {
       return;
     }
     if (op.secondary) {
-      const secCost = fnEnergyCost(op.secondary, this.functionsMap());
+      const secCost = fnEnergyCost(op.secondary, this.functionsMap(), bot);
       if (bot.energy >= secCost) {
         this.runState.update(s => ({ ...s, branch: 'secondary', pendingFn: op.secondary!, step: 'evaluated', condResult: false }));
         await this.executePendingFn();

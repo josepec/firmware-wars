@@ -173,6 +173,12 @@ interface RenderedDeployment {
                  stroke="none" class="pointer-events-none" />
       }
 
+      <!-- Pierce trajectory overlay (railgun) -->
+      @for (h of pierceOverlays(); track h.key) {
+        <polygon [attr.points]="h.points" fill="#ef4444" [attr.fill-opacity]="h.opacity"
+                 stroke="none" class="pointer-events-none" />
+      }
+
       <!-- Highlight overlay -->
       @for (h of highlightOverlays(); track h.key) {
         <polygon [attr.points]="h.points" fill="none"
@@ -244,6 +250,7 @@ export class HexMap {
   readonly selectable = input<Set<string> | null>(null);
   readonly dotOpacity = input(1.0);
   readonly rangeHexes = input<Set<string> | null>(null);
+  readonly pierceHexes = input<{ dim: Set<string>; bright: Set<string> } | null>(null);
   readonly mapEntities = input<HexMapEntity[]>([]);
   /**
    * Drag&drop mode:
@@ -415,6 +422,24 @@ export class HexMap {
       if (!Number.isFinite(q) || !Number.isFinite(r)) continue;
       const { x, y } = hexToPixel(q, r, s);
       out.push({ key: `range-${key}`, points: hexPoints(x, y, s * 0.84) });
+    }
+    return out;
+  });
+
+  pierceOverlays = computed(() => {
+    const ph = this.pierceHexes();
+    if (!ph) return [];
+    const s = this.size();
+    const out: { key: string; points: string; opacity: number }[] = [];
+    for (const key of ph.dim) {
+      const [qStr, rStr] = key.split(',');
+      const { x, y } = hexToPixel(Number(qStr), Number(rStr), s);
+      out.push({ key: `pc-dim-${key}`, points: hexPoints(x, y, s * 0.84), opacity: 0.28 });
+    }
+    for (const key of ph.bright) {
+      const [qStr, rStr] = key.split(',');
+      const { x, y } = hexToPixel(Number(qStr), Number(rStr), s);
+      out.push({ key: `pc-bot-${key}`, points: hexPoints(x, y, s * 0.84), opacity: 0.60 });
     }
     return out;
   });

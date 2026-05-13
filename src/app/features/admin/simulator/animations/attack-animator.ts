@@ -255,11 +255,21 @@ const RECIPES: Partial<Record<string, Recipe>> = {
 
   railgun: async ctx => {
     if (!ctx.targetPx) return;
-    await drawLine(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, ctx.targetPx.x, ctx.targetPx.y, '#f8fafc', 3, 105);
-    for (const p of [ctx.targetPx, ...ctx.secondaryPx]) {
+    const allHits = [ctx.targetPx, ...ctx.secondaryPx];
+    const lineEnd = allHits[allHits.length - 1];
+    await drawLine(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, lineEnd.x, lineEnd.y, '#f8fafc', 3, 105);
+    for (const p of allHits) {
       impact(ctx.g, p.x, p.y, '#f8fafc', ctx.size * 0.85);
     }
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    for (const sec of ctx.secondaryPx) {
+      if ((sec.damage ?? 0) > 0) {
+        floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
+      }
+      if ((sec.shieldConsumed ?? 0) > 0) {
+        floatingText(ctx.g, sec.x + ctx.size * 0.55, sec.y + ctx.size * 0.3, `-${sec.shieldConsumed}🛡`, '#60a5fa', ctx.size);
+      }
+    }
   },
 
   relayNode: async ctx => {

@@ -19,7 +19,7 @@
   { "Función": "`gravityWell()`", "V.~": "2", "Rango~": "3-4 (R(2))", "Daño~": "1d6", "Energía~": "5", "Coste~": "30◈", "Efectos": "Atrae todos los Bots afectados un Hex hacia el centro del impacto. El dado de ataque se tira una única vez y afecta a todos por igual." },
   { "Función": "`swapProtocol()`", "V.~": "2", "Rango~": "1-5", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Intercambia la posición del Bot con el de otro, aliado o enemigo, a Rango 5." },
   { "Función": "`ionCannon()`", "V.~": "2", "Rango~": "2-8 (LR)", "Daño~": "1d6", "Energía~": "5", "Coste~": "30◈", "Efectos": "" },
-  { "Función": "`deployBarrier()`", "V.~": "2", "Rango~": "1", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Crea una Barrera (Obstáculo con `life`=3)." },
+  { "Función": "`deployBarrier()`", "V.~": "2", "Rango~": "1", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Crea una Barrera (Obstáculo con `life`=3). No pertenece a ningún jugador." },
   { "Función": "`overdriveStrike()`", "V.~": "3", "Rango~": "1", "Daño~": "*", "Energía~": "*", "Coste~": "50◈", "Efectos": "Gasta toda la `energy` (min. 2). Hace 1 punto de daño por cada 2 puntos de `energy`." },
   { "Función": "`railgun()`", "V.~": "3", "Rango~": "2-5", "Daño~": "1d8", "Energía~": "6", "Coste~": "50◈", "Efectos": "Atraviesa Objetivos. El daño baja en 2 por cada Bot." },
   { "Función": "`chargedStrike()`", "V.~": "3", "Rango~": "1", "Daño~": "*", "Energía~": "6", "Coste~": "50◈", "Efectos": "Lanza 1d4 recursivamente y acumula el daño (Puedes parar cuando quieras). Si sale 1, el atacante recibe el daño acumulado." },
