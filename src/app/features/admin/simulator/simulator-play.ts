@@ -2119,18 +2119,29 @@ export class SimulatorPlay implements OnInit {
     fn: FunctionCall, cost: number, ts: string,
   ): Promise<void> {
     const s = this.currentState();
+    const sc = Math.min(bot.shield, totalDamage);
+    const dealt = totalDamage - sc;
     await this.appendEvents([{
       turn: s.turn, activation: s.currentActivationIdx, phase: 'run', timestamp: ts,
       botId: bot.id, kind: 'attack_hit',
-      payload: { targetId: bot.id, damage: totalDamage, shieldConsumed: 0, energyCost: cost, functionId: fn.attackFunctionId, selfInflicted: true, chargedBust: true },
+      payload: { targetId: bot.id, damage: dealt, shieldConsumed: sc, energyCost: cost, functionId: fn.attackFunctionId, selfInflicted: true, chargedBust: true },
     }]);
-    if (bot.life - totalDamage <= 0) {
+    if (bot.life - dealt <= 0) {
       await this.appendEvents([{
         turn: s.turn, activation: s.currentActivationIdx, phase: 'run', timestamp: ts,
         botId: bot.id, kind: 'destroyed', payload: { sourceFn: 'chargedStrike' },
       }]);
     }
-    await this.playSelfEffectAnim(bot, 'selfdmg', totalDamage);
+    if (this.animationEnabled()) {
+      const g = this.hexMapComp()?.getAnimLayer();
+      if (g) {
+        const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+        if (dealt > 0) floatingText(g, px.x, px.y - this.MAP_SIZE * 0.35, `-${dealt}♥`, '#ef4444', this.MAP_SIZE);
+        if (sc > 0) floatingText(g, px.x + this.MAP_SIZE * 0.55, px.y + this.MAP_SIZE * 0.3, `-${sc}🛡`, '#60a5fa', this.MAP_SIZE);
+        if (cost > 0) floatingText(g, px.x - this.MAP_SIZE * 0.3, px.y + this.MAP_SIZE * 0.15, `-${cost}⚡`, '#fbbf24', this.MAP_SIZE);
+      }
+    }
+    await this.playSelfEffectAnim(bot, 'selfdmg', dealt);
     await this.afterFnExecuted();
   }
 

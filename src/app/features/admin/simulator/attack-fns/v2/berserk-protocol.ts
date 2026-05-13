@@ -7,13 +7,15 @@ export const berserkProtocol: AttackFnDef = {
   rollDamage: () => 0,
   onHit: ({ attacker, turn, activation, timestamp, rollD }): BattleEvent[] => {
     const selfDmg = rollD(4);
+    const sc = Math.min(attacker.shield, selfDmg);
+    const dealt = selfDmg - sc;
     const events: BattleEvent[] = [{
       turn, activation, phase: 'run', timestamp,
       botId: attacker.id,
       kind: 'attack_hit',
-      payload: { targetId: attacker.id, damage: selfDmg, shieldConsumed: 0, energyCost: 0, sourceFn: 'berserkProtocol', selfInflicted: true },
+      payload: { targetId: attacker.id, damage: dealt, shieldConsumed: sc, energyCost: 0, sourceFn: 'berserkProtocol', selfInflicted: true },
     }];
-    if (attacker.life - selfDmg <= 0) {
+    if (attacker.life - dealt <= 0) {
       events.push({
         turn, activation, phase: 'run', timestamp,
         botId: attacker.id,
