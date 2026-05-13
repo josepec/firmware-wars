@@ -146,10 +146,10 @@ export function computeAttackTargets(
   if (rangeKind === 'SLDV') {
     reachable = sldvHexes(bot.q, bot.r, rangeMin, rangeMax, map);
   } else if (rangeKind === 'LR') {
-    reachable = lrHexes(bot.q, bot.r, rangeMin, rangeMax, map, bots);
+    reachable = lrHexes(bot.q, bot.r, rangeMin, rangeMax, map, bots, entities);
   } else {
     // normal and splash: LOS-based targeting to enemy hexes within range
-    reachable = attackableHexes(bot.q, bot.r, rangeMax, map, bots);
+    reachable = attackableHexes(bot.q, bot.r, rangeMax, map, bots, entities);
     if (rangeMin > 1) {
       for (const k of [...reachable]) {
         const h = k.split(',').map(Number);
@@ -199,13 +199,14 @@ export function isWithinAttackReach(
   bots: BattleBot[],
   map: HexMapData,
   fmap: Map<string, FunctionEntry>,
+  entities?: MapEntity[],
 ): boolean {
   if (fn.type !== 'attack') return false;
   const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
   const range = parseRange(entry?.range);
   const d = hexDistance(bot.q, bot.r, target.q, target.r);
   if (d === 0 || d > range) return false;
-  return lineOfSight(bot.q, bot.r, target.q, target.r, map, bots);
+  return lineOfSight(bot.q, bot.r, target.q, target.r, map, bots, entities);
 }
 
 export const COMP_LABEL: Record<string, string> = {

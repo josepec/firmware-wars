@@ -8,7 +8,7 @@ export const gravityWell: AttackFnDef = {
   rangeKind: 'splash',
   splashRadius: 2,
   rollDamage: ({ rollD }) => rollD(6),
-  onHit: ({ attacker, target, bots, map, turn, activation, timestamp, damage }): BattleEvent[] => {
+  onHit: ({ attacker, target, bots, map, turn, activation, timestamp, damage, entities }): BattleEvent[] => {
     const events: BattleEvent[] = [];
     const idx = buildHexIndex(map);
     for (const bot of bots) {
@@ -35,7 +35,8 @@ export const gravityWell: AttackFnDef = {
       const pullR = bot.r + dr;
       if (
         isTraversable(idx.get(hexKey(pullQ, pullR)), map) &&
-        !bots.some(b => !b.destroyed && b.id !== bot.id && b.q === pullQ && b.r === pullR)
+        !bots.some(b => !b.destroyed && b.id !== bot.id && b.q === pullQ && b.r === pullR) &&
+        !(entities ?? []).some(e => e.q === pullQ && e.r === pullR)
       ) {
         events.push({
           turn, activation, phase: 'run', timestamp,

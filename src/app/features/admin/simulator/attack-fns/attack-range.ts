@@ -1,4 +1,4 @@
-import { hexKey, type BattleBot } from '../../../../shared/types/battle.types';
+import { hexKey, type BattleBot, type MapEntity } from '../../../../shared/types/battle.types';
 import type { HexMapData } from '../../../../shared/components/hex-map/hex-map.types';
 import { buildHexIndex, hexDistance, isTraversable } from '../engine/pathfinding';
 
@@ -31,9 +31,11 @@ export function lrHexes(
   rangeMax: number,
   map: HexMapData,
   bots: BattleBot[],
+  entities?: MapEntity[],
 ): Set<string> {
   const index = buildHexIndex(map);
   const botHexes = new Set<string>(bots.filter(b => !b.destroyed).map(b => hexKey(b.q, b.r)));
+  const barrierHexes = new Set<string>((entities ?? []).map(e => hexKey(e.q, e.r)));
   const DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]];
   const out = new Set<string>();
   for (const [dq, dr] of DIRS) {
@@ -44,7 +46,7 @@ export function lrHexes(
       const cell = index.get(k);
       if (!cell || !isTraversable(cell, map)) break;
       if (step >= rangeMin) out.add(k);
-      if (botHexes.has(k)) break; // first bot blocks further
+      if (botHexes.has(k) || barrierHexes.has(k)) break; // first bot or barrier blocks further
     }
   }
   return out;

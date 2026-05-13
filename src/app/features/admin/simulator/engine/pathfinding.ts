@@ -1,4 +1,4 @@
-import { hexKey, type BattleBot } from '../../../../shared/types/battle.types';
+import { hexKey, type BattleBot, type MapEntity } from '../../../../shared/types/battle.types';
 
 const CUBE_DIRS: [number, number, number][] = [
   [1, 0, -1], [-1, 0, 1], [0, 1, -1], [0, -1, 1], [1, -1, 0], [-1, 1, 0],
@@ -46,6 +46,7 @@ export function reachableHexes(
   map: HexMapData,
   bots: BattleBot[],
   selfId?: string,
+  entities?: MapEntity[],
 ): Set<string> {
   const index = buildHexIndex(map);
   const blocked = new Set<string>();
@@ -54,6 +55,7 @@ export function reachableHexes(
     if (b.q === -999) continue; // no desplegado
     blocked.add(hexKey(b.q, b.r)); // destruidos también bloquean movimiento
   }
+  for (const e of (entities ?? [])) blocked.add(hexKey(e.q, e.r));
   const visited = new Set<string>();
   const start = hexKey(fromQ, fromR);
   visited.add(start);
@@ -86,6 +88,7 @@ export function lineOfSight(
   toR: number,
   map: HexMapData,
   bots: BattleBot[],
+  entities?: MapEntity[],
 ): boolean {
   const index = buildHexIndex(map);
   const blockers = new Set<string>();
@@ -93,6 +96,7 @@ export function lineOfSight(
     if (b.destroyed) continue;
     blockers.add(hexKey(b.q, b.r));
   }
+  for (const e of (entities ?? [])) blockers.add(hexKey(e.q, e.r));
   const N = hexDistance(fromQ, fromR, toQ, toR);
   if (N === 0) return true;
   for (let i = 1; i < N; i++) {
@@ -113,12 +117,13 @@ export function attackableHexes(
   range: number,
   map: HexMapData,
   bots: BattleBot[],
+  entities?: MapEntity[],
 ): Set<string> {
   const out = new Set<string>();
   for (const h of map.hexes) {
     const d = hexDistance(attackerQ, attackerR, h.q, h.r);
     if (d === 0 || d > range) continue;
-    if (!lineOfSight(attackerQ, attackerR, h.q, h.r, map, bots)) continue;
+    if (!lineOfSight(attackerQ, attackerR, h.q, h.r, map, bots, entities)) continue;
     out.add(hexKey(h.q, h.r));
   }
   return out;

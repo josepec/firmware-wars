@@ -256,7 +256,8 @@ export class SimulatorPlay implements OnInit {
       const bot = this.currentState().bots.find(b => b.id === rs.botId);
       if (!bot) return null;
       if (rs.step === 'dash-move') {
-        return reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id);
+        const s = this.currentState();
+        return reachableHexes(bot.q, bot.r, 1, s.hexMap, s.bots, bot.id, s.entities);
       }
       if (rs.step === 'shadow-step') {
         return this.shadowStepValidHexes(bot);
@@ -265,15 +266,11 @@ export class SimulatorPlay implements OnInit {
         return this.deployBarrierValidHexes(bot);
       }
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
+        const s = this.currentState();
         const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
         const maxByEnergy = Math.min(effectiveDist, bot.energy);
         if (maxByEnergy <= 0) return new Set();
-        const reachable = reachableHexes(bot.q, bot.r, maxByEnergy, this.currentState().hexMap, this.currentState().bots, bot.id);
-        // Barriers block movement
-        for (const e of (this.currentState().entities ?? [])) {
-          if (e.kind === 'barrier') reachable.delete(hexKey(e.q, e.r));
-        }
-        return reachable;
+        return reachableHexes(bot.q, bot.r, maxByEnergy, s.hexMap, s.bots, bot.id, s.entities);
       }
       if (rs.step === 'picking-target' && rs.pendingFn.type === 'attack') {
         const s = this.currentState();
@@ -311,8 +308,8 @@ export class SimulatorPlay implements OnInit {
     const rangeMax = parseRangeMax(entry?.range);
     const s = this.currentState();
     if (rangeKind === 'SLDV') return sldvHexes(bot.q, bot.r, rangeMin, rangeMax, s.hexMap);
-    if (rangeKind === 'LR') return lrHexes(bot.q, bot.r, rangeMin, rangeMax, s.hexMap, s.bots);
-    const reachable = attackableHexes(bot.q, bot.r, rangeMax, s.hexMap, s.bots);
+    if (rangeKind === 'LR') return lrHexes(bot.q, bot.r, rangeMin, rangeMax, s.hexMap, s.bots, s.entities);
+    const reachable = attackableHexes(bot.q, bot.r, rangeMax, s.hexMap, s.bots, s.entities);
     if (rangeMin > 1) {
       for (const k of [...reachable]) {
         const [q, r] = k.split(',').map(Number);
@@ -1974,7 +1971,7 @@ export class SimulatorPlay implements OnInit {
     await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, extraEvents, rollDResult);
 
     if (attackFnDef?.freeMove) {
-      const freeHexes = reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id);
+      const freeHexes = reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id, this.currentState().entities);
       if (freeHexes.size > 0) {
         this.runState.update(rs => ({ ...rs, step: 'dash-move', lastOpNotice: 'Elige hex de destino (movimiento libre)' }));
         return;
