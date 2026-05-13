@@ -39,6 +39,8 @@ export interface HexMapEntity {
   q: number;
   r: number;
   teamColor?: string;
+  life?: number;
+  tooltip?: string;
 }
 
 export interface DeploymentMarker {

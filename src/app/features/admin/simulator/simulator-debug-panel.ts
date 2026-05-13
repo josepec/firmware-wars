@@ -1,10 +1,10 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { BattleBot, StatusEffectKind } from '../../../shared/types/battle.types';
+import type { BattleBot, MapEntity, StatusEffectKind } from '../../../shared/types/battle.types';
 import type { OperationFace } from './engine/dice';
 import type { FunctionEntry } from './simulator-bot-card';
 
-type DebugSection = 'dice' | 'bot' | 'rewind' | null;
+type DebugSection = 'dice' | 'bot' | 'entity' | 'rewind' | null;
 
 const STATUS_KINDS: StatusEffectKind[] = ['LAG', 'SAFE_MODE', 'DMZ', 'REBOOTING', 'OVERCLOCK', 'BERSERK'];
 const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
@@ -284,6 +284,54 @@ const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
             </div>
           }
 
+          <!-- Editar barrera -->
+          @if (openSection() === 'entity') {
+            <div class="border border-orange-500/15 bg-black/40 p-3 space-y-3">
+              @if (entities().length === 0) {
+                <div class="text-[9px] text-green-500/40 italic">No hay barreras desplegadas.</div>
+              } @else {
+                <!-- Selector de barrera -->
+                <div class="flex flex-wrap gap-1">
+                  @for (e of entities(); track e.id) {
+                    @let isSelected = selectedEntity()?.id === e.id;
+                    <button type="button" (click)="selectedEntityId.set(e.id)"
+                      class="px-2 py-1 text-[8px] tracking-wider border cursor-pointer"
+                      [class.border-violet-400\\/60]="isSelected"
+                      [class.bg-violet-500\\/15]="isSelected"
+                      [class.text-violet-200]="isSelected"
+                      [class.border-green-500\\/20]="!isSelected"
+                      [class.text-green-500\\/60]="!isSelected">
+                      {{ entityLabel(e, bots()) }}
+                    </button>
+                  }
+                </div>
+
+                @if (selectedEntity(); as e) {
+                  <div class="space-y-2 text-[9px]">
+                    <!-- Vida -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-green-500/60 w-16 tracking-wider uppercase text-[8px]">♥ Vida</span>
+                      <button type="button" (click)="bumpEntityLife(e, -1)"
+                        class="w-6 h-6 text-[12px] border border-green-500/30 text-green-400/70 hover:bg-green-500/10 cursor-pointer">−</button>
+                      <span class="w-10 text-center font-mono text-green-300 font-bold">{{ e.life }}</span>
+                      <button type="button" (click)="bumpEntityLife(e, 1)"
+                        class="w-6 h-6 text-[12px] border border-green-500/30 text-green-400/70 hover:bg-green-500/10 cursor-pointer">+</button>
+                      <span class="text-green-500/40 text-[8px]">/ 3</span>
+                    </div>
+                    <!-- Destruir -->
+                    <div class="pt-1 border-t border-orange-500/10">
+                      <button type="button" (click)="destroyEntity(e)"
+                        class="px-3 py-1.5 text-[9px] tracking-wider border border-red-500/40
+                               bg-red-500/10 text-red-300 hover:bg-red-500/20 cursor-pointer">
+                        ☠ Destruir barrera
+                      </button>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+
           <!-- Rewind -->
           @if (openSection() === 'rewind') {
             <div class="border border-orange-500/15 bg-black/40 p-3 space-y-2">
@@ -329,6 +377,7 @@ const OP_FACES: OperationFace[] = ['<', '<=', '==', '!=', '>=', '>'];
 })
 export class SimulatorDebugPanel {
   bots = input.required<BattleBot[]>();
+  entities = input<MapEntity[]>([]);
   activeBotId = input<string | null>(null);
   debugMode = input.required<boolean>();
   forcedRolls = input.required<{ d6?: number; d4?: number; opFace?: OperationFace }>();
@@ -341,11 +390,13 @@ export class SimulatorDebugPanel {
   setRoll = output<{ kind: 'd6' | 'd4' | 'opFace'; value: number | OperationFace | null }>();
   clearRolls = output<void>();
   override = output<{ target: 'bot' | 'state'; botId?: string; patch: Record<string, unknown> }>();
+  overrideEntity = output<{ entityId: string; patch?: Record<string, unknown>; destroy?: true }>();
   rewind = output<number>();
 
   readonly sections: { key: DebugSection; label: string }[] = [
     { key: 'dice', label: '🎲 Forzar dados' },
     { key: 'bot', label: '🤖 Editar bot' },
+    { key: 'entity', label: '🛡 Barreras' },
     { key: 'rewind', label: '⏪ Rewind' },
   ];
   readonly statusKinds = STATUS_KINDS;
@@ -353,6 +404,7 @@ export class SimulatorDebugPanel {
 
   openSection = signal<DebugSection>('bot');
   selectedBotId = signal<string | null>(null);
+  selectedEntityId = signal<string | null>(null);
   newNumber = signal<number>(1);
   rewindN = signal<number>(1);
 
@@ -443,5 +495,27 @@ export class SimulatorDebugPanel {
     const n = Math.max(1, Math.min(this.eventsCount(), this.rewindN()));
     this.rewind.emit(n);
     this.rewindN.set(1);
+  }
+
+  selectedEntity = computed<MapEntity | null>(() => {
+    const id = this.selectedEntityId();
+    const list = this.entities();
+    if (!id) return list[0] ?? null;
+    return list.find(e => e.id === id) ?? list[0] ?? null;
+  });
+
+  entityLabel(e: MapEntity, bots: BattleBot[]): string {
+    const owner = bots.find(b => b.id === e.ownerId);
+    return `🛡 ${owner ? owner.name : e.ownerId} (${e.q},${e.r})`;
+  }
+
+  bumpEntityLife(entity: MapEntity, delta: number): void {
+    const next = Math.max(0, Math.min(3, entity.life + delta));
+    this.overrideEntity.emit({ entityId: entity.id, patch: { life: next } });
+  }
+
+  destroyEntity(entity: MapEntity): void {
+    this.overrideEntity.emit({ entityId: entity.id, destroy: true });
+    this.selectedEntityId.set(null);
   }
 }

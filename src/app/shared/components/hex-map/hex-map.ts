@@ -4,6 +4,7 @@ import { HexMapData, HexMapEntity, hexToPixel, hexPoints, hexNeighbors, DOT_COLO
 interface RenderedEntity {
   key: string; q: number; r: number; cx: number; cy: number;
   kind: 'barrier' | 'relay_node'; teamColor: string;
+  tooltip: string | null;
 }
 
 interface RenderedDeployment {
@@ -69,7 +70,10 @@ interface RenderedDeployment {
       <!-- Map entities: barriers + relay nodes -->
       @for (e of renderedEntities(); track e.key) {
         <g [attr.transform]="'translate(' + e.cx + ',' + e.cy + ') rotate(' + (-rotateAngle()) + ')'"
-           class="pointer-events-none">
+           [class.pointer-events-none]="!e.tooltip"
+           [class.cursor-pointer]="interactive()"
+           (mouseenter)="onEntityHover(e)" (mouseleave)="hoveredTooltip.set(null)"
+           (click)="hexClicked.emit({q: e.q, r: e.r})">
           @if (e.kind === 'barrier') {
             <polygon [attr.points]="barrierHexPts()" fill="#111827" stroke="#4b5563" stroke-width="1.2" />
             <line [attr.x1]="-(size() * 0.38)" [attr.y1]="-(size() * 0.38)"
@@ -270,6 +274,7 @@ export class HexMap {
         q: e.q, r: e.r, cx: x, cy: y,
         kind: e.kind,
         teamColor: e.teamColor ?? '#94a3b8',
+        tooltip: e.tooltip ?? null,
       };
     });
   });
@@ -444,6 +449,11 @@ export class HexMap {
       };
     });
   });
+
+  onEntityHover(e: RenderedEntity): void {
+    if (!e.tooltip) { this.hoveredTooltip.set(null); return; }
+    this.hoveredTooltip.set({ cx: e.cx, cy: e.cy, lines: e.tooltip.split('\n'), teamColor: e.teamColor, destroyed: false });
+  }
 
   onBotHover(d: RenderedDeployment): void {
     if (!d.tooltip) { this.hoveredTooltip.set(null); return; }

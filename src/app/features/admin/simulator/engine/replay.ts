@@ -307,7 +307,14 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
     }
     case 'entity_placed': {
       const entity = p['entity'] as MapEntity | undefined;
-      if (entity) state.entities = [...(state.entities ?? []), entity];
+      if (entity) state.entities = [...(state.entities ?? []), { ...entity }];
+      break;
+    }
+    case 'entity_damaged': {
+      const entityId = p['entityId'] as string | undefined;
+      const dmg = (p['damage'] as number) ?? 0;
+      const entity = (state.entities ?? []).find(e => e.id === entityId);
+      if (entity) entity.life = Math.max(0, entity.life - dmg);
       break;
     }
     case 'entity_destroyed': {
@@ -320,13 +327,19 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       break;
     }
     case 'debug_override': {
-      const target = p['target'] as 'bot' | 'state' | undefined;
+      const target = p['target'] as 'bot' | 'state' | 'entity' | undefined;
       const patch = p['patch'] as Record<string, unknown> | undefined;
       if (!patch) break;
       if (target === 'bot' && bot) {
         applyBotPatch(bot, patch);
       } else if (target === 'state') {
         applyStatePatch(state, patch);
+      } else if (target === 'entity') {
+        const entityId = p['entityId'] as string | undefined;
+        const entity = (state.entities ?? []).find(e => e.id === entityId);
+        if (entity && typeof patch['life'] === 'number') {
+          entity.life = clamp(patch['life'], 0, 3);
+        }
       }
       break;
     }

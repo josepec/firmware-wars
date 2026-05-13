@@ -63,4 +63,6 @@ export interface AttackFnDef {
   freeMove?: boolean;
   /** If true, allied bots are also valid targets (e.g. swapProtocol). */
   canTargetAllies?: boolean;
+  /** If true, map entities (barriers) are not valid targets for this function. */
+  noEntityTarget?: boolean;
 }

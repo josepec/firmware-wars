@@ -16,6 +16,7 @@ import {
   type CompiledOperation,
   type CompiledProgram,
   type FunctionCall,
+  type MapEntity,
   type PlayerId,
 } from '../../../shared/types/battle.types';
 import { evaluate, rollD6, rollDadoColores, rollDamageString, rollDN, rollOperationDie, type OperationFace } from './engine/dice';
@@ -214,14 +215,17 @@ export class SimulatorPlay implements OnInit {
 
   readonly displayEntities = computed<HexMapEntity[]>(() => {
     const s = this.currentState();
-    return (s.entities ?? []).map(e => ({
-      kind: e.kind,
-      q: e.q,
-      r: e.r,
-      teamColor: e.ownerId
-        ? (s.bots.find(b => b.id === e.ownerId)?.playerId === 1 ? '#22d3ee' : '#e879f9')
-        : undefined,
-    }));
+    return (s.entities ?? []).map(e => {
+      const teamColor = e.kind === 'barrier' ? '#94a3b8' : undefined;
+      return {
+        kind: e.kind,
+        q: e.q,
+        r: e.r,
+        teamColor,
+        life: e.life,
+        tooltip: e.kind === 'barrier' ? `🛡 Barrera\n♥ ${e.life} / 3` : undefined,
+      };
+    });
   });
 
   readonly activeDeployer = computed<PlayerId | null>(() => {
@@ -257,6 +261,9 @@ export class SimulatorPlay implements OnInit {
       if (rs.step === 'shadow-step') {
         return this.shadowStepValidHexes(bot);
       }
+      if (rs.step === 'deploy-barrier') {
+        return this.deployBarrierValidHexes(bot);
+      }
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
         const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
         const maxByEnergy = Math.min(effectiveDist, bot.energy);
@@ -269,7 +276,8 @@ export class SimulatorPlay implements OnInit {
         return reachable;
       }
       if (rs.step === 'picking-target' && rs.pendingFn.type === 'attack') {
-        return computeAttackTargets(bot, rs.pendingFn, this.currentState().bots, this.currentState().hexMap, this.functionsMap());
+        const s = this.currentState();
+        return computeAttackTargets(bot, rs.pendingFn, s.bots, s.hexMap, this.functionsMap(), s.entities);
       }
     }
 
@@ -284,6 +292,7 @@ export class SimulatorPlay implements OnInit {
   readonly highlightColor = computed<string>(() => {
     const rs = this.runState();
     if (rs.step === 'picking-hex' || rs.step === 'dash-move' || rs.step === 'shadow-step') return '#3b82f6';
+    if (rs.step === 'deploy-barrier') return '#8b5cf6';
     if (rs.step === 'picking-target') return '#ef4444';
     const c = this.pendingRoll();
     return c ? COLOR_HEX[c] : '#3b82f6';
@@ -1601,7 +1610,24 @@ export class SimulatorPlay implements OnInit {
         this.runState.update(s => ({ ...s, step: 'shadow-step', lastOpNotice: 'Elige hex de teleporte (radio 3)' }));
         return;
       }
-      const targets = computeAttackTargets(bot, fn, this.currentState().bots, this.currentState().hexMap, this.functionsMap());
+      if (attackFnDefEval?.id === 'deployBarrier') {
+        const cost = fnEnergyCost(fn, this.functionsMap(), bot);
+        if (bot.energy < cost) {
+          await this.applyOverload(bot, cost, 'attack');
+          await this.afterFnExecuted();
+          return;
+        }
+        const validHexes = this.deployBarrierValidHexes(bot);
+        if (validHexes.size === 0) {
+          this.runState.update(rs => ({ ...rs, lastOpNotice: 'Sin hexes disponibles para la barrera' }));
+          await this.afterFnExecuted();
+          return;
+        }
+        this.runState.update(s => ({ ...s, step: 'deploy-barrier', lastOpNotice: 'Elige hex para colocar la barrera (radio 1)' }));
+        return;
+      }
+      const s2 = this.currentState();
+      const targets = computeAttackTargets(bot, fn, s2.bots, s2.hexMap, this.functionsMap(), s2.entities);
       if (targets.size === 0) {
         const s = this.currentState();
         await this.appendEvents([{
@@ -1754,6 +1780,117 @@ export class SimulatorPlay implements OnInit {
       payload: { fromQ: bot.q, fromR: bot.r, toQ, toR, sourceFn: 'shadowStep' },
     }]);
     this.runState.update(rs2 => ({ ...rs2, step: 'evaluated', lastOpNotice: null }));
+    await this.afterFnExecuted();
+  }
+
+  private deployBarrierValidHexes(bot: BattleBot): Set<string> {
+    const s = this.currentState();
+    const idx = buildHexIndex(s.hexMap);
+    const occupied = new Set([
+      ...s.bots.filter(b => !b.destroyed).map(b => hexKey(b.q, b.r)),
+      ...(s.entities ?? []).map(e => hexKey(e.q, e.r)),
+    ]);
+    const result = new Set<string>();
+    for (const cell of s.hexMap.hexes) {
+      if (hexDistance(bot.q, bot.r, cell.q, cell.r) !== 1) continue;
+      if (!isTraversable(idx.get(hexKey(cell.q, cell.r)), s.hexMap)) continue;
+      if (occupied.has(hexKey(cell.q, cell.r))) continue;
+      result.add(hexKey(cell.q, cell.r));
+    }
+    return result;
+  }
+
+  async pickDeployBarrierHex(toQ: number, toR: number): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn) return;
+    const s = this.currentState();
+    const ts = new Date().toISOString();
+    const cost = fnEnergyCost(fn, this.functionsMap(), bot);
+    const entity: MapEntity = {
+      id: `barrier_${bot.id}_${s.turn}_${s.currentActivationIdx}`,
+      kind: 'barrier',
+      q: toQ, r: toR,
+      life: 3,
+      ownerId: bot.id,
+    };
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'attack_hit',
+      payload: { targetId: bot.id, damage: 0, shieldConsumed: 0, energyCost: cost, sourceFn: 'deployBarrier' },
+    }, {
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'entity_placed',
+      payload: { entity },
+    }]);
+    if (this.animationEnabled() && cost > 0) {
+      const g = this.hexMapComp()?.getAnimLayer();
+      if (g) {
+        const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+        floatingText(g, px.x - this.MAP_SIZE * 0.3, px.y + this.MAP_SIZE * 0.15, `-${cost}⚡`, '#fbbf24', this.MAP_SIZE);
+      }
+    }
+    this.runState.update(rs2 => ({ ...rs2, step: 'evaluated', lastOpNotice: null }));
+    await this.afterFnExecuted();
+  }
+
+  async pickEntityTarget(entityId: string): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn || fn.type !== 'attack') return;
+    const s = this.currentState();
+    const entity = (s.entities ?? []).find(e => e.id === entityId);
+    if (!entity) return;
+    const attackFnDef = getAttackFn(fn.attackFunctionId);
+    const cost = attackFnDef?.computeEnergyCost?.(bot) ?? fnEnergyCost(fn, this.functionsMap());
+    const ts = new Date().toISOString();
+    if (bot.energy < cost) {
+      await this.applyOverload(bot, cost, 'attack');
+      await this.afterFnExecuted();
+      return;
+    }
+    const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : undefined;
+    const rangeMax = parseRangeMax(entry?.range);
+    let rollDResult: { sides: number; value: number } | null = null;
+    const trackRollD = (sides: number): number => {
+      const v = rollDN(sides);
+      if (!rollDResult) rollDResult = { sides, value: v };
+      return v;
+    };
+    let damage = attackFnDef?.rollDamage?.({ attacker: bot, target: bot, bots: s.bots, map: s.hexMap, rollD: trackRollD, damage: 0, energyCost: cost, turn: s.turn, activation: s.currentActivationIdx, timestamp: ts, entities: s.entities, rangeMin: 0, rangeMax }) ?? rollDamageString(entry?.damage);
+    if (hasStatus(bot, 'OVERCLOCK')) damage += 1;
+    if (hasStatus(bot, 'BERSERK')) damage *= 2;
+    const dealt = Math.min(damage, entity.life);
+    const willDestroy = entity.life - dealt <= 0;
+    const entityEvents: BattleEvent[] = [{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'entity_damaged',
+      payload: { entityId, damage: dealt, energyCost: cost },
+    }];
+    if (willDestroy) entityEvents.push({
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'entity_destroyed',
+      payload: { entityId },
+    });
+    await this.appendEvents(entityEvents);
+    if (this.animationEnabled()) {
+      const g = this.hexMapComp()?.getAnimLayer();
+      if (g) {
+        const attackerPx = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+        const targetPx = hexToPixel(entity.q, entity.r, this.MAP_SIZE);
+        await Promise.all([
+          rollDResult ? this.playRollDiceAnim(bot, (rollDResult as { sides: number; value: number }).sides, (rollDResult as { sides: number; value: number }).value) : null,
+          cost > 0 ? floatingText(g, attackerPx.x - this.MAP_SIZE * 0.3, attackerPx.y + this.MAP_SIZE * 0.15, `-${cost}⚡`, '#fbbf24', this.MAP_SIZE) : null,
+          dealt > 0 ? floatingText(g, targetPx.x, targetPx.y, `-${dealt}♥`, '#ef4444', this.MAP_SIZE) : null,
+        ]);
+      }
+    }
     await this.afterFnExecuted();
   }
 
@@ -2244,6 +2381,24 @@ export class SimulatorPlay implements OnInit {
     }]);
   }
 
+  async applyEntityDebugOverride(ev: { entityId: string; patch?: Record<string, unknown>; destroy?: true }): Promise<void> {
+    if (!this.debugMode()) return;
+    const s = this.currentState();
+    const ts = new Date().toISOString();
+    if (ev.destroy) {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: s.phase,
+        timestamp: ts, kind: 'entity_destroyed', payload: { entityId: ev.entityId },
+      }]);
+    } else if (ev.patch) {
+      await this.appendEvents([{
+        turn: s.turn, activation: s.currentActivationIdx, phase: s.phase,
+        timestamp: ts, kind: 'debug_override',
+        payload: { target: 'entity', entityId: ev.entityId, patch: ev.patch },
+      }]);
+    }
+  }
+
   /** Drag&drop de un bot (sólo en debug mode). */
   async onDebugBotMoved(ev: { fromQ: number; fromR: number; toQ: number; toR: number }): Promise<void> {
     if (!this.debugMode()) return;
@@ -2387,6 +2542,12 @@ export class SimulatorPlay implements OnInit {
       await this.pickShadowStepHex(coord.q, coord.r);
       return;
     }
+    if (rs.botId && rs.step === 'deploy-barrier') {
+      const valid = this.selectableHexes();
+      if (!valid?.has(hexKey(coord.q, coord.r))) return;
+      await this.pickDeployBarrierHex(coord.q, coord.r);
+      return;
+    }
     if (rs.botId && rs.step === 'picking-hex') {
       const valid = this.selectableHexes();
       if (!valid?.has(hexKey(coord.q, coord.r))) return;
@@ -2394,13 +2555,12 @@ export class SimulatorPlay implements OnInit {
       return;
     }
     if (rs.botId && rs.step === 'picking-target') {
-      const target = this.currentState().bots.find(
-        b => !b.destroyed && b.q === coord.q && b.r === coord.r,
-      );
-      if (!target) return;
       const valid = this.selectableHexes();
       if (!valid?.has(hexKey(coord.q, coord.r))) return;
-      await this.pickRunTarget(target.id);
+      const target = this.currentState().bots.find(b => !b.destroyed && b.q === coord.q && b.r === coord.r);
+      if (target) { await this.pickRunTarget(target.id); return; }
+      const entity = (this.currentState().entities ?? []).find(e => e.q === coord.q && e.r === coord.r);
+      if (entity) { await this.pickEntityTarget(entity.id); return; }
       return;
     }
 

@@ -4,6 +4,7 @@ import type { BattleEvent } from '../../../../../shared/types/battle.types';
 export const nanoRepair: AttackFnDef = {
   id: 'nanoRepair',
   rangeKind: 'self',
+  noEntityTarget: true,
   rollDamage: () => 0,
   onHit: ({ attacker, turn, activation, timestamp, rollD }): BattleEvent[] => {
     const amount = rollD(4);

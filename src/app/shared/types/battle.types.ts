@@ -147,6 +147,7 @@ export type BattleEventKind =
   | 'buff_consumed'
   | 'numbers_lost'
   | 'entity_placed'
+  | 'entity_damaged'
   | 'entity_destroyed'
   | 'turn_ended'
   | 'round_ended'

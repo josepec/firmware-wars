@@ -2,6 +2,7 @@ import {
   hexKey,
   type BattleBot,
   type FunctionCall,
+  type MapEntity,
   type OperationKind,
   type PlayerId,
   type StatusEffectKind,
@@ -24,6 +25,7 @@ export type RunStep =
   | 'charged-rolling'
   | 'dash-move'
   | 'shadow-step'
+  | 'deploy-barrier'
   | 'between-iters'
   | 'op-done'
   | 'debug'
@@ -117,6 +119,7 @@ export function computeAttackTargets(
   bots: BattleBot[],
   map: HexMapData,
   fmap: Map<string, FunctionEntry>,
+  entities?: MapEntity[],
 ): Set<string> {
   if (fn.type !== 'attack') return new Set();
   const attackFnDef = fn.attackFunctionId ? getAttackFn(fn.attackFunctionId) : undefined;
@@ -162,6 +165,13 @@ export function computeAttackTargets(
     if (candidate.id === bot.id) continue;
     const k = hexKey(candidate.q, candidate.r);
     if (reachable.has(k)) out.add(k);
+  }
+  if (!attackFnDef?.noEntityTarget) {
+    for (const entity of (entities ?? [])) {
+      if (entity.kind !== 'barrier') continue;
+      const k = hexKey(entity.q, entity.r);
+      if (reachable.has(k)) out.add(k);
+    }
   }
   return out;
 }
