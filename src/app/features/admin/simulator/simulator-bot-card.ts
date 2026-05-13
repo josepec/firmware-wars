@@ -301,6 +301,13 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
                                      [innerHTML]="formatEffects(ri.description)"></div>
                               </div>
                             }
+                            @for (si of statusInfoOf(fn.effects); track si.name) {
+                              <div class="mt-1.5 pt-1.5 border-t border-red-500/10">
+                                <div class="text-[7px] tracking-wider text-red-400/60 mb-0.5 uppercase">{{ si.name }}</div>
+                                <div class="text-[9px] text-green-400/55 leading-relaxed"
+                                     [innerHTML]="formatEffects(si.description)"></div>
+                              </div>
+                            }
                           </div>
                         } @else {
                           <div class="text-[9px] text-green-500/30 italic px-1">slot vacío</div>
@@ -384,6 +391,12 @@ export class SimulatorBotCard {
 
   statusDescriptionHtml(kind: StatusEffectKind): string {
     return this.formatEffects(this.statusDescMap().get(kind) ?? '');
+  }
+
+  statusInfoOf(effects: string): { name: string; description: string }[] {
+    if (!effects) return [];
+    const mentioned = [...effects.matchAll(/`([A-Z_]+)`/g)].map(m => m[1]);
+    return this.statusEffectDefs().filter(s => mentioned.includes(s.name));
   }
 
 }

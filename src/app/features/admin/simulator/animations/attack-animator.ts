@@ -97,7 +97,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
 
   firewall: async ctx => {
     await selfAura(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, '#3b82f6', 'shield', ctx.size);
-    floatingText(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, 'SAFE', '#3b82f6', ctx.size);
+    floatingText(ctx.g, ctx.attackerPx.x + ctx.size * 0.3, ctx.attackerPx.y - ctx.size * 0.2, 'SAFE', '#3b82f6', ctx.size);
   },
 
   ionCannon: async ctx => {
@@ -123,6 +123,9 @@ const RECIPES: Partial<Record<string, Recipe>> = {
       impact(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#e879f9', ctx.size * 0.85),
     ]);
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, 'SWAP', '#e2e8f0', ctx.size);
+    if ((ctx.energyCost ?? 0) > 0) {
+      floatingText(ctx.g, ctx.targetPx.x + ctx.size * 0.35, ctx.targetPx.y + ctx.size * 0.2, `-${ctx.energyCost}⚡`, '#fbbf24', ctx.size);
+    }
   },
 
   overclockStrike: async ctx => {
@@ -147,12 +150,28 @@ const RECIPES: Partial<Record<string, Recipe>> = {
       prev = next;
     }
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    for (const sec of ctx.secondaryPx) {
+      if ((sec.damage ?? 0) > 0) {
+        floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
+      }
+      if ((sec.shieldConsumed ?? 0) > 0) {
+        floatingText(ctx.g, sec.x + ctx.size * 0.55, sec.y + ctx.size * 0.3, `-${sec.shieldConsumed}🛡`, '#60a5fa', ctx.size);
+      }
+    }
   },
 
   gravityWell: async ctx => {
     if (!ctx.targetPx) return;
     await aoeRing(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#7c3aed', ctx.size * 1.8, true);
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    for (const sec of ctx.secondaryPx) {
+      if ((sec.damage ?? 0) > 0) {
+        floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
+      }
+      if ((sec.shieldConsumed ?? 0) > 0) {
+        floatingText(ctx.g, sec.x + ctx.size * 0.55, sec.y + ctx.size * 0.3, `-${sec.shieldConsumed}🛡`, '#60a5fa', ctx.size);
+      }
+    }
   },
 
   ghostProtocol: async ctx => {
@@ -178,7 +197,9 @@ const RECIPES: Partial<Record<string, Recipe>> = {
     if (!ctx.targetPx) return;
     await projectile(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, ctx.targetPx.x, ctx.targetPx.y, '#10b981', 3.5, 450);
     statusGlitch(ctx.g, ctx.targetPx.x, ctx.targetPx.y, 'BUG', ctx.size);
-    floatingText(ctx.g, ctx.targetPx.x + ctx.size * 0.35, ctx.targetPx.y - ctx.size * 0.5, '+🐛', '#f97316', ctx.size);
+    if (!ctx.targetBugBlocked) {
+      floatingText(ctx.g, ctx.targetPx.x + ctx.size * 0.35, ctx.targetPx.y - ctx.size * 0.5, '+🐛', '#f97316', ctx.size);
+    }
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
   },
 
@@ -198,7 +219,9 @@ const RECIPES: Partial<Record<string, Recipe>> = {
       impact(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y, RED, ctx.size * 0.9),
     ]);
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
-    floatingText(ctx.g, ctx.attackerPx.x + ctx.size * 0.35, ctx.attackerPx.y - ctx.size * 0.5, '+🐛', '#f97316', ctx.size);
+    if (!ctx.attackerBugBlocked) {
+      floatingText(ctx.g, ctx.attackerPx.x + ctx.size * 0.35, ctx.attackerPx.y - ctx.size * 0.5, '+🐛', '#f97316', ctx.size);
+    }
   },
 
   flashSpin: async ctx => {
@@ -266,7 +289,7 @@ export async function playAttackAnim(ctx: AttackAnimCtx): Promise<void> {
   if ((ctx.shieldConsumed ?? 0) > 0 && ctx.targetPx) {
     floatingText(ctx.g, ctx.targetPx.x + ctx.size * 0.55, ctx.targetPx.y + ctx.size * 0.3, `-${ctx.shieldConsumed}🛡`, '#60a5fa', ctx.size);
   }
-  if ((ctx.energyCost ?? 0) > 0) {
+  if ((ctx.energyCost ?? 0) > 0 && !ctx.skipEnergyAnim) {
     floatingText(ctx.g, ctx.attackerPx.x - ctx.size * 0.3, ctx.attackerPx.y + ctx.size * 0.15, `-${ctx.energyCost}⚡`, '#fbbf24', ctx.size);
   }
 }

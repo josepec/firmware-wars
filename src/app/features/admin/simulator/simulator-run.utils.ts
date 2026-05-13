@@ -156,9 +156,11 @@ export function computeAttackTargets(
   }
 
   const out = new Set<string>();
-  for (const enemy of bots) {
-    if (enemy.destroyed || enemy.playerId === bot.playerId) continue;
-    const k = hexKey(enemy.q, enemy.r);
+  for (const candidate of bots) {
+    if (candidate.destroyed) continue;
+    if (!attackFnDef?.canTargetAllies && candidate.playerId === bot.playerId) continue;
+    if (candidate.id === bot.id) continue;
+    const k = hexKey(candidate.q, candidate.r);
     if (reachable.has(k)) out.add(k);
   }
   return out;

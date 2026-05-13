@@ -3,7 +3,7 @@ export interface AttackAnimCtx {
   attackId: string;
   attackerPx: { x: number; y: number };
   targetPx: { x: number; y: number } | null;
-  secondaryPx: { x: number; y: number }[];
+  secondaryPx: { x: number; y: number; damage?: number; shieldConsumed?: number }[];
   damage: number;
   size: number;
   statusApplied?: string;
@@ -14,4 +14,7 @@ export interface AttackAnimCtx {
   shieldConsumed?: number;
   energyCost?: number;
   missed?: boolean;
+  targetBugBlocked?: boolean;
+  attackerBugBlocked?: boolean;
+  skipEnergyAnim?: boolean;
 }

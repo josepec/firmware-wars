@@ -840,9 +840,14 @@ export class SimulatorPlay implements OnInit {
       .filter(e => e.kind === 'attack_hit')
       .map(e => {
         const bot = this.currentState().bots.find(b => b.id === (e.payload['targetId'] as string));
-        return bot ? hexToPixel(bot.q, bot.r, s) : null;
+        if (!bot) return null;
+        return {
+          ...hexToPixel(bot.q, bot.r, s),
+          damage: (e.payload['damage'] as number) ?? 0,
+          shieldConsumed: (e.payload['shieldConsumed'] as number) ?? 0,
+        };
       })
-      .filter(Boolean) as { x: number; y: number }[];
+      .filter(Boolean) as { x: number; y: number; damage: number; shieldConsumed: number }[];
     const statusChecks = extraEvents
       .filter(e => (e.kind === 'status_applied' || e.kind === 'status_resisted') && e.payload['roll'] !== undefined)
       .flatMap(e => {
@@ -880,11 +885,18 @@ export class SimulatorPlay implements OnInit {
       ? floatingText(g, attackerPx.x, attackerPx.y - s * 0.35, `-${selfDmg}♥`, '#ef4444', s)
       : null;
 
+    const targetBugBlocked = extraEvents.some(e => e.kind === 'bug_added' && e.botId === target.id)
+      && hasStatus(target, 'SAFE_MODE');
+    const attackerBugBlocked = extraEvents.some(e => e.kind === 'bug_added' && e.botId === attacker.id)
+      && hasStatus(attacker, 'SAFE_MODE');
+
     await Promise.all([
       playAttackAnim({
         g, attackId: attackId ?? '', attackerPx, targetPx,
         secondaryPx, damage, size: s, statusApplied, statusRoll, statusResisted,
         pushMovePx, healAmount, shieldConsumed, energyCost,
+        targetBugBlocked, attackerBugBlocked,
+        skipEnergyAnim: (attackId ?? '').replace(/\(\s*\)$/, '') === 'swapProtocol',
       }),
       panelPromise,
       selfPromise,
@@ -923,6 +935,7 @@ export class SimulatorPlay implements OnInit {
 
   private playBugAnim(bot: BattleBot): void {
     if (!this.animationEnabled()) return;
+    if (hasStatus(bot, 'SAFE_MODE')) return;
     const g = this.hexMapComp()?.getAnimLayer();
     if (!g) return;
     const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
@@ -1602,9 +1615,9 @@ export class SimulatorPlay implements OnInit {
           if (g) {
             const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
             floatingText(g, px.x - this.MAP_SIZE * 0.2, px.y, 'MISS', '#6b7280', this.MAP_SIZE);
-            floatingText(g, px.x + this.MAP_SIZE * 0.3, px.y - this.MAP_SIZE * 0.4, '+🐛', '#f97316', this.MAP_SIZE);
           }
         }
+        this.playBugAnim(bot);
         await this.afterFnExecuted();
         return;
       }

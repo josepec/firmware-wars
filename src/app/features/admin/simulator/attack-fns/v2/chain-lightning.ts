@@ -7,14 +7,13 @@ export const chainLightning: AttackFnDef = {
   rangeKind: 'splash',
   splashRadius: 2,
   rollDamage: ({ rollD }) => rollD(4),
-  onHit: ({ attacker, target, bots, turn, activation, timestamp, rollD }): BattleEvent[] => {
+  onHit: ({ attacker, target, bots, turn, activation, timestamp, damage }): BattleEvent[] => {
     const events: BattleEvent[] = [];
     for (const bot of bots) {
       if (bot.id === target.id || bot.id === attacker.id || bot.destroyed) continue;
       if (hexDistance(target.q, target.r, bot.q, bot.r) > 2) continue;
-      const dmg = rollD(4);
-      const sc = Math.min(bot.shield, dmg);
-      const dealt = dmg - sc;
+      const sc = Math.min(bot.shield, damage);
+      const dealt = damage - sc;
       events.push({
         turn, activation, phase: 'run', timestamp,
         botId: attacker.id,

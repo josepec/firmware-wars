@@ -61,4 +61,6 @@ export interface AttackFnDef {
   onHit?: (ctx: AttackResolveContext) => BattleEvent[];
   /** If true, after a hit the attacker may move 1 hex for free — player chooses the destination. */
   freeMove?: boolean;
+  /** If true, allied bots are also valid targets (e.g. swapProtocol). */
+  canTargetAllies?: boolean;
 }

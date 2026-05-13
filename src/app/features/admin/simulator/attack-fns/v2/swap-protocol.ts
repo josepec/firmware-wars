@@ -4,6 +4,7 @@ import type { BattleEvent } from '../../../../../shared/types/battle.types';
 export const swapProtocol: AttackFnDef = {
   id: 'swapProtocol',
   rangeKind: 'normal',
+  canTargetAllies: true,
   rollDamage: () => 0,
   onHit: ({ attacker, target, turn, activation, timestamp }): BattleEvent[] => [
     {

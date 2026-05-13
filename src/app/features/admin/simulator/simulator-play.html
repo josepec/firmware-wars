@@ -91,7 +91,10 @@
         }
       </div>
       }
-      <div class="border border-green-500/15 bg-black/40 p-2">
+      <div class="border bg-black/40 p-2"
+           [class.border-cyan-400\/40]="turnBanner()?.player === 1"
+           [class.border-fuchsia-400\/40]="turnBanner()?.player === 2"
+           [class.border-green-500\/15]="!turnBanner()">
         <app-hex-map [mapData]="displayMap()" [size]="28" [interactive]="canPickHex() || debugMode()" [selectable]="selectableHexes()"
           [highlightedHexes]="highlightedHexes()" [highlightColor]="highlightColor()" [dotOpacity]="dotOpacity()"
           [rangeHexes]="attackRangeHexes()" [mapEntities]="displayEntities()"
