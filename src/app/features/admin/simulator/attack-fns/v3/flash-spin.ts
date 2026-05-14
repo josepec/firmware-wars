@@ -5,15 +5,14 @@ import { hexDistance } from '../../engine/pathfinding';
 export const flashSpin: AttackFnDef = {
   id: 'flashSpin',
   rangeKind: 'self',
-  rollDamage: () => 0,
-  onHit: ({ attacker, bots, turn, activation, timestamp, rollD }): BattleEvent[] => {
+  rollDamage: ({ rollD }) => rollD(8),
+  onHit: ({ attacker, bots, entities, turn, activation, timestamp, damage }): BattleEvent[] => {
     const events: BattleEvent[] = [];
     for (const bot of bots) {
       if (bot.id === attacker.id || bot.destroyed) continue;
       if (hexDistance(attacker.q, attacker.r, bot.q, bot.r) !== 1) continue;
-      const dmg = rollD(8);
-      const sc = Math.min(bot.shield, dmg);
-      const dealt = dmg - sc;
+      const sc = Math.min(bot.shield, damage);
+      const dealt = damage - sc;
       events.push({
         turn, activation, phase: 'run', timestamp,
         botId: attacker.id,
@@ -25,6 +24,23 @@ export const flashSpin: AttackFnDef = {
           turn, activation, phase: 'run', timestamp,
           botId: bot.id, kind: 'destroyed',
           payload: { sourceFn: 'flashSpin' },
+        });
+      }
+    }
+    for (const entity of (entities ?? [])) {
+      if (hexDistance(attacker.q, attacker.r, entity.q, entity.r) !== 1) continue;
+      const dealt = Math.min(damage, entity.life);
+      events.push({
+        turn, activation, phase: 'run', timestamp,
+        botId: attacker.id,
+        kind: 'entity_damaged',
+        payload: { entityId: entity.id, damage: dealt, sourceFn: 'flashSpin' },
+      });
+      if (entity.life - dealt <= 0) {
+        events.push({
+          turn, activation, phase: 'run', timestamp,
+          botId: attacker.id, kind: 'entity_destroyed',
+          payload: { entityId: entity.id, sourceFn: 'flashSpin' },
         });
       }
     }

@@ -353,6 +353,25 @@ export class SimulatorPlay implements OnInit {
     return (dim.size + bright.size) > 0 ? { dim, bright } : null;
   });
 
+  readonly flashSpinTargetPreview = computed<{ dim: Set<string>; bright: Set<string> } | null>(() => {
+    const rs = this.runState();
+    if (rs.step !== 'picking-target' || !rs.pendingFn) return null;
+    const attackFnDef = getAttackFn(rs.pendingFn.attackFunctionId ?? '');
+    if (attackFnDef?.id !== 'flashSpin') return null;
+    const s = this.currentState();
+    const bot = s.bots.find(b => b.id === rs.botId);
+    if (!bot) return null;
+    const bright = new Set<string>();
+    for (const b of s.bots) {
+      if (b.id === bot.id || b.destroyed) continue;
+      if (hexDistance(bot.q, bot.r, b.q, b.r) === 1) bright.add(hexKey(b.q, b.r));
+    }
+    for (const e of (s.entities ?? [])) {
+      if (hexDistance(bot.q, bot.r, e.q, e.r) === 1) bright.add(hexKey(e.q, e.r));
+    }
+    return bright.size > 0 ? { dim: new Set(), bright } : null;
+  });
+
   readonly canPickHex = computed(() => {
     if (this.rollingColor()) return false;
     const s = this.selectableHexes();
@@ -2027,6 +2046,23 @@ export class SimulatorPlay implements OnInit {
     for (const ev of extraEvents) await this.appendEvents([ev]);
 
     await this.playAnimForAttack(fn.attackFunctionId, bot, target, dealt, shieldConsumed, cost, extraEvents, rollDResult);
+
+    if (this.animationEnabled()) {
+      const g2 = this.hexMapComp()?.getAnimLayer();
+      if (g2) {
+        for (const ev of extraEvents) {
+          if (ev.kind === 'entity_damaged') {
+            const entityId = ev.payload['entityId'] as string;
+            const dmg = (ev.payload['damage'] as number) ?? 0;
+            const entity = (s.entities ?? []).find(e => e.id === entityId);
+            if (entity && dmg > 0) {
+              const epx = hexToPixel(entity.q, entity.r, this.MAP_SIZE);
+              floatingText(g2, epx.x, epx.y, `-${dmg}♥`, '#ef4444', this.MAP_SIZE);
+            }
+          }
+        }
+      }
+    }
 
     if (attackFnDef?.freeMove) {
       const freeHexes = reachableHexes(bot.q, bot.r, 1, this.currentState().hexMap, this.currentState().bots, bot.id, this.currentState().entities);

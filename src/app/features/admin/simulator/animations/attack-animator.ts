@@ -232,8 +232,13 @@ const RECIPES: Partial<Record<string, Recipe>> = {
       return drawLine(ctx.g, ctx.attackerPx.x, ctx.attackerPx.y,
         ctx.attackerPx.x + d.x, ctx.attackerPx.y + d.y, '#e2e8f0', 1.5, 270);
     }));
-    if (ctx.targetPx && ctx.damage > 0) {
-      floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    for (const sec of ctx.secondaryPx) {
+      if ((sec.damage ?? 0) > 0) {
+        floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
+      }
+      if ((sec.shieldConsumed ?? 0) > 0) {
+        floatingText(ctx.g, sec.x + ctx.size * 0.55, sec.y + ctx.size * 0.3, `-${sec.shieldConsumed}🛡`, '#60a5fa', ctx.size);
+      }
     }
   },
 
