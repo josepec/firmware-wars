@@ -1,6 +1,6 @@
 {
   "categories": {
-    "campaign": { "visible": true },
-    "escenarios": { "visible": true }
+    "campaign": { "visible": false },
+    "escenarios": { "visible": false }
   }
 }
