@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 
 interface AppConfigData {
   categories?: Record<string, { visible?: boolean }>;
@@ -10,6 +10,7 @@ export class AppConfig {
   private config: AppConfigData = {};
 
   private load(): Promise<AppConfigData> {
+    if (isDevMode()) return Promise.resolve({});
     if (!this.configPromise) {
       this.configPromise = fetch('/assets/config/app.config.json')
         .then(r => r.ok ? r.json() : {})
