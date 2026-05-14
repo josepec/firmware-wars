@@ -922,11 +922,16 @@ export class SimulatorPlay implements OnInit {
     const selfHitEv = extraEvents.find(e => e.kind === 'attack_hit' && e.payload['selfInflicted'] === true);
     const recoilBugEv = extraEvents.find(e => e.kind === 'bug_added' && e.payload['recoil'] === true);
     const buffEv = extraEvents.find(e => e.kind === 'buff_applied' && e.botId === attacker.id);
+    const targetBugBlocked = extraEvents.some(e => e.kind === 'bug_added' && e.botId === target.id)
+      && hasStatus(target, 'SAFE_MODE');
+    const attackerBugBlocked = extraEvents.some(e => e.kind === 'bug_added' && e.botId === attacker.id)
+      && hasStatus(attacker, 'SAFE_MODE');
+
     const selfPromise = healAmount !== undefined
       ? this.playSelfEffectAnim(attacker, 'heal', healAmount)
       : selfHitEv !== undefined
         ? this.playSelfEffectAnim(attacker, 'selfdmg', selfHitEv.payload['damage'] as number, buffEv ? (buffEv.payload['kind'] as string) : undefined)
-        : recoilBugEv !== undefined
+        : recoilBugEv !== undefined && !attackerBugBlocked
           ? this.playSelfEffectAnim(attacker, 'bugrecoil', 1)
           : null;
 
@@ -943,11 +948,6 @@ export class SimulatorPlay implements OnInit {
     const selfDmgPromise = selfHitEv && selfDmg > 0
       ? floatingText(g, attackerPx.x, attackerPx.y - s * 0.35, `-${selfDmg}♥`, '#ef4444', s)
       : null;
-
-    const targetBugBlocked = extraEvents.some(e => e.kind === 'bug_added' && e.botId === target.id)
-      && hasStatus(target, 'SAFE_MODE');
-    const attackerBugBlocked = extraEvents.some(e => e.kind === 'bug_added' && e.botId === attacker.id)
-      && hasStatus(attacker, 'SAFE_MODE');
 
     await Promise.all([
       playAttackAnim({
