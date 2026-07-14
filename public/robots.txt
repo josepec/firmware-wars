@@ -1,0 +1,23 @@
+# Firmware Wars — robots.txt
+# Nota: al publicar Campaña/Escenarios, eliminar sus Disallow y añadirlos a sitemap.xml.
+
+User-agent: *
+Allow: /
+
+# Zona de administración y simulador
+Disallow: /admin
+
+# Enlaces compartidos de listas (redirigen a /army-builder)
+Disallow: /list/
+
+# Vistas de impresión (utilidades, sin valor SEO)
+Disallow: /docs/print
+Disallow: /docs/campaign-print
+Disallow: /docs/scenarios-print
+Disallow: /docs/cover-print
+
+# Contenido aún no publicado
+Disallow: /docs/campaign
+Disallow: /docs/escenarios
+
+Sitemap: https://firmwarewars.josepec.eu/sitemap.xml
