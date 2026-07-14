@@ -16,6 +16,11 @@
           Inicio
         </a>
 
+        <a routerLink="/" fragment="quick-start"
+          class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+          Quick&nbsp;Start
+        </a>
+
         <!-- Docs dropdown (click) -->
         <div class="docs-dropdown relative">
           <button (click)="toggleDocsMenu()" type="button"
@@ -60,13 +65,18 @@
   </div>
 
   <!-- Nav links — sólo mobile/tablet ──────────────────────── -->
-  <div class="md:hidden flex items-center justify-center gap-8 px-4 py-2
+  <div class="md:hidden flex items-center justify-center gap-6 px-4 py-2
               border-b border-green-500/10 bg-black/30 backdrop-blur-sm">
     <a routerLink="/"
       class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
       [class.text-green-400]="isHomeActive()"
       [class.text-green-400/70]="!isHomeActive()">
       Inicio
+    </a>
+
+    <a routerLink="/" fragment="quick-start"
+      class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+      Quick&nbsp;Start
     </a>
 
     <!-- Docs dropdown (mobile) -->

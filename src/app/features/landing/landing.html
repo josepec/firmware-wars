@@ -64,6 +64,12 @@
           REGLAMENTO
         </a>
       </div>
+
+      <button type="button" (click)="scrollToQuickStart()"
+        class="text-[10px] sm:text-[11px] tracking-[0.25em] text-green-400/60 hover:text-green-300
+               transition-colors uppercase cursor-pointer mt-1">
+        ▶ Mira cómo se juega un turno — 8 pasos
+      </button>
     </div>
 
     <!-- STATS ─────────────────────────────────────────────── -->
@@ -88,6 +94,9 @@
         </div>
       </div>
     </div>
+
+    <!-- QUICK START ───────────────────────────────────────── -->
+    <app-quick-start />
 
     <!-- BOTS GRID ─────────────────────────────────────────── -->
     <div>
