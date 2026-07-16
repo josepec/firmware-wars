@@ -52,6 +52,8 @@
 >
 > **R(n)** — {{rangeTypes.Rn.name}}: {{rangeTypes.Rn.description}}
 
+> Si un ataque afecta a varios objetivos y requiere tirar un dado, el dado de ataque se tira una única vez y afecta a todos por igual.
+
 ---
 
 ## Estados Alterados

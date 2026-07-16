@@ -6,6 +6,7 @@ import { HexMap } from '../../../shared/components/hex-map/hex-map';
 import { hexToPixel, type DotColor, type HexMapData, type HexMapEntity } from '../../../shared/components/hex-map/hex-map.types';
 import { playAttackAnim, playMoveEnergyAnim, playOverloadAnim, playShieldAnim } from './animations/attack-animator';
 import { floatingText } from './animations/primitives/floating-text';
+import { impact } from './animations/primitives/impact';
 import {
   hexKey,
   OPERATION_LABEL,
@@ -37,6 +38,14 @@ import {
   type RunState,
 } from './simulator-run.utils';
 import { getAttackFn, lrHexes, sldvHexes, type AttackResolveContext } from './attack-fns/index';
+import {
+  RELAY_NODE_LIFE,
+  RELAY_NODE_MAX,
+  RELAY_NODE_RANGE,
+  relayNodeDamageEvents,
+  relayNodeValidHexes,
+  relayNodesOf,
+} from './simulator-relay-node.utils';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -215,17 +224,18 @@ export class SimulatorPlay implements OnInit {
 
   readonly displayEntities = computed<HexMapEntity[]>(() => {
     const s = this.currentState();
-    return (s.entities ?? []).map(e => {
-      const teamColor = e.kind === 'barrier' ? '#94a3b8' : undefined;
-      return {
-        kind: e.kind,
-        q: e.q,
-        r: e.r,
-        teamColor,
-        life: e.life,
-        tooltip: e.kind === 'barrier' ? `🛡 Barrera\n♥ ${e.life} / 3` : undefined,
-      };
-    });
+    // Ni la Barrera ni el Nodo pertenecen a un jugador de cara al tablero: los dos
+    // afectan a ambos bandos, así que van en gris neutro y sin dueño en el hover.
+    return (s.entities ?? []).map(e => ({
+      kind: e.kind,
+      q: e.q,
+      r: e.r,
+      teamColor: '#94a3b8',
+      life: e.life,
+      tooltip: e.kind === 'barrier'
+        ? `🛡 Barrera\n♥ ${e.life} / 3`
+        : `📡 Nodo Relay\n♥ ${e.life} / ${RELAY_NODE_LIFE}`,
+    }));
   });
 
   readonly activeDeployer = computed<PlayerId | null>(() => {
@@ -265,12 +275,11 @@ export class SimulatorPlay implements OnInit {
       if (rs.step === 'deploy-barrier') {
         return this.deployBarrierValidHexes(bot);
       }
+      if (rs.step === 'relay-node') {
+        return relayNodeValidHexes(this.currentState(), bot);
+      }
       if (rs.step === 'picking-hex' && rs.pendingFn.type === 'move') {
-        const s = this.currentState();
-        const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
-        const maxByEnergy = Math.min(effectiveDist, bot.energy);
-        if (maxByEnergy <= 0) return new Set();
-        return reachableHexes(bot.q, bot.r, maxByEnergy, s.hexMap, s.bots, bot.id, s.entities);
+        return this.moveValidHexes(bot);
       }
       if (rs.step === 'picking-target' && rs.pendingFn.type === 'attack') {
         const s = this.currentState();
@@ -289,7 +298,7 @@ export class SimulatorPlay implements OnInit {
   readonly highlightColor = computed<string>(() => {
     const rs = this.runState();
     if (rs.step === 'picking-hex' || rs.step === 'dash-move' || rs.step === 'shadow-step') return '#3b82f6';
-    if (rs.step === 'deploy-barrier') return '#8b5cf6';
+    if (rs.step === 'deploy-barrier' || rs.step === 'relay-node') return '#8b5cf6';
     if (rs.step === 'picking-target') return '#ef4444';
     const c = this.pendingRoll();
     return c ? COLOR_HEX[c] : '#3b82f6';
@@ -915,6 +924,12 @@ export class SimulatorPlay implements OnInit {
         return [{ bot, roll: e.payload['roll'] as number, resisted: e.kind === 'status_resisted', statusKind: (e.payload['kind'] as string) ?? 'STATUS' }];
       });
 
+    const statusHits = statusChecks.map(c => ({
+      ...hexToPixel(c.bot.q, c.bot.r, s),
+      applied: !c.resisted,
+      kind: c.statusKind,
+    }));
+
     const panelPromise = statusChecks.length > 0
       ? this.playStatusChecksAnim(statusChecks)
       : null;
@@ -952,7 +967,7 @@ export class SimulatorPlay implements OnInit {
     await Promise.all([
       playAttackAnim({
         g, attackId: attackId ?? '', attackerPx, targetPx,
-        secondaryPx, damage, size: s, statusApplied, statusRoll, statusResisted,
+        secondaryPx, damage, size: s, statusApplied, statusRoll, statusResisted, statusHits,
         pushMovePx, healAmount, shieldConsumed, energyCost,
         targetBugBlocked, attackerBugBlocked,
         skipEnergyAnim: (attackId ?? '').replace(/\(\s*\)$/, '') === 'swapProtocol',
@@ -1663,6 +1678,13 @@ export class SimulatorPlay implements OnInit {
         await this.afterFnExecuted();
         return;
       }
+      // Sin hexes libres alrededor no hay click posible: la op se resuelve aquí o el
+      // simulador se queda esperando una elección que el jugador no puede hacer.
+      if (this.moveValidHexes(bot).size === 0) {
+        this.runState.update(rs => ({ ...rs, lastOpNotice: 'Bot bloqueado — sin hexes libres para mover' }));
+        await this.afterFnExecuted();
+        return;
+      }
       this.runState.update(s => ({ ...s, step: 'picking-hex' }));
       return;
     }
@@ -1698,6 +1720,27 @@ export class SimulatorPlay implements OnInit {
           return;
         }
         this.runState.update(s => ({ ...s, step: 'deploy-barrier', lastOpNotice: 'Elige hex para colocar la barrera (radio 1)' }));
+        return;
+      }
+      if (attackFnDefEval?.id === 'relayNode') {
+        const cost = fnEnergyCost(fn, this.functionsMap(), bot);
+        if (bot.energy < cost) {
+          await this.applyOverload(bot, cost, 'attack');
+          await this.afterFnExecuted();
+          return;
+        }
+        if (relayNodesOf(this.currentState().entities, bot.id).length >= RELAY_NODE_MAX) {
+          this.runState.update(rs => ({ ...rs, lastOpNotice: `Máximo ${RELAY_NODE_MAX} Nodos desplegados` }));
+          await this.afterFnExecuted();
+          return;
+        }
+        const validHexes = relayNodeValidHexes(this.currentState(), bot);
+        if (validHexes.size === 0) {
+          this.runState.update(rs => ({ ...rs, lastOpNotice: 'Sin hexes disponibles para el Nodo' }));
+          await this.afterFnExecuted();
+          return;
+        }
+        this.runState.update(s => ({ ...s, step: 'relay-node', lastOpNotice: `Elige hex para colocar el Nodo Relay (radio ${RELAY_NODE_RANGE}) · daña 2 a quien entre o salga de su corona` }));
         return;
       }
       const s2 = this.currentState();
@@ -1774,32 +1817,6 @@ export class SimulatorPlay implements OnInit {
           playMoveEnergyAnim(g, px.x, px.y, cost, this.MAP_SIZE);
         }
       }
-      // Relay node damage: triggers when entering or exiting a hex adjacent to a node
-      const relayNodes = this.currentState().entities?.filter(e => e.kind === 'relay_node') ?? [];
-      if (relayNodes.length > 0) {
-        const movedBot = this.currentState().bots.find(b => b.id === bot.id)!;
-        const ts2 = new Date().toISOString();
-        for (const node of relayNodes) {
-          if (hexDistance(bot.q, bot.r, node.q, node.r) > 1 && hexDistance(movedBot.q, movedBot.r, node.q, node.r) > 1) continue;
-          if (movedBot.destroyed) break;
-          const nodeDmg = 2;
-          const sc = Math.min(movedBot.shield, nodeDmg);
-          const dealt = nodeDmg - sc;
-          const st = this.currentState();
-          await this.appendEvents([{
-            turn: st.turn, activation: st.currentActivationIdx, phase: 'run',
-            timestamp: ts2, botId: node.ownerId,
-            kind: 'attack_hit',
-            payload: { targetId: movedBot.id, damage: dealt, shieldConsumed: sc, energyCost: 0, sourceFn: 'relayNode' },
-          }]);
-          if (movedBot.life - dealt <= 0) {
-            await this.appendEvents([{
-              turn: st.turn, activation: st.currentActivationIdx, phase: 'run',
-              timestamp: ts2, botId: movedBot.id, kind: 'destroyed', payload: { sourceFn: 'relayNode' },
-            }]);
-          }
-        }
-      }
     }
     await this.afterFnExecuted();
   }
@@ -1819,10 +1836,23 @@ export class SimulatorPlay implements OnInit {
     await this.afterFnExecuted();
   }
 
+  /** Hexes a los que `bot` puede mover: alcance limitado por MOVEMENT (−1 si LAG) y por
+   *  energía, y bloqueado por obstáculos, Bots (también destruidos) y entidades. */
+  private moveValidHexes(bot: BattleBot): Set<string> {
+    const s = this.currentState();
+    const effectiveDist = Math.max(0, bot.maxMovement - (hasStatus(bot, 'LAG') ? 1 : 0));
+    const maxByEnergy = Math.min(effectiveDist, bot.energy);
+    if (maxByEnergy <= 0) return new Set();
+    return reachableHexes(bot.q, bot.r, maxByEnergy, s.hexMap, s.bots, bot.id, s.entities);
+  }
+
   private shadowStepValidHexes(bot: BattleBot): Set<string> {
     const s = this.currentState();
     const idx = buildHexIndex(s.hexMap);
-    const occupied = new Set(s.bots.filter(b => !b.destroyed && b.id !== bot.id).map(b => hexKey(b.q, b.r)));
+    const occupied = new Set([
+      ...s.bots.filter(b => b.id !== bot.id).map(b => hexKey(b.q, b.r)),
+      ...(s.entities ?? []).map(e => hexKey(e.q, e.r)),
+    ]);
     const result = new Set<string>();
     for (const cell of s.hexMap.hexes) {
       const dist = hexDistance(bot.q, bot.r, cell.q, cell.r);
@@ -1857,11 +1887,18 @@ export class SimulatorPlay implements OnInit {
     await this.afterFnExecuted();
   }
 
+  /** ID de entidad único dentro de la partida. El índice de evento es imprescindible:
+   *  sin él, dos entidades creadas por el mismo Bot en la misma activación (un WHILE o
+   *  un FOR con deployBarrier/relayNode) comparten ID, y destruir una borraría ambas. */
+  private nextEntityId(prefix: string, bot: BattleBot, s: BattleState): string {
+    return `${prefix}_${bot.id}_${s.turn}_${s.currentActivationIdx}_${this.events().length}`;
+  }
+
   private deployBarrierValidHexes(bot: BattleBot): Set<string> {
     const s = this.currentState();
     const idx = buildHexIndex(s.hexMap);
     const occupied = new Set([
-      ...s.bots.filter(b => !b.destroyed).map(b => hexKey(b.q, b.r)),
+      ...s.bots.map(b => hexKey(b.q, b.r)),
       ...(s.entities ?? []).map(e => hexKey(e.q, e.r)),
     ]);
     const result = new Set<string>();
@@ -1883,7 +1920,7 @@ export class SimulatorPlay implements OnInit {
     const ts = new Date().toISOString();
     const cost = fnEnergyCost(fn, this.functionsMap(), bot);
     const entity: MapEntity = {
-      id: `barrier_${bot.id}_${s.turn}_${s.currentActivationIdx}`,
+      id: this.nextEntityId('barrier', bot, s),
       kind: 'barrier',
       q: toQ, r: toR,
       life: 3,
@@ -1894,6 +1931,43 @@ export class SimulatorPlay implements OnInit {
       timestamp: ts, botId: bot.id,
       kind: 'attack_hit',
       payload: { targetId: bot.id, damage: 0, shieldConsumed: 0, energyCost: cost, sourceFn: 'deployBarrier' },
+    }, {
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'entity_placed',
+      payload: { entity },
+    }]);
+    if (this.animationEnabled() && cost > 0) {
+      const g = this.hexMapComp()?.getAnimLayer();
+      if (g) {
+        const px = hexToPixel(bot.q, bot.r, this.MAP_SIZE);
+        floatingText(g, px.x - this.MAP_SIZE * 0.3, px.y + this.MAP_SIZE * 0.15, `-${cost}⚡`, '#fbbf24', this.MAP_SIZE);
+      }
+    }
+    this.runState.update(rs2 => ({ ...rs2, step: 'evaluated', lastOpNotice: null }));
+    await this.afterFnExecuted();
+  }
+
+  async pickRelayNodeHex(toQ: number, toR: number): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn) return;
+    const s = this.currentState();
+    const ts = new Date().toISOString();
+    const cost = fnEnergyCost(fn, this.functionsMap(), bot);
+    const entity: MapEntity = {
+      id: this.nextEntityId('relay', bot, s),
+      kind: 'relay_node',
+      q: toQ, r: toR,
+      life: RELAY_NODE_LIFE,
+      ownerId: bot.id,
+    };
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'attack_hit',
+      payload: { targetId: bot.id, damage: 0, shieldConsumed: 0, energyCost: cost, sourceFn: 'relayNode' },
     }, {
       turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
       timestamp: ts, botId: bot.id,
@@ -2651,6 +2725,12 @@ export class SimulatorPlay implements OnInit {
       await this.pickDeployBarrierHex(coord.q, coord.r);
       return;
     }
+    if (rs.botId && rs.step === 'relay-node') {
+      const valid = this.selectableHexes();
+      if (!valid?.has(hexKey(coord.q, coord.r))) return;
+      await this.pickRelayNodeHex(coord.q, coord.r);
+      return;
+    }
     if (rs.botId && rs.step === 'picking-hex') {
       const valid = this.selectableHexes();
       if (!valid?.has(hexKey(coord.q, coord.r))) return;
@@ -2686,13 +2766,55 @@ export class SimulatorPlay implements OnInit {
     this.pendingRoll.set(null);
   }
 
+  /** Guard: los eventos de daño de Nodo vuelven a pasar por appendEvents. */
+  private relayTriggering = false;
+
+  /** Un Nodo Relay daña a todo Bot (aliados incluidos) que entre o salga de su corona.
+   *  Se resuelve aquí — no en cada punto de movimiento — para cubrir el move voluntario,
+   *  dashStrike, shadowStep y los desplazamientos forzados (powerSmash, gravityWell, swapProtocol). */
+  private async triggerRelayNodes(before: BattleState, applied: BattleEvent[]): Promise<void> {
+    if (this.relayTriggering) return;
+    const moves = applied.filter(e => (e.kind === 'move' || e.kind === 'moved') && e.botId);
+    if (moves.length === 0) return;
+    if (!(this.currentState().entities ?? []).some(e => e.kind === 'relay_node')) return;
+
+    this.relayTriggering = true;
+    try {
+      for (const mv of moves) {
+        const from = before.bots.find(b => b.id === mv.botId);
+        const to = this.currentState().bots.find(b => b.id === mv.botId);
+        if (!from || !to) continue;
+        const evs = relayNodeDamageEvents(this.currentState(), mv.botId!, from, to, new Date().toISOString());
+        if (evs.length === 0) continue;
+        const hits = evs.filter(e => e.kind === 'attack_hit');
+        const damage = hits.reduce((n, e) => n + ((e.payload['damage'] as number) ?? 0), 0);
+        const shielded = hits.reduce((n, e) => n + ((e.payload['shieldConsumed'] as number) ?? 0), 0);
+        await this.appendEvents(evs);
+        if (this.animationEnabled()) {
+          const g = this.hexMapComp()?.getAnimLayer();
+          if (g) {
+            const px = hexToPixel(to.q, to.r, this.MAP_SIZE);
+            impact(g, px.x, px.y, '#8b5cf6', this.MAP_SIZE);
+            await (damage > 0
+              ? floatingText(g, px.x, px.y, `-${damage}♥`, '#f43f5e', this.MAP_SIZE)
+              : floatingText(g, px.x, px.y, `-${shielded}🛡`, '#38bdf8', this.MAP_SIZE));
+          }
+        }
+      }
+    } finally {
+      this.relayTriggering = false;
+    }
+  }
+
   private async appendEvents(newEvs: BattleEvent[]): Promise<boolean> {
     const r = this.report();
     if (!r) return false;
     this.saveError.set(null);
+    const before = this.currentState();
     const prev = this.events();
     this.events.set([...prev, ...newEvs]);
     this.pendingSaves.update(n => n + 1);
+    let saved: boolean;
     try {
       const resp = await fetch(`${API_URL}/api/battles/${r.id}/events`, {
         method: 'PATCH',
@@ -2706,7 +2828,7 @@ export class SimulatorPlay implements OnInit {
         this.saveError.set(`No se pudo guardar (${resp.status})${detail ? ' · ' + detail : ''}. Reintenta.`);
         return false;
       }
-      return true;
+      saved = true;
     } catch (e) {
       this.events.set(prev);
       this.saveError.set(String(e));
@@ -2714,6 +2836,10 @@ export class SimulatorPlay implements OnInit {
     } finally {
       this.pendingSaves.update(n => n - 1);
     }
+    // Fuera del try: estos eventos ya están guardados y no deben revertirse
+    // si falla el disparo de los Nodos (que persiste los suyos por su cuenta).
+    await this.triggerRelayNodes(before, newEvs);
+    return saved;
   }
 
   async finish(): Promise<void> {

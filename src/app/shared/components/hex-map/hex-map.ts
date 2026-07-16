@@ -83,11 +83,10 @@ interface RenderedDeployment {
                   [attr.x2]="-(size() * 0.38)" [attr.y2]="size() * 0.38"
                   stroke="#6b7280" stroke-width="1.5" />
           } @else if (e.kind === 'relay_node') {
-            <circle [attr.r]="size() * 0.35" [attr.fill]="e.teamColor"
-                    fill-opacity="0.22" [attr.stroke]="e.teamColor" stroke-width="1.5" />
-            <circle [attr.r]="size() * 0.42" [attr.stroke]="e.teamColor"
-                    stroke-width="1.5" fill="none" class="animate-ping ping-ring" />
-            <circle r="2.5" [attr.fill]="e.teamColor" />
+            <image href="/assets/img/relayNode.png"
+                   [attr.x]="-(size() * 0.4)" [attr.y]="-(size() * 0.45)"
+                   [attr.width]="size() * 0.8" [attr.height]="size() * 0.8"
+                   preserveAspectRatio="xMidYMid meet" />
           }
         </g>
       }
@@ -389,12 +388,17 @@ export class HexMap {
     const data = this.mapData();
     const print = this.printMode();
     const typeMap = new Map(data.hexTypes.map(t => [t.id, t]));
-    const deployedSet = new Set(data.deployments.map(d => `${d.q},${d.r}`));
+    // Todo lo que se dibuja sobre el hex (Bot, Bot destruido, Barrera, Nodo) taparía
+    // el dot: se sube por encima del hex para que se siga viendo.
+    const coveredSet = new Set([
+      ...data.deployments.map(d => `${d.q},${d.r}`),
+      ...this.mapEntities().map(e => `${e.q},${e.r}`),
+    ]);
     return data.hexes.map(h => {
       const { x, y } = hexToPixel(h.q, h.r, s);
       const type = typeMap.get(h.typeId) ?? data.hexTypes[0];
       const dotDef = h.dot ? DOT_COLORS.find(d => d.id === h.dot) : null;
-      const hasDeployment = deployedSet.has(`${h.q},${h.r}`);
+      const isCovered = coveredSet.has(`${h.q},${h.r}`);
       let fill = type.color, stroke = type.borderColor;
       const isSpecial = h.typeId !== 'normal' && h.typeId !== 'obstacle';
       if (print) {
@@ -403,7 +407,7 @@ export class HexMap {
       }
       return {
         key: `${h.q},${h.r}`, q: h.q, r: h.r, cx: x, cy: y,
-        dotCx: x, dotCy: hasDeployment ? y - s * 0.65 : y,
+        dotCx: x, dotCy: isCovered ? y - s * 0.65 : y,
         points: hexPoints(x, y, s), depthPoints: hexPoints(x, y + this.depthOffset, s),
         fill, stroke, strokeWidth: 2, isSpecial, isObstacle: h.typeId === 'obstacle',
         dotColor: dotDef?.hex ?? null,

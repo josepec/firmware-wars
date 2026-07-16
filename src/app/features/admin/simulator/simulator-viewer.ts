@@ -154,6 +154,7 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       let dmgStr = `${damage} daño`;
       if (baseDamage !== undefined && shield > 0) dmgStr = `${baseDamage} base → ${damage} neto (🛡-${shield})`;
       else if (shield > 0) dmgStr = `${damage} daño (🛡-${shield})`;
+      if (p['sourceFn'] === 'relayNode' && p['entityId']) return `Nodo Relay impacta a ${tgt} · ${dmgStr}`;
       return `Impacta a ${tgt} · ${dmgStr} · -${energyCost}⚡`;
     }
     case 'attack_miss':
@@ -180,7 +181,8 @@ function describeEvent(ev: BattleEvent, bots: BattleBot[]): string {
       const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ', OVERCLOCK: 'OVERCLOCK', BERSERK: 'BERSERK' };
       const k = p['kind'] as string ?? '?';
       const rollStr = typeof p['roll'] === 'number' ? ` [d6: ${p['roll']}/${p['threshold'] ?? '?'}]` : '';
-      return `Estado resistido: ${labels[k] ?? k}${rollStr}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
+      const blocked = p['blockedBy'] ? ` [${labels[p['blockedBy'] as string] ?? p['blockedBy']}]` : '';
+      return `Estado resistido: ${labels[k] ?? k}${rollStr}${blocked}${p['sourceFn'] ? ' (por ' + p['sourceFn'] + ')' : ''}`;
     }
     case 'status_expired': {
       const labels: Record<string, string> = { REBOOTING: 'REBOOT', LAG: 'LAG', SAFE_MODE: 'SAFE MODE', DMZ: 'DMZ', OVERCLOCK: 'OVERCLOCK', BERSERK: 'BERSERK' };

@@ -36,6 +36,16 @@ export const empField: AttackFnDef = {
     for (const bot of bots) {
       if (bot.id === attacker.id || bot.destroyed) continue;
       if (bot.id !== target.id && hexDistance(target.q, target.r, bot.q, bot.r) > 1) continue;
+      // SAFE_MODE inmuniza contra el DMZ: ni siquiera llega a tirar el dado
+      if ((bot.statusEffects ?? []).some(s => s.kind === 'SAFE_MODE')) {
+        events.push({
+          turn, activation, phase: 'run', timestamp,
+          botId: bot.id,
+          kind: 'status_resisted',
+          payload: { kind: 'DMZ', sourceFn: 'empField', blockedBy: 'SAFE_MODE' },
+        });
+        continue;
+      }
       const roll = rollD(6);
       if (roll < 4) {
         events.push({

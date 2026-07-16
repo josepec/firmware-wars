@@ -26,6 +26,7 @@ export type RunStep =
   | 'dash-move'
   | 'shadow-step'
   | 'deploy-barrier'
+  | 'relay-node'
   | 'between-iters'
   | 'op-done'
   | 'debug'
@@ -168,7 +169,7 @@ export function computeAttackTargets(
   }
   if (!attackFnDef?.noEntityTarget) {
     for (const entity of (entities ?? [])) {
-      if (entity.kind !== 'barrier') continue;
+      if (entity.kind !== 'barrier' && entity.kind !== 'relay_node') continue;
       const k = hexKey(entity.q, entity.r);
       if (reachable.has(k)) out.add(k);
     }

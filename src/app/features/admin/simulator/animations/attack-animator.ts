@@ -244,11 +244,24 @@ const RECIPES: Partial<Record<string, Recipe>> = {
 
   empField: async ctx => {
     if (!ctx.targetPx) return;
-    await aoeRing(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#0ea5e9', ctx.size * 1.5);
-    for (const p of [ctx.targetPx, ...ctx.secondaryPx]) {
-      statusGlitch(ctx.g, p.x, p.y, 'DMZ', ctx.size);
+    // Pulso electromagnético: destello en el impacto + onda que barre todo el R(1)
+    await Promise.all([
+      impact(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#38bdf8', ctx.size * 1.3),
+      aoeRing(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#0ea5e9', ctx.size * 2.2),
+    ]);
+    // Glitch sólo sobre quien no supera la tirada; los demás la resistieron
+    for (const h of (ctx.statusHits ?? []).filter(h => h.applied)) {
+      statusGlitch(ctx.g, h.x, h.y, 'DMZ', ctx.size);
     }
     floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    for (const sec of ctx.secondaryPx) {
+      if ((sec.damage ?? 0) > 0) {
+        floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
+      }
+      if ((sec.shieldConsumed ?? 0) > 0) {
+        floatingText(ctx.g, sec.x + ctx.size * 0.55, sec.y + ctx.size * 0.3, `-${sec.shieldConsumed}🛡`, '#60a5fa', ctx.size);
+      }
+    }
   },
 
   chargedStrike: async ctx => {

@@ -13,10 +13,10 @@
   { "Función": "`shadowStep()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Se teleporta 3 Hexes ignorando obstáculos." },
   { "Función": "`overclockStrike()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "4", "Coste~": "20◈", "Efectos": "El Bot recibe estado `OVERCLOCK`." },
   { "Función": "`plasmaBolt()`", "V.~": "2", "Rango~": "2-3", "Daño~": "1d6", "Energía~": "4", "Coste~": "20◈", "Efectos": "Si saca 6, el Bot atacante pierde 2 puntos de `energy` por Sobrecalentamiento." },
-  { "Función": "`chainLightning()`", "V.~": "2", "Rango~": "1-5 (R(2))", "Daño~": "1d4", "Energía~": "4", "Coste~": "30◈", "Efectos": "El dado de ataque se tira una única vez y afecta a todos por igual." },
+  { "Función": "`chainLightning()`", "V.~": "2", "Rango~": "1-5 (R(2))", "Daño~": "1d4", "Energía~": "4", "Coste~": "30◈", "Efectos": "" },
   { "Función": "`berserkProtocol()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "El Bot recibe estado `BERSERK`; recibe además 1d4 de daño propio." },
   { "Función": "`firewall()`", "V.~": "2", "Rango~": "—", "Daño~": "—", "Energía~": "4", "Coste~": "20◈", "Efectos": "El Bot recibe estado `SAFE_MODE`." },
-  { "Función": "`gravityWell()`", "V.~": "2", "Rango~": "3-4 (R(2))", "Daño~": "1d6", "Energía~": "5", "Coste~": "30◈", "Efectos": "Atrae todos los Bots afectados un Hex hacia el centro del impacto. El dado de ataque se tira una única vez y afecta a todos por igual." },
+  { "Función": "`gravityWell()`", "V.~": "2", "Rango~": "3-4 (R(2))", "Daño~": "1d6", "Energía~": "5", "Coste~": "30◈", "Efectos": "Atrae todos los Bots afectados un Hex hacia el centro del impacto. El impacto ha de ser sobre un objetivo válido." },
   { "Función": "`swapProtocol()`", "V.~": "2", "Rango~": "1-5", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Intercambia la posición del Bot con el de otro, aliado o enemigo, a Rango 5." },
   { "Función": "`ionCannon()`", "V.~": "2", "Rango~": "2-8 (LR)", "Daño~": "1d6", "Energía~": "5", "Coste~": "30◈", "Efectos": "" },
   { "Función": "`deployBarrier()`", "V.~": "2", "Rango~": "1", "Daño~": "—", "Energía~": "5", "Coste~": "30◈", "Efectos": "Crea una Barrera (Obstáculo con `life`=3). No pertenece a ningún jugador." },
@@ -28,5 +28,5 @@
   { "Función": "`syncBlast()`", "V.~": "3", "Rango~": "2-4", "Daño~": "4", "Energía~": "6", "Coste~": "50◈", "Efectos": "Si tenía `energy` > 10 al declararlo Daño +1." },
   { "Función": "`relayNode()`", "V.~": "3", "Rango~": "2", "Daño~": "—", "Energía~": "6", "Coste~": "50◈", "Efectos": "Nodo (`life`=2). Máximo 2 Nodos. Daño 2 a quien entre o salga de Hex adyacente." },
   { "Función": "`novaBlast()`", "V.~": "3", "Rango~": "2-5", "Daño~": "1d10", "Energía~": "6", "Coste~": "50◈", "Efectos": "Genera 1 `BUG` al Bot atacante por el retroceso masivo." },
-  { "Función": "`empField()`", "V.~": "3", "Rango~": "2-5 (R(1))", "Daño~": "1d6", "Energía~": "6", "Coste~": "50◈", "Efectos": "Los Bots deben superar 1d6 (≥4) o reciben estado `DMZ`." }
+  { "Función": "`empField()`", "V.~": "3", "Rango~": "2-5 (R(1))", "Daño~": "1d6", "Energía~": "6", "Coste~": "50◈", "Efectos": "Los Bots deben superar 1d6 (≥4) o reciben estado `DMZ`. El impacto ha de ser sobre un objetivo válido." }
 ]
