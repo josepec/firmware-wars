@@ -13,9 +13,11 @@
   </div>
 
   <div class="text-center mb-8 sm:mb-10">
-    <h2 class="font-orbitron text-3xl sm:text-5xl font-black leading-tight tracking-tight">
+    <!-- Un nivel por debajo del hero: sin glow (reservado para FIRMWARE WARS)
+         y un escalón menos de tamaño — el verde acento ya marca el énfasis -->
+    <h2 class="font-orbitron text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight">
       <span style="color:#d4ffe8;">TU PRIMER TURNO,</span><br>
-      <span class="glow-text" style="color:#00ff88;">COMPILADO EN 8 PASOS</span>
+      <span style="color:#00ff88;">COMPILADO EN 8 PASOS</span>
     </h2>
     <p class="text-green-300/70 text-[11px] sm:text-xs tracking-wider max-w-xl mx-auto leading-loose mt-4 px-2">
       Esto es una ronda real de Firmware Wars, con la partida ya en marcha.
@@ -137,7 +139,7 @@
       <div class="p-4 sm:p-5 flex flex-col gap-3.5 flex-1" aria-live="polite">
         <div>
           <div class="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-green-500/55 mb-1">{{ step().tag }}</div>
-          <div class="font-orbitron text-xl sm:text-2xl font-black tracking-wide glow-green" style="color:#00ff88;">
+          <div class="font-orbitron text-xl sm:text-2xl font-black tracking-wide" style="color:#00ff88;">
             {{ step().name }}
           </div>
         </div>

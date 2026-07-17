@@ -312,16 +312,9 @@ describe('intercept', () => {
     expect(decideIntercept(noBlock)).toBe(false);
   });
 
-  it('N3 no gasta el intercept si la rama alternativa también ataca', () => {
-    const ctx = interceptCtx({
-      level: 3,
-      op: {
-        kind: 'IF_ELSE',
-        primary: { type: 'attack', attackFunctionId: 'powerSmash' },
-        secondary: { type: 'attack', attackFunctionId: 'powerSmash' },
-      },
-    });
-    expect(decideIntercept(ctx)).toBe(false);
+  it('N3 acepta bloqueos probables usando solo la cantidad de numbers del rival', () => {
+    // v=1 con '>' bloquea seguro → N3 intercepta también
+    expect(decideIntercept(interceptCtx({ level: 3 }))).toBe(true);
   });
 });
 

@@ -44,6 +44,44 @@ export function availableFunctions(bot: BattleBot): FunctionCall[] {
   return out;
 }
 
+function fnKey(f: FunctionCall): string {
+  return f.type === 'attack' ? `attack:${f.attackFunctionId}` : f.type;
+}
+
+/** Última barrera antes de onCompileCommit: la IA NO pasa por el CompileEditor,
+ *  así que este saneado garantiza que ningún programa suyo viole las reglas que
+ *  el editor impone a los humanos —
+ *  ops del pool (cada una una vez) · ≤ slots (maxOperations − bugs) · máx. 1 loop ·
+ *  funciones que el bot posee (versión/DMZ) · secundaria solo en IF_ELSE/TRY_CATCH
+ *  y SIEMPRE de distinta firma (todos los ataques comparten firma: jamás ataque/ataque). */
+export function sanitizeProgram(bot: BattleBot, program: CompiledProgram): CompiledProgram {
+  const slots = Math.max(0, bot.maxOperations - bot.bugs);
+  const pool = [...bot.pendingOperations];
+  const allowed = new Set(availableFunctions(bot).map(fnKey));
+  const out: CompiledOperation[] = [];
+  let loopUsed = false;
+  for (const op of program.operations) {
+    if (out.length >= slots) break;
+    const poolIdx = pool.indexOf(op.kind);
+    if (poolIdx < 0) continue;
+    const isLoop = op.kind === 'FOR' || op.kind === 'WHILE';
+    if (isLoop && loopUsed) continue;
+    if (!allowed.has(fnKey(op.primary))) continue;
+    const clean: CompiledOperation = { kind: op.kind, primary: op.primary };
+    if (
+      hasSecondarySlot(op.kind) && op.secondary
+      && funcSig(op.secondary) !== funcSig(op.primary)
+      && allowed.has(fnKey(op.secondary))
+    ) {
+      clean.secondary = op.secondary;
+    }
+    pool.splice(poolIdx, 1);
+    if (isLoop) loopUsed = true;
+    out.push(clean);
+  }
+  return { operations: out };
+}
+
 function shuffled<T>(items: readonly T[], rand: RandomFn): T[] {
   const a = [...items];
   for (let i = a.length - 1; i > 0; i--) {
@@ -208,7 +246,7 @@ export function buildProgram(
       }
       operations.push(op);
     }
-    return { operations };
+    return sanitizeProgram(bot, { operations });
   }
 
   // ── N2 / N3: plan de turno contra el objetivo de foco del equipo ──
@@ -259,7 +297,7 @@ export function buildProgram(
   while (wishes.length < slots) wishes.push(moveWish());
 
   const approaching = movesNeeded > 0;
-  const program = assembleProgram(wishes, bot, fns, attack?.fn ?? null, approaching);
+  const program = sanitizeProgram(bot, assembleProgram(wishes, bot, fns, attack?.fn ?? null, approaching));
   if (program.operations.length > 0) return program;
   // Red de seguridad: si la plantilla no pudo emparejar nada, programa aleatorio
   return buildProgram(bot, state, fmap, 1, objectives, rand);

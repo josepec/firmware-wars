@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BattleBot, BattleState } from '../../../../../shared/types/battle.types';
 import type { FunctionEntry } from '../../simulator-bot-card';
-import { buildProgram, availableFunctions } from './ai-compile.heuristics';
+import { buildProgram, availableFunctions, sanitizeProgram } from './ai-compile.heuristics';
 import type { RandomFn } from '../ai.types';
 
 /** RNG determinista sembrado (LCG). */
@@ -76,15 +76,72 @@ describe('buildProgram — programa siempre válido (todos los niveles)', () => 
         expect(prog.operations.length).toBeLessThanOrEqual(slots);
         expect(prog.operations.filter(o => o.kind === 'FOR' || o.kind === 'WHILE').length).toBeLessThanOrEqual(1);
         const pool = [...b.pendingOperations];
+        const legalKeys = new Set(availableFunctions(b).map(f => f.type === 'attack' ? `attack:${f.attackFunctionId}` : f.type));
+        const keyOf = (f: { type: string; attackFunctionId?: string }) => f.type === 'attack' ? `attack:${f.attackFunctionId}` : f.type;
         for (const op of prog.operations) {
           const i = pool.indexOf(op.kind);
           expect(i).toBeGreaterThanOrEqual(0);
           pool.splice(i, 1);
           expect(op.primary).toBeDefined();
-          if (op.secondary) expect(op.secondary.type).not.toBe(op.primary.type);
+          expect(legalKeys.has(keyOf(op.primary))).toBe(true);
+          if (op.secondary) {
+            expect(op.kind === 'IF_ELSE' || op.kind === 'TRY_CATCH').toBe(true);
+            expect(op.secondary.type).not.toBe(op.primary.type);
+            expect(legalKeys.has(keyOf(op.secondary))).toBe(true);
+          }
         }
       }
     }
+  });
+
+  it('IF_ELSE/TRY_CATCH jamás llevan ataque en ambas ramas, ni con dos ataques distintos', () => {
+    // Bot con DOS ataques diferentes y enemigo a tiro: la tentación máxima de attack/attack
+    const fmap2: Map<string, FunctionEntry> = new Map([
+      ['powerSmash', { id: 'powerSmash', func_name: 'powerSmash()', func_type: 'attack', version: '1', range: '1', damage: '2', energy: '2', cost: '—', effects: '' }],
+      ['rocketPunch', { id: 'rocketPunch', func_name: 'rocketPunch()', func_type: 'attack', version: '1', range: '1', damage: '1d4', energy: '2', cost: '—', effects: '' }],
+    ]);
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    for (let seed = 1; seed <= 50; seed++) {
+      for (const level of [1, 2, 3] as const) {
+        const b = bot({
+          pendingOperations: ['IF_ELSE', 'TRY_CATCH', 'IF_ELSE', 'TRY_CATCH'],
+          attacks: { v1: [{ functionId: 'powerSmash' }, { functionId: 'rocketPunch' }], v2: [], v3: null },
+        });
+        const prog = buildProgram(b, state({ bots: [b, enemy] }), fmap2, level, [], seeded(seed * 7 + level));
+        for (const op of prog.operations) {
+          if (op.primary.type === 'attack' && op.secondary) {
+            expect(op.secondary.type).not.toBe('attack');
+          }
+        }
+      }
+    }
+  });
+
+  it('sanitizeProgram repara un programa corrupto aplicando todas las reglas del editor', () => {
+    const b = bot({ bugs: 1, version: 1, pendingOperations: ['IF', 'IF_ELSE', 'FOR', 'WHILE'] });
+    // maxOperations 4 − 1 bug = 3 slots
+    const corrupt = {
+      operations: [
+        // secundaria attack/attack (ilegal) → se poda la secundaria
+        { kind: 'IF_ELSE' as const, primary: { type: 'attack' as const, attackFunctionId: 'powerSmash' }, secondary: { type: 'attack' as const, attackFunctionId: 'powerSmash' } },
+        // ataque de V2 en un bot V1 (ilegal) → se elimina la op
+        { kind: 'IF' as const, primary: { type: 'attack' as const, attackFunctionId: 'plasmaBolt' } },
+        // segundo loop (ilegal, FOR y WHILE) → se elimina
+        { kind: 'FOR' as const, primary: { type: 'move' as const } },
+        { kind: 'WHILE' as const, primary: { type: 'move' as const } },
+        // op que no está en el pool → se elimina
+        { kind: 'TRY_CATCH' as const, primary: { type: 'shield' as const } },
+        // válida, pero ya no cabe si se superan los slots
+        { kind: 'IF' as const, primary: { type: 'move' as const } },
+      ],
+    };
+    const clean = sanitizeProgram(b, corrupt);
+    expect(clean.operations.length).toBeLessThanOrEqual(3);
+    expect(clean.operations[0].kind).toBe('IF_ELSE');
+    expect(clean.operations[0].secondary).toBeUndefined();
+    expect(clean.operations.some(o => o.primary.type === 'attack' && o.primary.attackFunctionId === 'plasmaBolt')).toBe(false);
+    expect(clean.operations.filter(o => o.kind === 'FOR' || o.kind === 'WHILE').length).toBe(1);
+    expect(clean.operations.some(o => o.kind === 'TRY_CATCH')).toBe(false);
   });
 
   it('sin slots o sin pool → programa vacío', () => {

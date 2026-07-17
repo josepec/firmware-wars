@@ -68,7 +68,7 @@ export function blockProbability(v: number, opFace: OperationFace, enemyCount: n
  *  N2: solo si la primaria del rival es un ataque con objetivos y tiene un valor
  *      que bloquea garantizado (extremos con comparadores estrictos).
  *  N3: además acepta bloqueos probables (P ≥ 0.6 según cuántos numbers le queden
- *      al rival) y no lo gasta si la rama alternativa también ataca. */
+ *      al rival). */
 export function decideIntercept(ctx: InterceptCtx): boolean {
   if (ctx.level === 1) return false;
   const op = ctx.op;
@@ -80,9 +80,8 @@ export function decideIntercept(ctx: InterceptCtx): boolean {
 
   if (ctx.level === 2) return guaranteedBlockingValues(ctx).length > 0;
 
-  // N3
-  const secondaryAlsoAttacks = op.kind === 'IF_ELSE' && op.secondary?.type === 'attack';
-  if (secondaryAlsoAttacks) return false;
+  // N3 — nota: la secundaria de un IF_ELSE nunca puede ser otro ataque (regla del
+  // editor: firmas distintas), así que bloquear la rama TRUE siempre desactiva el ataque
   if (guaranteedBlockingValues(ctx).length > 0) return true; // peek → bloqueo exacto
   const enemyCount = ctx.activeBot.numbers.length;
   return ctx.interceptor.numbers.some(v => blockProbability(v, ctx.opFace!, enemyCount) >= 0.6);
