@@ -54,6 +54,18 @@ const API_URL = 'https://firmware-wars-api.josepec.eu';
                   Finalizada
                 </span>
               }
+              @if ((b.mode ?? 'pvp') === 'pvc') {
+                <span class="px-1.5 py-0.5 text-[8px] tracking-[0.2em] uppercase font-bold
+                             border border-cyan-400/60 bg-cyan-500/15 text-cyan-300">
+                  PvC
+                </span>
+              }
+              @if ((b.mode ?? 'pvp') === 'cvc') {
+                <span class="px-1.5 py-0.5 text-[8px] tracking-[0.2em] uppercase font-bold
+                             border border-fuchsia-400/60 bg-fuchsia-500/15 text-fuchsia-300">
+                  CvC
+                </span>
+              }
               @if (b.isDebug) {
                 <span class="px-1.5 py-0.5 text-[8px] tracking-[0.2em] uppercase font-bold
                              border border-orange-400/60 bg-orange-500/15 text-orange-300">

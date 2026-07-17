@@ -1,5 +1,5 @@
 import { JsonPipe, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, Injector, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import { HexMap } from '../../../shared/components/hex-map/hex-map';
@@ -46,6 +46,8 @@ import {
   relayNodeValidHexes,
   relayNodesOf,
 } from './simulator-relay-node.utils';
+import { AiController } from './ai/ai-controller';
+import { cpuLevelOf } from './ai/ai.types';
 import {
   ANIM_KEY,
   ANIM_MS,
@@ -134,6 +136,22 @@ export class SimulatorPlay implements OnInit {
 
   /** ¿La partida actual está marcada como Debug? */
   readonly debugMode = computed(() => this.currentState().debug === true);
+
+  /** IA local: juega los bandos con controller 'cpu'. Inerte en partidas pvp. */
+  readonly ai: AiController;
+  private readonly injector = inject(Injector);
+
+  isCpu(p: PlayerId): boolean {
+    return cpuLevelOf(this.currentState(), p) !== null;
+  }
+
+  cpuLevelFor(p: PlayerId): number | null {
+    return cpuLevelOf(this.currentState(), p);
+  }
+
+  readonly hasCpu = computed(() =>
+    ([1, 2] as PlayerId[]).some(p => cpuLevelOf(this.currentState(), p) !== null),
+  );
 
   readonly subPhase = computed<DeploySubPhase>(() => {
     if (this.deployStarter()) return 'done';
@@ -661,6 +679,8 @@ export class SimulatorPlay implements OnInit {
   }
 
   constructor() {
+    this.ai = new AiController(this, this.injector);
+
     effect(() => {
       const bb = this.nextBootBot();
       if (!bb) return;
@@ -2703,6 +2723,20 @@ export class SimulatorPlay implements OnInit {
 
   rerollColorDice(): void {
     this.rollColorDice();
+  }
+
+  /** Binding del mapa: bloquea los clicks humanos cuando la decisión activa es
+   *  de un jugador CPU. La IA llama a onHexClick directamente (no pasa por aquí). */
+  async onMapHexClick(coord: { q: number; r: number }): Promise<void> {
+    if (!this.debugMode()) {
+      const rb = this.currentRunBot();
+      if (rb && this.isCpu(rb.playerId)) return;
+      if (!rb) {
+        const dep = this.activeDeployer();
+        if (dep && this.isCpu(dep)) return;
+      }
+    }
+    await this.onHexClick(coord);
   }
 
   async onHexClick(coord: { q: number; r: number }): Promise<void> {

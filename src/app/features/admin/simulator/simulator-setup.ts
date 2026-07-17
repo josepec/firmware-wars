@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AdminAuth } from '../../../core/services/admin-auth';
 import { DataService, type PointDefinition } from '../../../core/services/data';
-import type { BattleBot, BattleState, PlayerId } from '../../../shared/types/battle.types';
+import { deriveMode, type BattleBot, type BattleState, type PlayerControllerConfig, type PlayerId } from '../../../shared/types/battle.types';
 import type { HexMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { DEFAULT_HEX_TYPES, emptyMapData } from '../../../shared/components/hex-map/hex-map.types';
 import { HexMapEditor } from '../hex-map-editor';
@@ -169,6 +169,17 @@ type Source = 'scenario' | 'custom';
             } @else if (list1Error()) {
               <div class="mt-1 text-[9px] text-red-400/70 tracking-wider">> {{ list1Error() }}</div>
             }
+            <div class="mt-2 flex gap-1">
+              @for (opt of CONTROLLER_OPTIONS; track opt.key) {
+                <button type="button" (click)="controller1.set(opt.value)"
+                  class="px-2 py-1 text-[8px] tracking-[0.15em] uppercase border cursor-pointer transition-all"
+                  [class]="controllerKey(controller1()) === opt.key
+                    ? 'bg-green-500/15 border-green-400/50 text-green-300'
+                    : 'border-green-500/15 text-green-500/40 hover:text-green-400'">
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
           </div>
           <div>
             <label class="block text-[9px] tracking-[0.2em] text-green-500/50 mb-2 uppercase">List2 ID (P2)</label>
@@ -184,6 +195,17 @@ type Source = 'scenario' | 'custom';
             } @else if (list2Error()) {
               <div class="mt-1 text-[9px] text-red-400/70 tracking-wider">> {{ list2Error() }}</div>
             }
+            <div class="mt-2 flex gap-1">
+              @for (opt of CONTROLLER_OPTIONS; track opt.key) {
+                <button type="button" (click)="controller2.set(opt.value)"
+                  class="px-2 py-1 text-[8px] tracking-[0.15em] uppercase border cursor-pointer transition-all"
+                  [class]="controllerKey(controller2()) === opt.key
+                    ? 'bg-green-500/15 border-green-400/50 text-green-300'
+                    : 'border-green-500/15 text-green-500/40 hover:text-green-400'">
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
           </div>
         }
 
@@ -208,10 +230,15 @@ type Source = 'scenario' | 'custom';
             <div><span class="text-green-500/50">P1:</span>
               <span class="text-green-300">{{ list1Alias() || '—' }}</span>
               <span class="text-green-500/30"> · {{ list1Id }}</span>
+              <span class="text-cyan-400/80"> · {{ controllerLabel(controller1()) }}</span>
             </div>
             <div><span class="text-green-500/50">P2:</span>
               <span class="text-green-300">{{ list2Alias() || '—' }}</span>
               <span class="text-green-500/30"> · {{ list2Id }}</span>
+              <span class="text-cyan-400/80"> · {{ controllerLabel(controller2()) }}</span>
+            </div>
+            <div><span class="text-green-500/50">Modo:</span>
+              <span class="text-green-300 uppercase">{{ modeLabel() }}</span>
             </div>
           </div>
         }
@@ -276,6 +303,29 @@ export class SimulatorSetup implements OnInit {
   title = '';
   error = signal<string | null>(null);
   creating = signal(false);
+
+  controller1 = signal<PlayerControllerConfig>({ kind: 'human' });
+  controller2 = signal<PlayerControllerConfig>({ kind: 'human' });
+
+  readonly CONTROLLER_OPTIONS: { key: string; label: string; value: PlayerControllerConfig }[] = [
+    { key: 'human', label: 'Humano', value: { kind: 'human' } },
+    { key: 'cpu1', label: 'CPU Fácil', value: { kind: 'cpu', level: 1 } },
+    { key: 'cpu2', label: 'CPU Normal', value: { kind: 'cpu', level: 2 } },
+    { key: 'cpu3', label: 'CPU Difícil', value: { kind: 'cpu', level: 3 } },
+  ];
+
+  controllerKey(c: PlayerControllerConfig): string {
+    return c.kind === 'human' ? 'human' : `cpu${c.level}`;
+  }
+
+  controllerLabel(c: PlayerControllerConfig): string {
+    return this.CONTROLLER_OPTIONS.find(o => o.key === this.controllerKey(c))?.label ?? 'Humano';
+  }
+
+  readonly modeLabel = computed(() => {
+    const m = deriveMode(this.controller1(), this.controller2());
+    return m === 'pvp' ? 'Player vs Player' : m === 'pvc' ? 'Player vs Computer' : 'Computer vs Computer';
+  });
 
   private list1Timer: ReturnType<typeof setTimeout> | null = null;
   private list2Timer: ReturnType<typeof setTimeout> | null = null;
@@ -418,6 +468,7 @@ export class SimulatorSetup implements OnInit {
           list2Id: this.list2Id.trim(),
           player1Alias: this.list1Alias(),
           player2Alias: this.list2Alias(),
+          mode: deriveMode(this.controller1(), this.controller2()),
           initialSnapshot,
         }),
       });
@@ -454,8 +505,8 @@ export class SimulatorSetup implements OnInit {
 
   private buildInitialSnapshot(hexMap: HexMapData): BattleState {
     const players: BattleState['players'] = {
-      1: { alias: this.list1Alias(), listId: this.list1Id.trim() },
-      2: { alias: this.list2Alias(), listId: this.list2Id.trim() },
+      1: { alias: this.list1Alias(), listId: this.list1Id.trim(), controller: this.controller1() },
+      2: { alias: this.list2Alias(), listId: this.list2Id.trim(), controller: this.controller2() },
     };
     const bots: BattleBot[] = [
       ...this.list1Bots().map((b, i) => this.toBattleBot(b, 1, i)),

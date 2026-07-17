@@ -25,9 +25,19 @@ interface FormatStats {
 
 interface StatsResponse {
   total: number;
+  byMode?: { pvp: number; pvc: number; cvc: number };
   '1v1': FormatStats;
   '2v2': FormatStats;
 }
+
+type ModeFilter = 'all' | 'pvp' | 'pvc' | 'cvc';
+
+const MODE_FILTERS: { key: ModeFilter; label: string }[] = [
+  { key: 'all', label: 'Todas' },
+  { key: 'pvp', label: 'PvP' },
+  { key: 'pvc', label: 'PvC' },
+  { key: 'cvc', label: 'CvC' },
+];
 
 const CHART_OPTIONS: Chart['options'] = {
   responsive: true,
@@ -74,6 +84,22 @@ const CHART_OPTIONS: Chart['options'] = {
                  hover:text-green-400 transition-colors cursor-pointer">
           ↻ Recargar
         </button>
+      </div>
+
+      <!-- Filtro por modo (Humanos/CPU) -->
+      <div class="flex items-center gap-1 mb-4">
+        @for (m of MODE_FILTERS; track m.key) {
+          <button type="button" (click)="setModeFilter(m.key)"
+            class="px-2.5 py-1 text-[8px] tracking-[0.2em] uppercase border cursor-pointer transition-all"
+            [class]="modeFilter() === m.key
+              ? 'bg-green-500/15 border-green-400/50 text-green-300'
+              : 'border-green-500/15 text-green-500/40 hover:text-green-400'">
+            {{ m.label }}
+            @if (modeCount(m.key) !== null) {
+              <span class="opacity-60">· {{ modeCount(m.key) }}</span>
+            }
+          </button>
+        }
       </div>
 
       @if (loading()) {
@@ -227,10 +253,27 @@ export class SimulatorBattleStats implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { this.destroyAll(); }
 
+  readonly MODE_FILTERS = MODE_FILTERS;
+  readonly modeFilter = signal<ModeFilter>('all');
+
+  setModeFilter(m: ModeFilter): void {
+    if (this.modeFilter() === m) return;
+    this.modeFilter.set(m);
+    void this.load();
+  }
+
+  modeCount(key: ModeFilter): number | null {
+    const bm = this.stats()?.byMode;
+    if (!bm || key === 'all') return null;
+    return bm[key];
+  }
+
   async load(): Promise<void> {
     this.loading.set(true);
     try {
-      const r = await fetch(`${API_URL}/api/battles/stats`, { headers: this.auth.authHeaders() });
+      const m = this.modeFilter();
+      const qs = m === 'all' ? '' : `?mode=${m}`;
+      const r = await fetch(`${API_URL}/api/battles/stats${qs}`, { headers: this.auth.authHeaders() });
       if (r.ok) this.stats.set(await r.json());
     } catch { /* ignore */ }
     this.loading.set(false);

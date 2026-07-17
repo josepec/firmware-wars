@@ -49,11 +49,35 @@
   </div>
   }
 
+  @if (hasCpu() && currentState().status !== 'finished') {
+  <div class="mb-4 border border-violet-500/30 bg-violet-500/5 px-4 py-2 flex items-center gap-3">
+    <button type="button" (click)="ai.togglePause()"
+      class="px-3 py-1.5 text-[10px] tracking-[0.25em] uppercase cursor-pointer border transition-all"
+      [class]="ai.paused()
+        ? 'bg-green-500/15 border-green-400/50 text-green-300 hover:bg-green-500/25'
+        : 'bg-violet-500/15 border-violet-400/50 text-violet-300 hover:bg-violet-500/25'">
+      {{ ai.paused() ? '▶ Reanudar CPU' : '⏸ Pausar CPU' }}
+    </button>
+    <div class="text-[9px] tracking-wider text-violet-300/70">
+      @if (isCpu(1)) { <span>🤖 P1 CPU N{{ cpuLevelFor(1) }}</span> }
+      @if (isCpu(2)) { <span class="ml-2">🤖 P2 CPU N{{ cpuLevelFor(2) }}</span> }
+      @if (ai.thinking(); as t) {
+        <span class="ml-3 text-violet-200 animate-pulse">P{{ t }} decidiendo…</span>
+      }
+    </div>
+    @if (ai.aiError(); as err) {
+      <div class="text-[9px] tracking-wider text-orange-300 ml-auto">⚠ {{ err }}</div>
+    }
+  </div>
+  }
+
   <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] gap-4 items-start">
 
     <div class="transition-all duration-300 space-y-3"
       [class.opacity-30]="panelState(1) === 'waiting' && !canIntercept(1) && !animatingPlayers().has(1)">
-      <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 1, r: r }"></ng-container>
+      <div [class.pointer-events-none]="isCpu(1) && !debugMode()">
+        <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 1, r: r }"></ng-container>
+      </div>
       <ng-container *ngTemplateOutlet="botStackTpl; context: { $implicit: 1 }"></ng-container>
     </div>
 
@@ -99,7 +123,7 @@
           [highlightedHexes]="highlightedHexes()" [highlightColor]="highlightColor()" [dotOpacity]="dotOpacity()"
           [rangeHexes]="attackRangeHexes()" [mapEntities]="displayEntities()" [pierceHexes]="railgunPiercePreview() ?? flashSpinTargetPreview()"
           [dragMode]="debugMode() ? 'move' : 'expand'"
-          (hexClicked)="onHexClick($event)" (hexMoved)="onDebugBotMoved($event)" />
+          (hexClicked)="onMapHexClick($event)" (hexMoved)="onDebugBotMoved($event)" />
       </div>
       @if (currentState().phase === 'end' && !initStarted()) {
       <button type="button" (click)="startNewRound()" class="w-full mt-2 px-4 py-3 text-[11px] tracking-[0.25em] uppercase
@@ -113,7 +137,9 @@
 
     <div class="transition-all duration-300 space-y-3"
       [class.opacity-30]="panelState(2) === 'waiting' && !canIntercept(2) && !animatingPlayers().has(2)">
-      <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 2, r: r }"></ng-container>
+      <div [class.pointer-events-none]="isCpu(2) && !debugMode()">
+        <ng-container *ngTemplateOutlet="panelTpl; context: { $implicit: 2, r: r }"></ng-container>
+      </div>
       <ng-container *ngTemplateOutlet="botStackTpl; context: { $implicit: 2 }"></ng-container>
     </div>
   </div>

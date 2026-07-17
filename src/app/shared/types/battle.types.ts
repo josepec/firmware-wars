@@ -38,6 +38,25 @@ export type Comparator = '<' | '<=' | '>=' | '>' | '!=' | '==';
 export type FunctionType = 'move' | 'attack' | 'shield';
 export type PlayerId = 1 | 2;
 
+/** Nivel de la CPU: 1=Fácil (aleatorio), 2=Normal (greedy), 3=Difícil (scoring). */
+export type CpuLevel = 1 | 2 | 3;
+
+/** Quién controla un bando. Ausente en snapshots antiguos = humano. */
+export type PlayerControllerConfig =
+  | { kind: 'human' }
+  | { kind: 'cpu'; level: CpuLevel };
+
+/** Modo de partida según los controladores de ambos bandos. */
+export type BattleMode = 'pvp' | 'pvc' | 'cvc';
+
+export function deriveMode(
+  c1: PlayerControllerConfig | undefined,
+  c2: PlayerControllerConfig | undefined,
+): BattleMode {
+  const cpus = [c1, c2].filter(c => c?.kind === 'cpu').length;
+  return cpus === 0 ? 'pvp' : cpus === 1 ? 'pvc' : 'cvc';
+}
+
 export interface AttackRef {
   functionId: string;
 }
@@ -95,6 +114,8 @@ export interface BattleBot {
 export interface PlayerState {
   alias: string;
   listId: string;
+  /** Controlador del bando. Ausente (snapshots antiguos) = humano. */
+  controller?: PlayerControllerConfig;
 }
 
 export interface BattleState {
@@ -177,6 +198,7 @@ export interface BattleReport {
   player2Alias: string;
   status: 'in_progress' | 'finished';
   winner?: PlayerId | null;
+  mode?: BattleMode;
   initialSnapshot: BattleState;
   events: BattleEvent[];
   finalState?: BattleState | null;
@@ -193,6 +215,7 @@ export interface BattleReportSummary {
   player2Alias: string;
   createdAt: string;
   isDebug?: boolean;
+  mode?: BattleMode;
 }
 
 export const OPERATION_LABEL: Record<OperationKind, string> = {
