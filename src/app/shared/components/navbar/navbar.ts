@@ -27,6 +27,8 @@ export class Navbar implements OnInit, OnDestroy {
   private routerSub!: Subscription;
   readonly categories = signal(CATEGORIES.filter(c => c.id === 'reglamento' || c.id === 'recursos'));
   readonly docsMenuOpen = signal(false);
+  readonly showNews = signal(false);
+  readonly showSupport = signal(false);
 
   isHomeActive(): boolean {
     return this.router.url === '/';
@@ -40,6 +42,14 @@ export class Navbar implements OnInit, OnDestroy {
     return this.router.url.startsWith('/army-builder');
   }
 
+  isNewsActive(): boolean {
+    return this.router.url.startsWith('/noticias');
+  }
+
+  isSupportActive(): boolean {
+    return this.router.url.startsWith('/soporte');
+  }
+
   toggleDocsMenu() {
     this.docsMenuOpen.update(v => !v);
   }
@@ -50,6 +60,8 @@ export class Navbar implements OnInit, OnDestroy {
       if (await this.appConfig.isCategoryVisible(c.id)) visible.push(c);
     }
     this.categories.set(visible);
+    this.showNews.set(await this.appConfig.isCategoryVisible('noticias'));
+    this.showSupport.set(await this.appConfig.isCategoryVisible('soporte'));
 
     this.routerSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))

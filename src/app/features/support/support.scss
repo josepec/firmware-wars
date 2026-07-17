@@ -1,0 +1,15 @@
+@use '../../../styles/markdown' as md;
+
+:host ::ng-deep markdown {
+  @include md.terminal-markdown;
+}
+
+/* Honeypot: fuera de pantalla (display:none haría que algunos bots lo salten) */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

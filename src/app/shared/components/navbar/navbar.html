@@ -56,6 +56,24 @@
           [class.text-green-400/70]="!isListActive()">
           Lista
         </a>
+
+        @if (showNews()) {
+        <a routerLink="/noticias"
+          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          [class.text-green-400]="isNewsActive()"
+          [class.text-green-400/70]="!isNewsActive()">
+          Noticias
+        </a>
+        }
+
+        @if (showSupport()) {
+        <a routerLink="/soporte"
+          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          [class.text-green-400]="isSupportActive()"
+          [class.text-green-400/70]="!isSupportActive()">
+          Soporte
+        </a>
+        }
       </div>
     </div>
     <div class="flex items-center gap-2 text-[10px] sm:text-xs">
@@ -113,6 +131,24 @@
       [class.text-green-400/70]="!isListActive()">
       Lista
     </a>
+
+    @if (showNews()) {
+    <a routerLink="/noticias"
+      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+      [class.text-green-400]="isNewsActive()"
+      [class.text-green-400/70]="!isNewsActive()">
+      Noticias
+    </a>
+    }
+
+    @if (showSupport()) {
+    <a routerLink="/soporte"
+      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+      [class.text-green-400]="isSupportActive()"
+      [class.text-green-400/70]="!isSupportActive()">
+      Soporte
+    </a>
+    }
   </div>
 
 </header>

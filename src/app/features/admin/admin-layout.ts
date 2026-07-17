@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AdminAuth } from '../../core/services/admin-auth';
+import { ContactBadge } from './contact-badge.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -71,6 +72,30 @@ import { AdminAuth } from '../../core/services/admin-auth';
               [routerLinkActiveOptions]="{ exact: false }">
               Simulador
             </a>
+            <a routerLink="/admin/posts" routerLinkActive="text-green-400"
+              class="text-[10px] tracking-[0.2em] uppercase text-green-500/50
+                     hover:text-green-300 transition-colors py-2 border-b border-transparent"
+              [routerLinkActiveOptions]="{ exact: false }">
+              Noticias
+            </a>
+            <a routerLink="/admin/faqs" routerLinkActive="text-green-400"
+              class="text-[10px] tracking-[0.2em] uppercase text-green-500/50
+                     hover:text-green-300 transition-colors py-2 border-b border-transparent"
+              [routerLinkActiveOptions]="{ exact: false }">
+              FAQs
+            </a>
+            <a routerLink="/admin/messages" routerLinkActive="text-green-400"
+              class="text-[10px] tracking-[0.2em] uppercase text-green-500/50
+                     hover:text-green-300 transition-colors py-2 border-b border-transparent"
+              [routerLinkActiveOptions]="{ exact: false }">
+              Consultas
+              @if (badge.unread() > 0) {
+                <span class="ml-1 px-1.5 py-0.5 text-[8px] font-bold
+                             border border-orange-400/60 bg-orange-500/15 text-orange-300">
+                  {{ badge.unread() }}
+                </span>
+              }
+            </a>
           </nav>
         </div>
         <button (click)="logout()" type="button"
@@ -87,9 +112,14 @@ import { AdminAuth } from '../../core/services/admin-auth';
 })
 export class AdminLayout {
   readonly auth = inject(AdminAuth);
+  readonly badge = inject(ContactBadge);
   password = signal('');
   loginError = signal(false);
   loginLoading = signal(false);
+
+  constructor() {
+    if (this.auth.isAuthenticated()) void this.badge.refresh();
+  }
 
   async onLogin(): Promise<void> {
     this.loginLoading.set(true);
@@ -97,6 +127,7 @@ export class AdminLayout {
     const ok = await this.auth.login(this.password());
     this.loginLoading.set(false);
     if (!ok) this.loginError.set(true);
+    else void this.badge.refresh();
   }
 
   logout(): void {

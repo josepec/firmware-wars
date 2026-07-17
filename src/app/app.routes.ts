@@ -22,6 +22,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/army-builder/army-builder').then(m => m.ArmyBuilder)
   },
   {
+    path: 'noticias',
+    loadComponent: () => import('./features/news/news-list').then(m => m.NewsList)
+  },
+  {
+    path: 'noticias/:slug',
+    loadComponent: () => import('./features/news/news-post').then(m => m.NewsPost)
+  },
+  {
+    path: 'soporte',
+    loadComponent: () => import('./features/support/support').then(m => m.Support)
+  },
+  {
     path: 'list/:id',
     canActivate: [(route: import('@angular/router').ActivatedRouteSnapshot) => {
       return inject(Router).createUrlTree(['/army-builder'], { queryParams: { from: route.paramMap.get('id') } });
@@ -47,6 +59,13 @@ export const routes: Routes = [
       { path: 'simulator/new', loadComponent: () => import('./features/admin/simulator/simulator-setup').then(m => m.SimulatorSetup) },
       { path: 'simulator/play/:id', loadComponent: () => import('./features/admin/simulator/simulator-play').then(m => m.SimulatorPlay) },
       { path: 'simulator/view/:id', loadComponent: () => import('./features/admin/simulator/simulator-viewer').then(m => m.SimulatorViewer) },
+      { path: 'posts', loadComponent: () => import('./features/admin/post-list').then(m => m.PostList) },
+      { path: 'posts/new', loadComponent: () => import('./features/admin/post-editor').then(m => m.PostEditor) },
+      { path: 'posts/:id', loadComponent: () => import('./features/admin/post-editor').then(m => m.PostEditor) },
+      { path: 'faqs', loadComponent: () => import('./features/admin/faq-list').then(m => m.FaqList) },
+      { path: 'faqs/new', loadComponent: () => import('./features/admin/faq-editor').then(m => m.FaqEditor) },
+      { path: 'faqs/:id', loadComponent: () => import('./features/admin/faq-editor').then(m => m.FaqEditor) },
+      { path: 'messages', loadComponent: () => import('./features/admin/message-list').then(m => m.MessageList) },
     ],
   },
   {
