@@ -22,6 +22,9 @@ export interface InterceptCtx {
   level: CpuLevel;
   rand: RandomFn;
   fmap: Map<string, FunctionEntry>;
+  /** RAM del rival SI el interceptor la espió con peekMemory esta ronda.
+   *  Es la única vía legítima de conocer los valores. */
+  knownEnemyNumbers?: number[];
 }
 
 /** JUEGO LIMPIO: los numbers del rival son información oculta (peekMemory existe
@@ -39,9 +42,16 @@ export function satisfyingCount(v: number, opFace: OperationFace): number {
 }
 
 /** Valores propios que bloquean la rama TRUE del rival PASE LO QUE PASE:
- *  sustituido el d6 por v, ningún number posible (1..6) satisface la condición. */
+ *  sustituido el d6 por v, ningún number posible (1..6) satisface la condición.
+ *  Si el interceptor ESPIÓ la RAM del rival (peekMemory), bloquea contra sus
+ *  valores reales — mucho más frecuente que el bloqueo universal. */
 export function guaranteedBlockingValues(ctx: InterceptCtx): number[] {
   if (!ctx.opFace) return [];
+  if (ctx.knownEnemyNumbers && ctx.knownEnemyNumbers.length > 0) {
+    return ctx.interceptor.numbers.filter(v =>
+      ctx.knownEnemyNumbers!.every(n => !evaluate(v, n, ctx.opFace!)),
+    );
+  }
   return ctx.interceptor.numbers.filter(v => satisfyingCount(v, ctx.opFace!) === 0);
 }
 
@@ -73,6 +83,7 @@ export function decideIntercept(ctx: InterceptCtx): boolean {
   // N3
   const secondaryAlsoAttacks = op.kind === 'IF_ELSE' && op.secondary?.type === 'attack';
   if (secondaryAlsoAttacks) return false;
+  if (guaranteedBlockingValues(ctx).length > 0) return true; // peek → bloqueo exacto
   const enemyCount = ctx.activeBot.numbers.length;
   return ctx.interceptor.numbers.some(v => blockProbability(v, ctx.opFace!, enemyCount) >= 0.6);
 }
@@ -82,11 +93,12 @@ export function decideIntercept(ctx: InterceptCtx): boolean {
  *  N3 gasta el menos valioso para su propio futuro. */
 export function chooseInterceptNumber(ctx: InterceptCtx, options: number[]): number {
   if (ctx.level === 1 || !ctx.opFace) return pickRandom(options, ctx.rand);
+  const guaranteed = new Set(guaranteedBlockingValues(ctx));
   const enemyCount = ctx.activeBot.numbers.length;
   let best = options[0];
   let bestScore = -Infinity;
   for (const v of options) {
-    let score = blockProbability(v, ctx.opFace, enemyCount) * 10;
+    let score = guaranteed.has(v) ? 20 : blockProbability(v, ctx.opFace, enemyCount) * 10;
     if (ctx.level === 3) score -= numberFlexValue(v) * 0.01;
     if (score > bestScore) { bestScore = score; best = v; }
   }

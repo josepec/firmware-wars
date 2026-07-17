@@ -4,8 +4,10 @@ import { initialRunState } from '../../simulator-run.utils';
 import type { FunctionEntry } from '../../simulator-bot-card';
 import type { RandomFn } from '../ai.types';
 import { chooseBootDice } from './ai-boot.heuristics';
+import { buildProgram } from './ai-compile.heuristics';
 import { chooseDeployHex } from './ai-deploy.heuristics';
 import { chooseDebugActions } from './ai-debug.heuristics';
+import { attackTacticalBonus } from './ai-scoring';
 import {
   blockProbability,
   chooseInterceptNumber,
@@ -324,5 +326,78 @@ describe('chooseDeployHex', () => {
     const ally = bot({ id: 'a1', playerId: 1, q: -2, r: 0 });
     const st = state({ phase: 'deploy', bots: [ally] });
     expect(chooseDeployHex(st, 1, ['-1,0', '3,0'], 2, [], seeded(1))).toBe('-1,0');
+  });
+
+  it('N3 prefiere cobertura: junto a un obstáculo antes que en campo abierto', () => {
+    const st = state({ phase: 'deploy', bots: [] });
+    st.hexMap.hexTypes.push({ id: 'wall', name: 'Muro', color: '#000', borderColor: '#111', properties: { traversable: 'false' }, builtIn: true });
+    // Obstáculo en (1,0): la opción (1,-1) es adyacente; (-1,1) es simétrica respecto al centro pero abierta
+    st.hexMap.hexes.find(h => h.q === 1 && h.r === 0)!.typeId = 'wall';
+    expect(chooseDeployHex(st, 1, ['1,-1', '-1,1'], 3, [], seeded(1))).toBe('1,-1');
+  });
+});
+
+describe('valor táctico de los efectos', () => {
+  it('dataSpike (mete bug) suma; novaBlast (bug propio) resta', () => {
+    expect(attackTacticalBonus('dataSpike')).toBeGreaterThan(0);
+    expect(attackTacticalBonus('novaBlast')).toBeLessThan(0);
+    expect(attackTacticalBonus('rocketPunch()')).toBe(0);
+  });
+
+  it('a igual daño, el compilador prefiere el ataque con mejor efecto', () => {
+    // Mismo daño/coste/rango: syncBlast (+0.3) debe ganar a novaBlast (−2)
+    const fmap2: Map<string, FunctionEntry> = new Map([
+      ['novaBlast', { id: 'novaBlast', func_name: 'novaBlast()', func_type: 'attack', version: '3', range: '2', damage: '4', energy: '4', cost: '—', effects: '' }],
+      ['syncBlast', { id: 'syncBlast', func_name: 'syncBlast()', func_type: 'attack', version: '3', range: '2', damage: '4', energy: '4', cost: '—', effects: '' }],
+    ]);
+    const b = bot({
+      version: 3,
+      pendingOperations: ['IF', 'IF', 'IF', 'IF'],
+      attacks: { v1: [], v2: [], v3: null },
+    });
+    b.attacks = { v1: [{ functionId: 'novaBlast' }, { functionId: 'syncBlast' }], v2: [], v3: null };
+    const enemy = bot({ id: 'e1', playerId: 2, q: 2, r: 0 });
+    const prog = buildProgram(b, state({ bots: [b, enemy] }), fmap2, 2, [], seeded(3));
+    const atk = prog.operations.find(o => o.primary.type === 'attack');
+    expect(atk?.primary.attackFunctionId).toBe('syncBlast');
+  });
+
+  it('berserkProtocol (x2 daño, autodaño) se descarta con vida baja', () => {
+    const fmap3 = fmapWith({ berserkProtocol: { range: '—', damage: '—', energy: '5' } });
+    const weak = bot({
+      id: 'm1', life: 3, maxLife: 10, q: 0, r: 0,
+      attacks: { v1: [{ functionId: 'berserkProtocol' }], v2: [], v3: null },
+      compiledProgram: { operations: [{ kind: 'IF', primary: { type: 'attack', attackFunctionId: 'berserkProtocol' } }] },
+    });
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const ctx = runCtx({
+      state: state({ bots: [weak, enemy] }), bot: weak, fmap: fmap3,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 3, opFace: '>=' },
+    });
+    // Inútil con vida baja → fuerza FALSE: n > 3 → 6
+    expect(choosePickNumber(ctx, [6, 2])).toBe(6);
+  });
+});
+
+describe('peekMemory → intercept con bloqueo exacto', () => {
+  it('con la RAM espiada bloquea contra los valores reales, no solo extremos', () => {
+    const fmap = fmapWith({ powerSmash: { range: '1', damage: '2' } });
+    const active = bot({
+      id: 'a1', playerId: 2, q: 1, r: 0, numbers: [5, 6],
+      attacks: { v1: [{ functionId: 'powerSmash' }], v2: [], v3: null },
+    });
+    const interceptor = bot({ id: 'i1', playerId: 1, q: 0, r: 0, numbers: [4] });
+    const base: InterceptCtx = {
+      state: state({ bots: [active, interceptor] }),
+      interceptor, activeBot: active,
+      op: { kind: 'IF', primary: { type: 'attack', attackFunctionId: 'powerSmash' } },
+      opFace: '>', level: 2, rand: seeded(3), fmap,
+    };
+    // Sin peek: v=4 con '>' no es bloqueo universal (n∈1..3 lo satisfarían) → no intercepta
+    expect(decideIntercept(base)).toBe(false);
+    // Con peek: sabe que su RAM es [5,6] → 4 > 5 y 4 > 6 son falsos → bloqueo garantizado
+    const peeked = { ...base, knownEnemyNumbers: [5, 6] };
+    expect(decideIntercept(peeked)).toBe(true);
+    expect(chooseInterceptNumber(peeked, [4])).toBe(4);
   });
 });

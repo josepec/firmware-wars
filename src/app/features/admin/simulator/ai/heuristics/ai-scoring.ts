@@ -126,3 +126,36 @@ export function expectedUsefulEnergy(current: number, max: number, k: number): n
 export function numberFlexValue(n: number): number {
   return Math.abs(n - 3.5);
 }
+
+/** Valor táctico de los EFECTOS SECUNDARIOS de cada ataque, en unidades de daño
+ *  esperado equivalente. Complementa al daño puro al elegir ataque/plantilla.
+ *  Cada valor está justificado por el efecto de attack-functions.json. */
+const TACTICAL_BONUS: Record<string, number> = {
+  powerSmash: 0.5,      // Empuja 1 hex: recoloca al rival (fuera de alcance, hacia coronas)
+  laserBeam: 0.3,       // LR hasta 8: amenaza donde otros no llegan
+  dashStrike: 1,        // Move gratis tras atacar → golpea y se recoloca (kiting)
+  pulseShot: 0.5,       // +1 daño a rango 1 (aprox. al alza del caso melee)
+  stabilizerHit: 1,     // LAG con P≈0.5: −1 movimiento rival un turno
+  traceShot: 0.5,       // SLDV: dispara sin línea de visión, ignora coberturas
+  ghostProtocol: 1.5,   // Roba un number: le quita una condición o un intercept
+  peekMemory: 1.5,      // Información: habilita intercepts con bloqueo exacto
+  plasmaBolt: -0.3,     // 1/6 de perder 2⚡ por sobrecalentamiento
+  chainLightning: 1,    // Splash R(2): daño extra a secundarios agrupados
+  gravityWell: 1.5,     // Splash R(2) + arrastra al centro: daño múltiple y desposiciona
+  swapProtocol: 0.5,    // Intercambio de posición a rango 5: escape/asalto
+  ionCannon: 0.3,       // LR hasta 8
+  railgun: 0.8,         // Atraviesa objetivos en línea (daño a múltiples)
+  chargedStrike: 0.5,   // EV alto con política de parada correcta
+  dataSpike: 2,         // +1 BUG al objetivo: le roba un slot y 2⚡ de limpieza
+  flashSpin: 1,         // Golpea todo R(1) alrededor: multiobjetivo si está rodeado
+  syncBlast: 0.3,       // +1 daño con energía > 10
+  novaBlast: -2,        // +1 BUG PROPIO por retroceso: caro (slot + limpieza)
+  empField: 2,          // Splash R(1) + DMZ (P≈0.5): bloquea los ataques del rival un turno
+  overdriveStrike: -0.5, // Gasta TODA la energía: deja el resto del turno seco
+};
+
+/** Bonus táctico del ataque (0 si no tiene efectos secundarios relevantes). */
+export function attackTacticalBonus(fnId: string | undefined | null): number {
+  if (!fnId) return 0;
+  return TACTICAL_BONUS[fnId.replace(/\(\s*\)$/, '')] ?? 0;
+}

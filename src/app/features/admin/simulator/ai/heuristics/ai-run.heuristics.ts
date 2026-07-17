@@ -15,6 +15,7 @@ import { RELAY_NODE_MAX, relayNodesOf } from '../../simulator-relay-node.utils';
 import { objectiveBias, type AiObjective } from '../ai-objectives';
 import { pickRandom, type RandomFn } from '../ai.types';
 import {
+  attackTacticalBonus,
   bestAttackRange,
   bestExpectedDamage,
   effectiveLife,
@@ -40,6 +41,38 @@ function currentOp(ctx: RunHeuristicCtx): CompiledOperation | null {
   return ctx.bot.compiledProgram?.operations[ctx.runState.opIdx] ?? null;
 }
 
+/** Utilidad de las funciones auto-dirigidas, cada una por su efecto real:
+ *  curarse vale cuando falta vida, los buffs de daño solo si va a atacar ya,
+ *  y berserk (x2 daño, 1d4 propio) nunca con la vida justa. */
+function selfFnUsefulness(ctx: RunHeuristicCtx, id: string): number {
+  const { state, bot, fmap } = ctx;
+  const enemy = nearestEnemy(state, bot);
+  const dEnemy = enemy ? hexDistance(bot.q, bot.r, enemy.q, enemy.r) : Infinity;
+  const range = Math.max(1, bestAttackRange(bot, fmap));
+  const engaged = dEnemy <= range + bot.maxMovement;
+  switch (id) {
+    case 'nanoRepair': // recupera 1d4 vida
+      if (bot.life >= bot.maxLife) return 0;
+      return bot.life < bot.maxLife * 0.5 ? 3.5 : 2;
+    case 'shadowStep': // teleporte 3 hexes ignorando obstáculos
+      if (bot.life < bot.maxLife * 0.35) return 3; // escape
+      return dEnemy > range ? 2 : 0.5;
+    case 'overclockStrike': // OVERCLOCK: +1 daño este turno — solo si va a atacar ya
+      return engaged ? 2 : 0.5;
+    case 'berserkProtocol': // BERSERK: x2 daño, pero 1d4 de autodaño
+      return engaged && bot.life > bot.maxLife * 0.5 ? 2.5 : 0;
+    case 'firewall': // SAFE_MODE: inmune a bugs este turno
+      return 1;
+    case 'deployBarrier':
+      return enemy && dEnemy <= enemy.maxMovement + Math.max(1, bestAttackRange(enemy, fmap)) ? 1.5 : 0.5;
+    case 'relayNode':
+      if (relayNodesOf(state.entities, bot.id).length >= RELAY_NODE_MAX) return 0;
+      return engaged ? 2 : 1;
+    default:
+      return 1.5;
+  }
+}
+
 /** Utilidad de ejecutar esta función AHORA. El signo importa:
  *  > 0 = aporta · 0 = no hace nada (o falla con bug evitable) · < 0 = se hace daño (overload).
  *
@@ -60,12 +93,9 @@ export function fnUsefulness(ctx: RunHeuristicCtx, fn: FunctionCall | undefined)
     const def = getAttackFn(fn.attackFunctionId);
     const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
     if (def?.rangeKind === 'self') {
-      // Auto-dirigidas: curas, buffs, despliegues — siempre "impactan"
-      if (def.id === 'nanoRepair') return bot.life < bot.maxLife ? 3 : 0;
-      if (def.id === 'relayNode' && relayNodesOf(state.entities, bot.id).length >= RELAY_NODE_MAX) return 0;
-      return 1.5;
+      return selfFnUsefulness(ctx, def.id);
     }
-    return 2 + expectedDamage(entry?.damage);
+    return 2 + expectedDamage(entry?.damage) + attackTacticalBonus(fn.attackFunctionId);
   }
 
   if (fn.type === 'shield') {

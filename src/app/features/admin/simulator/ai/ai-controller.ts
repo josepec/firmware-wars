@@ -47,6 +47,10 @@ export class AiController {
   private lastKey = '';
   private sameKeyCount = 0;
   private objectives: AiObjective[] | null = null;
+  /** Bots espiados con peekMemory por cada jugador CPU esta ronda ("player:botId").
+   *  Es la única vía por la que la IA conoce la RAM del rival (juego limpio). */
+  private peekedThisRound = new Set<string>();
+  private peekedTurn = -1;
 
   constructor(
     private readonly sim: AiView & AiActions,
@@ -107,6 +111,11 @@ export class AiController {
 
     // Re-detección tras el delay: si el estado cambió, el effect re-agendará.
     const snap = buildSnapshot(this.sim);
+    if (snap.state.turn !== this.peekedTurn) {
+      // La RAM se rehace en cada BOOT: lo espiado caduca al cambiar de ronda
+      this.peekedThisRound.clear();
+      this.peekedTurn = snap.state.turn;
+    }
     const d = detectPendingDecision(snap);
     if (!d || !this.ownsDecision(d, snap)) {
       this.thinking.set(null);
@@ -163,6 +172,8 @@ export class AiController {
 
   private interceptCtx(d: { owner: PlayerId | 'shared' }, snap: AiSnapshot): InterceptCtx {
     const activeBot = snap.currentRunBot!;
+    const peeked = typeof d.owner === 'number'
+      && this.peekedThisRound.has(`${d.owner}:${activeBot.id}`);
     return {
       state: snap.state,
       interceptor: snap.interceptBot!,
@@ -172,6 +183,7 @@ export class AiController {
       level: this.levelFor(d.owner, snap),
       rand: this.rand,
       fmap: this.sim.functionsMap(),
+      knownEnemyNumbers: peeked ? [...activeBot.numbers] : undefined,
     };
   }
 
@@ -241,7 +253,14 @@ export class AiController {
       case 'target': {
         if (d.options.length === 0) return;
         const hex = chooseTargetHex(this.runCtx(d, snap), d.options);
-        await this.sim.onHexClick(parseHexKey(hex));
+        const coord = parseHexKey(hex);
+        // peekMemory: recuerda a quién espió para usar su RAM en intercepts
+        const fnId = snap.runState.pendingFn?.attackFunctionId?.replace(/\(\s*\)$/, '');
+        if (fnId === 'peekMemory' && typeof d.owner === 'number') {
+          const target = snap.state.bots.find(b => !b.destroyed && b.q === coord.q && b.r === coord.r);
+          if (target) this.peekedThisRound.add(`${d.owner}:${target.id}`);
+        }
+        await this.sim.onHexClick(coord);
         return;
       }
       case 'dash-hex':

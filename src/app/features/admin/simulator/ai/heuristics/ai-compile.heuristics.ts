@@ -12,7 +12,7 @@ import { parseEnergy, parseRangeMax } from '../../simulator-run.utils';
 import { hexDistance } from '../../engine/pathfinding';
 import type { AiObjective } from '../ai-objectives';
 import { pickRandom, type RandomFn } from '../ai.types';
-import { attackEntries, bestAttackRange, expectedDamage, nearestEnemy } from './ai-scoring';
+import { attackEntries, attackTacticalBonus, bestAttackRange, expectedDamage, nearestEnemy } from './ai-scoring';
 
 /** Firma de función a efectos del editor: primaria y secundaria no pueden compartirla. */
 function funcSig(fn: FunctionCall): string {
@@ -64,7 +64,10 @@ function bestAttackFn(
     const dmg = expectedDamage(entry.damage);
     const cost = parseEnergy(entry.energy);
     const range = parseRangeMax(entry.range);
-    const score = dmg + (enemyDist <= range ? 2 : 0) - cost * 0.2;
+    const score = dmg
+      + attackTacticalBonus(fn.attackFunctionId)
+      + (enemyDist <= range ? 2 : 0)
+      - cost * 0.2;
     if (!best || score > best.score) best = { fn, range, cost, dmg, score };
   }
   return best;
