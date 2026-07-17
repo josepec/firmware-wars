@@ -176,6 +176,27 @@ describe('choosePickNumber — forzado de rama', () => {
     expect(choosePickNumber(ctx, [6, 2])).toBe(6);
   });
 
+  it('IF_ELSE(ataque sin objetivo, escudo LLENO): fuerza FALSE — un miss+bug pierde contra un escudo inútil', () => {
+    // El caso de la partida real: SHIELD 1/1 y laserBeam sin nada a tiro → eligió TRUE y regaló un bug
+    const farEnemy = bot({ id: 'e1', playerId: 2, q: 3, r: 0 });
+    const fullShield = bot({
+      ...me, id: 'm1', shield: 1, maxShield: 1,
+      compiledProgram: {
+        operations: [{
+          kind: 'IF_ELSE',
+          primary: { type: 'attack', attackFunctionId: 'powerSmash' },
+          secondary: { type: 'shield' },
+        }],
+      },
+    });
+    const ctx = runCtx({
+      state: state({ bots: [fullShield, farEnemy] }), bot: fullShield, fmap,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 3, opFace: '>=' },
+    });
+    // FALSE con '>=' y d6=3 → n > 3 → 6
+    expect(choosePickNumber(ctx, [6, 2])).toBe(6);
+  });
+
   it('IF_ELSE con ambas ramas malas: elige la menos dañina', () => {
     // primaria: ataque impagable (overload −1); secundaria: move sin enemigo... usamos shield lleno (0)
     const poorMe = bot({
@@ -197,6 +218,22 @@ describe('choosePickNumber — forzado de rama', () => {
     // Lo importante: no lanza excepción y devuelve una opción legal
     const n = choosePickNumber(ctx, [6, 2]);
     expect([6, 2]).toContain(n);
+  });
+
+  it('FOR(ataque): no compromete más iteraciones que golpes necesarios para el kill', () => {
+    // Enemigo con vida efectiva 3 y daño 2 → 2 golpes bastan. Aunque N3 pueda pagar
+    // 3 iteraciones, la 3ª dispararía a un bot ya destruido (MISS + bug) → cap en 2
+    const frail = bot({ id: 'e1', playerId: 2, q: 1, r: 0, life: 3, shield: 0 });
+    const forMe = bot({
+      ...me, id: 'm1', energy: 10,
+      compiledProgram: { operations: [{ kind: 'FOR', primary: { type: 'attack', attackFunctionId: 'powerSmash' } }] },
+    });
+    const ctx = runCtx({
+      state: state({ bots: [forMe, frail] }), bot: forMe, fmap, level: 3,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 5 },
+    });
+    // diffs: n=3→2 ✓cap, n=2→3 (sobrepasa el kill), n=5→0 (bug) → elige 3
+    expect(choosePickNumber(ctx, [3, 2, 5])).toBe(3);
   });
 
   it('FOR: elige n con diff válida 1..3', () => {

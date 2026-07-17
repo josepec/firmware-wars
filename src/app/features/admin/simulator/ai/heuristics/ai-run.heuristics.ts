@@ -15,6 +15,7 @@ import { RELAY_NODE_MAX, relayNodesOf } from '../../simulator-relay-node.utils';
 import { objectiveBias, type AiObjective } from '../ai-objectives';
 import { pickRandom, type RandomFn } from '../ai.types';
 import {
+  attackEntries,
   attackTacticalBonus,
   bestAttackRange,
   bestExpectedDamage,
@@ -25,6 +26,7 @@ import {
   parseHex,
   threatAt,
 } from './ai-scoring';
+import { allyClusterPenalty, chooseFocusTarget } from './ai-team.heuristics';
 
 /** Contexto común de las decisiones de RUN. */
 export interface RunHeuristicCtx {
@@ -73,6 +75,25 @@ function selfFnUsefulness(ctx: RunHeuristicCtx, id: string): number {
   }
 }
 
+/** Golpes esperados necesarios para destruir todo lo que este ataque tiene a
+ *  tiro (bots enemigos por vida efectiva; entidades por su vida). */
+function hitsToClearTargets(ctx: RunHeuristicCtx, fn: FunctionCall): number {
+  const { state, bot, fmap } = ctx;
+  const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
+  const dmg = expectedDamage(entry?.damage);
+  if (dmg <= 0) return Infinity; // sin daño estimable, no capar
+  const targets = computeAttackTargets(bot, fn, state.bots, state.hexMap, fmap, state.entities);
+  let hits = 0;
+  for (const k of targets) {
+    const { q, r } = parseHex(k);
+    const b = state.bots.find(x => !x.destroyed && x.q === q && x.r === r);
+    if (b) { hits += Math.ceil(effectiveLife(b) / dmg); continue; }
+    const e = (state.entities ?? []).find(x => x.q === q && x.r === r);
+    if (e) hits += Math.ceil(e.life / dmg);
+  }
+  return hits > 0 ? hits : Infinity;
+}
+
 /** Utilidad de ejecutar esta función AHORA. El signo importa:
  *  > 0 = aporta · 0 = no hace nada (o falla con bug evitable) · < 0 = se hace daño (overload).
  *
@@ -89,7 +110,9 @@ export function fnUsefulness(ctx: RunHeuristicCtx, fn: FunctionCall | undefined)
     const cost = fnEnergyCost(fn, fmap, bot);
     if (cost > bot.energy) return -(cost - bot.energy) - 1; // overload seguro
     const targets = computeAttackTargets(bot, fn, state.bots, state.hexMap, fmap, state.entities);
-    if (targets.size === 0) return 0; // sin objetivo = MISS + bug
+    // Sin objetivo = MISS + 1 bug: NEGATIVO, no cero — en un IF_ELSE debe perder
+    // contra cualquier rama inofensiva (p. ej. escudo lleno)
+    if (targets.size === 0) return -2;
     const def = getAttackFn(fn.attackFunctionId);
     const entry = fn.attackFunctionId ? fmap.get(fn.attackFunctionId) : undefined;
     if (def?.rangeKind === 'self') {
@@ -100,7 +123,7 @@ export function fnUsefulness(ctx: RunHeuristicCtx, fn: FunctionCall | undefined)
 
   if (fn.type === 'shield') {
     if (bot.energy < 2) return -(2 - bot.energy) - 1;
-    if (bot.shield >= bot.maxShield) return 0;
+    if (bot.shield >= bot.maxShield) return -0.5; // gasta 2⚡ para nada — pero sin bug
     return bot.life < bot.maxLife * 0.5 ? 3 : 1;
   }
 
@@ -141,9 +164,16 @@ export function choosePickNumber(ctx: RunHeuristicCtx, options: number[]): numbe
       // Minimizar daño: diff 0 si es posible (1 bug, cero ejecuciones), si no la mínima
       return [...options].sort((a, b) => Math.abs(rs.d6! - a) - Math.abs(rs.d6! - b))[0];
     }
-    const targetIters = ctx.level === 3
-      ? Math.max(1, Math.min(3, maxPayable))
-      : Math.min(2, Math.max(1, maxPayable));
+    // FOR(ataque): no comprometer más iteraciones que golpes hacen falta para
+    // acabar con lo que hay a tiro — un objetivo destruido a mitad de bucle deja
+    // el resto de iteraciones disparando al vacío (MISS + 1 bug cada una).
+    const killCap = op.primary.type === 'attack'
+      ? hitsToClearTargets(ctx, op.primary)
+      : Infinity;
+    const targetIters = Math.max(1, Math.min(
+      killCap,
+      ctx.level === 3 ? Math.min(3, maxPayable) : Math.min(2, Math.max(1, maxPayable)),
+    ));
     let best = options[0];
     let bestScore = -Infinity;
     for (const n of options) {
@@ -183,10 +213,15 @@ export function choosePickNumber(ctx: RunHeuristicCtx, options: number[]): numbe
   return [...candidates].sort((a, b) => numberFlexValue(a) - numberFlexValue(b))[0];
 }
 
+/** Enemigo de referencia para posicionarse: el foco del equipo, y si no, el más cercano. */
+function referenceEnemy(ctx: RunHeuristicCtx): ReturnType<typeof nearestEnemy> {
+  return chooseFocusTarget(ctx.state, ctx.bot.playerId, ctx.fmap) ?? nearestEnemy(ctx.state, ctx.bot);
+}
+
 /** Puntuación de un hex como posición del bot (N3). */
 function scoreHexPosition(ctx: RunHeuristicCtx, q: number, r: number): number {
   const { state, bot, fmap } = ctx;
-  const enemy = nearestEnemy(state, bot);
+  const enemy = referenceEnemy(ctx);
   const range = Math.max(1, bestAttackRange(bot, fmap));
   const lifeRatio = bot.life / bot.maxLife;
   const threatWeight = lifeRatio < 0.35 ? 3 : 1;
@@ -196,12 +231,22 @@ function scoreHexPosition(ctx: RunHeuristicCtx, q: number, r: number): number {
     // Acercarse hasta el alcance de ataque; con vida baja, alejarse
     score -= (lifeRatio < 0.35 ? -d : Math.abs(d - range)) * 1.5;
     if (d <= range) score += bestExpectedDamage(bot, fmap);
+    // Armas LR disparan solo en los 6 ejes: bonus por alinearse con el enemigo
+    const hasLR = attackEntries(bot, fmap)
+      .some(a => getAttackFn(a.fn.attackFunctionId)?.rangeKind === 'LR');
+    if (hasLR) {
+      const dq = q - enemy.q;
+      const dr = r - enemy.r;
+      if (dq === 0 || dr === 0 || dq + dr === 0) score += 1.5;
+    }
   }
   score -= threatAt(state, bot, q, r, fmap) * 0.5 * threatWeight;
   // Corona de nodos relay hostiles
   for (const e of state.entities ?? []) {
     if (e.kind === 'relay_node' && e.life > 0 && hexDistance(q, r, e.q, e.r) === 1) score -= 2;
   }
+  // No apelotonarse con aliados (splash enemigo, bloqueo de paso y LOS)
+  score -= allyClusterPenalty(state, bot, q, r) * 0.8;
   score += objectiveBias(ctx.objectives, { kind: 'move', botId: bot.id, hex: { q, r } });
   return score;
 }
@@ -214,7 +259,7 @@ function scoreHexPosition(ctx: RunHeuristicCtx, q: number, r: number): number {
 export function chooseMoveHex(ctx: RunHeuristicCtx, options: string[]): string {
   if (ctx.level === 1) return pickRandom(options, ctx.rand);
   if (ctx.level === 2) {
-    const enemy = nearestEnemy(ctx.state, ctx.bot);
+    const enemy = referenceEnemy(ctx);
     if (!enemy) return pickRandom(options, ctx.rand);
     const range = Math.max(1, bestAttackRange(ctx.bot, ctx.fmap));
     return [...options].sort((a, b) => {
@@ -256,7 +301,14 @@ export function chooseTargetHex(ctx: RunHeuristicCtx, options: string[]): string
     return pickRandom(options, ctx.rand);
   }
 
+  const focus = chooseFocusTarget(state, bot.playerId, fmap);
+
   if (ctx.level === 2) {
+    // Foco de fuego: si el objetivo del equipo está a tiro, va primero
+    if (focus) {
+      const focusKey = enemyOptions.find(k => botAt(k)!.id === focus.id);
+      if (focusKey) return focusKey;
+    }
     return [...enemyOptions].sort((a, b) => effectiveLife(botAt(a)!) - effectiveLife(botAt(b)!))[0];
   }
 
@@ -272,6 +324,7 @@ export function chooseTargetHex(ctx: RunHeuristicCtx, options: string[]): string
     const score = (kill ? 100 : 0)
       + Math.min(dmg, eff)                       // daño real aplicable (anti-sobrematar)
       + bestExpectedDamage(target, fmap) * 0.5   // priorizar amenazas
+      + (focus?.id === target.id ? 3 : 0)        // foco de fuego del equipo
       + objectiveBias(ctx.objectives, { kind: 'target', botId: bot.id, targetId: target.id });
     if (score > bestScore) { bestScore = score; best = k; }
   }

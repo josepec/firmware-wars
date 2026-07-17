@@ -25,12 +25,21 @@ function bot(over: Partial<BattleBot>): BattleBot {
   } as BattleBot;
 }
 
+/** Rejilla transitable de radio 9 — computeAttackTargets necesita mapa real. */
 function state(over: Partial<BattleState>): BattleState {
+  const hexes = [];
+  for (let q = -9; q <= 9; q++) {
+    for (let r = -9; r <= 9; r++) {
+      if (Math.abs(q + r) > 9) continue;
+      hexes.push({ q, r, typeId: 'floor' });
+    }
+  }
   return {
     id: 'x', status: 'in_progress', phase: 'compile', turn: 1,
     activationOrder: [], currentActivationIdx: 0, cpuPriority: 1,
     players: { 1: { alias: 'A', listId: '' }, 2: { alias: 'B', listId: '' } },
-    bots: [], hexMap: { hexTypes: [], hexes: [], deployments: [] },
+    bots: [],
+    hexMap: { hexTypes: [{ id: 'floor', name: 'Suelo', color: '#000', borderColor: '#111', properties: {}, builtIn: true }], hexes, deployments: [] },
     ...over,
   } as BattleState;
 }
@@ -142,6 +151,20 @@ describe('buildProgram N2/N3 — plan de turno', () => {
     const b = bot({ energy: 3 });
     const ops = kinds(b, state({ bots: [b, enemy] }), 3);
     expect(ops.filter(o => o.primary.type === 'attack').length).toBe(1);
+  });
+
+  it('arma LR desalineada: distancia dentro de rango pero SIN objetivo real → mueve primero', () => {
+    // laserBeam alcanza 8 hexes pero solo en los 6 ejes. Enemigo a dist 3 fuera de eje:
+    // el plan por distancia diría "a tiro" y compilaría ataques que solo pueden fallar
+    const fmapLR: Map<string, FunctionEntry> = new Map([
+      ['laserBeam', { id: 'laserBeam', func_name: 'laserBeam()', func_type: 'attack', version: '1', range: '2-8 (LR)', damage: '2', energy: '3', cost: '—', effects: '' }],
+    ]);
+    const b = bot({ attacks: { v1: [{ functionId: 'laserBeam' }], v2: [], v3: null } });
+    const misaligned = bot({ id: 'e1', playerId: 2, q: 2, r: 1 });
+    for (const level of [2, 3] as const) {
+      const ops = buildProgram(b, state({ bots: [b, misaligned] }), fmapLR, level, [], seeded(7)).operations;
+      expect(ops[0].primary.type).toBe('move');
+    }
   });
 
   it('con vida baja y amenaza cerca antepone shield', () => {

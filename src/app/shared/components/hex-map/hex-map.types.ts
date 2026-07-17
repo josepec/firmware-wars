@@ -55,6 +55,8 @@ export interface DeploymentMarker {
   turnBot?: boolean;
   destroyed?: boolean;
   tooltip?: string;
+  /** El bot tiene escudo activo (> 0) — pinta la insignia 🛡 junto al sprite. */
+  shielded?: boolean;
 }
 
 export interface HexMapData {

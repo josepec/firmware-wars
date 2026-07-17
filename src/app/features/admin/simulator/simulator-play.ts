@@ -161,6 +161,24 @@ export class SimulatorPlay implements OnInit {
     return ([1, 2] as PlayerId[]).some(q => !this.isCpu(q));
   }
 
+  /** Bots espiados con peekMemory por un jugador humano en la ronda actual:
+   *  tras el peek, su RAM queda visible el resto de la ronda (como recordarías
+   *  en la mesa). Caduca al cambiar de ronda — el BOOT rehace los numbers. */
+  private humanPeeked = signal<{ turn: number; ids: ReadonlySet<string> }>({ turn: -1, ids: new Set() });
+
+  recordHumanPeek(targetId: string): void {
+    const turn = this.currentState().turn;
+    this.humanPeeked.update(hp => ({
+      turn,
+      ids: new Set([...(hp.turn === turn ? hp.ids : []), targetId]),
+    }));
+  }
+
+  isHumanPeeked(botId: string): boolean {
+    const hp = this.humanPeeked();
+    return hp.turn === this.currentState().turn && hp.ids.has(botId);
+  }
+
   readonly subPhase = computed<DeploySubPhase>(() => {
     if (this.deployStarter()) return 'done';
     const c1 = this.choiceP1();
@@ -239,6 +257,7 @@ export class SimulatorPlay implements OnInit {
         active: selectedIds.has(b.id),
         turnBot: b.id === turnBotId,
         destroyed: b.destroyed,
+        shielded: b.shield > 0,
         tooltip: `${b.name}\n♥ ${b.life}/${b.maxLife}  ⚡ ${b.energy}/${b.maxEnergy}  🛡️ ${b.shield}/${b.maxShield}`,
       }));
     return { ...s.hexMap, deployments };
@@ -1197,7 +1216,7 @@ export class SimulatorPlay implements OnInit {
     return sub ? sub.split(' · ')[0] : phaseLabel(this.currentState().phase);
   });
 
-  readonly interceptOpInfo = computed<{ opKind: string; typeLabel: string; fnName: string; comparator: string } | null>(() => {
+  readonly interceptOpInfo = computed<{ opKind: string; typeLabel: string; fnName: string; comparator: string; isFor: boolean } | null>(() => {
     const rs = this.runState();
     if (rs.step !== 'intercept-prompt') return null;
     const bot = rs.botId ? this.currentState().bots.find(b => b.id === rs.botId) : null;
@@ -1218,7 +1237,8 @@ export class SimulatorPlay implements OnInit {
       const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : null;
       fnName = entry?.func_name ?? fn.attackFunctionId ?? '?';
     }
-    return { opKind, typeLabel, fnName, comparator: rs.opFace ?? '?' };
+    // FOR no tiene comparador: la mecánica es |d6 − número| = iteraciones
+    return { opKind, typeLabel, fnName, comparator: rs.opFace ?? '?', isFor: op.kind === 'FOR' };
   });
 
   subPhaseLabel(): string | null {
@@ -2175,6 +2195,8 @@ export class SimulatorPlay implements OnInit {
     }
     if (attackFnDef?.id === 'peekMemory') {
       const targetNow = this.currentState().bots.find(b => b.id === target.id);
+      // Peek de un humano: la RAM del objetivo queda visible el resto de la ronda
+      if (!this.isCpu(bot.playerId)) this.recordHumanPeek(target.id);
       this.peekMemoryReveal.set({
         targetName: target.name,
         numbers: [...(targetNow?.numbers ?? target.numbers)],

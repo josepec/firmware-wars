@@ -464,6 +464,8 @@ export class SimulatorViewer implements OnInit {
         type: 'player' as const,
         team: b.playerId,
         label: b.name,
+        destroyed: b.destroyed,
+        shielded: b.shield > 0,
       }));
     return { ...s.hexMap, deployments };
   });

@@ -82,6 +82,14 @@
     </div>
 
     <div class="space-y-2 lg:order-none">
+      @if (currentState().phase === 'end' && !initStarted()) {
+      <button type="button" (click)="startNewRound()" class="w-full mb-2 px-4 py-3 text-[11px] tracking-[0.25em] uppercase
+               bg-cyan-500/15 border border-cyan-500/40 text-cyan-300
+               hover:bg-cyan-500/25 hover:border-cyan-400/70 cursor-pointer
+               flex items-center justify-center gap-2">
+        <span>Nueva ronda</span><span class="tracking-normal">→</span>
+      </button>
+      }
       @if (currentState().status === 'finished') {
       <div class="border-2 border-yellow-400/60 bg-yellow-500/10 px-6 py-6 text-center space-y-2">
         <div class="text-[9px] tracking-[0.4em] uppercase text-yellow-400/70">Victoria</div>
@@ -125,14 +133,6 @@
           [dragMode]="debugMode() ? 'move' : 'expand'"
           (hexClicked)="onMapHexClick($event)" (hexMoved)="onDebugBotMoved($event)" />
       </div>
-      @if (currentState().phase === 'end' && !initStarted()) {
-      <button type="button" (click)="startNewRound()" class="w-full mt-2 px-4 py-3 text-[11px] tracking-[0.25em] uppercase
-               bg-cyan-500/15 border border-cyan-500/40 text-cyan-300
-               hover:bg-cyan-500/25 hover:border-cyan-400/70 cursor-pointer
-               flex items-center justify-center gap-2">
-        <span>Nueva ronda</span><span class="tracking-normal">→</span>
-      </button>
-      }
     </div>
 
     <div class="transition-all duration-300 space-y-3"
@@ -527,7 +527,19 @@
               {{ info.typeLabel }}@if (info.fnName) { · {{ info.fnName }} }
             </span>
           </div>
-          <!-- Comparator display -->
+          <!-- Comparator display (el FOR no tiene comparador: va por diferencia) -->
+          @if (info.isFor) {
+          <div class="flex items-center gap-3">
+            <div class="text-[8px] tracking-[0.15em] text-green-500/50 uppercase">Iteraciones</div>
+            <div class="h-10 px-2 flex items-center justify-center border-2 border-cyan-400/70
+                        bg-cyan-500/10 text-cyan-200 font-mono font-bold text-[15px]">
+              |d6 − n|
+            </div>
+            <div class="text-[8px] text-green-500/40 tracking-wider leading-tight">
+              tu número sustituye al d6<br>diff 0 ó &gt;3 = +1 bug rival
+            </div>
+          </div>
+          } @else {
           <div class="flex items-center gap-3">
             <div class="text-[8px] tracking-[0.15em] text-green-500/50 uppercase">Comparador</div>
             <div class="w-10 h-10 flex items-center justify-center border-2 border-cyan-400/70
@@ -538,6 +550,7 @@
               d6 rival<br>vs tu número
             </div>
           </div>
+          }
         </div>
         }
         <div class="text-[8px] text-yellow-400/70 tracking-wider">
@@ -939,7 +952,7 @@
   <app-simulator-bot-card [bot]="sb" [index]="selectedBotIdxFor(p)" [totalBots]="totalBotsFor(p)" [playerId]="p"
     [active]="isActive(p)" [expandedVersion]="expandedVersionFor(sb.id)" [functionsMap]="functionsMap()"
     [activatedThisTurn]="isActivatedThisTurn(sb.id)" [compiledThisTurn]="compiledThisTurn().has(sb.id)"
-    [canIntercept]="canBotIntercept(sb)" [hideNumbers]="hideCpuInfo(p)" (prev)="onBotPrev(p)" (next)="onBotNext(p)"
+    [canIntercept]="canBotIntercept(sb)" [hideNumbers]="hideCpuInfo(p) && !isHumanPeeked(sb.id)" (prev)="onBotPrev(p)" (next)="onBotNext(p)"
     (versionToggled)="toggleAttackVersion(sb.id, $event)" />
   }
 </ng-template>

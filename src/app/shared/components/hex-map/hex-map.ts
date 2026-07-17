@@ -10,6 +10,7 @@ interface RenderedEntity {
 interface RenderedDeployment {
   key: string; q: number; r: number; cx: number; cy: number; type: string; label: string; imageUrl?: string;
   active: boolean; turnBot: boolean; destroyed: boolean; tooltip: string | null; teamColor: string;
+  shielded: boolean;
 }
 
 @Component({
@@ -123,6 +124,15 @@ interface RenderedDeployment {
                      [attr.x]="-(size() * 0.5)" [attr.y]="-(size() * 0.55)"
                      [attr.width]="size()" [attr.height]="size()"
                      preserveAspectRatio="xMidYMid meet" />
+              <!-- Insignia de escudo (misma forma y azul que quick-start) -->
+              @if (d.shielded) {
+                <g class="pointer-events-none"
+                   [attr.transform]="'translate(' + (size() * 0.42) + ',' + (-size() * 0.45) + ') scale(' + (size() / 30) + ')'">
+                  <path d="M0 -5 L4.5 -3.2 V0.5 C4.5 3.6 0 5.5 0 5.5 C0 5.5 -4.5 3.6 -4.5 0.5 V-3.2 Z"
+                        fill="#60a5fa" stroke="#0b1220" stroke-width="0.8"
+                        style="filter: drop-shadow(0 0 3px rgba(96, 165, 250, 0.9))" />
+                </g>
+              }
             }
           </g>
         } @else {
@@ -474,7 +484,7 @@ export class HexMap {
         key: `dep-${d.q},${d.r}`, q: d.q, r: d.r, cx: x, cy: y,
         type: d.type, label: d.label, imageUrl: d.imageUrl,
         active: d.active ?? false, turnBot: d.turnBot ?? false, destroyed: d.destroyed ?? false,
-        tooltip: d.tooltip ?? null, teamColor,
+        tooltip: d.tooltip ?? null, teamColor, shielded: d.shielded ?? false,
       };
     });
   });

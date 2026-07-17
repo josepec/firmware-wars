@@ -8,11 +8,12 @@ import type {
   OperationKind,
 } from '../../../../../shared/types/battle.types';
 import type { FunctionEntry } from '../../simulator-bot-card';
-import { parseEnergy, parseRangeMax } from '../../simulator-run.utils';
+import { computeAttackTargets, parseEnergy, parseRangeMax } from '../../simulator-run.utils';
 import { hexDistance } from '../../engine/pathfinding';
 import type { AiObjective } from '../ai-objectives';
 import { pickRandom, type RandomFn } from '../ai.types';
 import { attackEntries, attackTacticalBonus, bestAttackRange, expectedDamage, nearestEnemy } from './ai-scoring';
+import { chooseFocusTarget } from './ai-team.heuristics';
 
 /** Firma de función a efectos del editor: primaria y secundaria no pueden compartirla. */
 function funcSig(fn: FunctionCall): string {
@@ -210,8 +211,8 @@ export function buildProgram(
     return { operations };
   }
 
-  // ── N2 / N3: plan de turno ──
-  const enemy = nearestEnemy(state, bot);
+  // ── N2 / N3: plan de turno contra el objetivo de foco del equipo ──
+  const enemy = chooseFocusTarget(state, bot.playerId, fmap) ?? nearestEnemy(state, bot);
   const enemyDist = enemy ? hexDistance(bot.q, bot.r, enemy.q, enemy.r) : Infinity;
   const attack = fns.some(f => f.type === 'attack') ? bestAttackFn(bot, enemyDist, fmap) : null;
   const lowLife = bot.life < bot.maxLife * 0.4;
@@ -219,15 +220,20 @@ export function buildProgram(
     ? enemyDist <= enemy.maxMovement + Math.max(1, bestAttackRange(enemy, fmap))
     : false;
   const stride = Math.max(1, bot.maxMovement);
+  // "A tiro" se decide con los OBJETIVOS REALES del ataque, no con la distancia:
+  // un arma LR (línea recta) alcanza 8 hexes pero solo en los 6 ejes, y la LOS
+  // puede estar bloqueada. Distancia ≤ rango sin objetivo real → hay que moverse.
+  const inRangeNow = attack !== null
+    && computeAttackTargets(bot, attack.fn, state.bots, state.hexMap, fmap, state.entities).size > 0;
   const movesNeeded = enemy && attack
-    ? Math.max(0, Math.ceil((enemyDist - attack.range) / stride))
+    ? Math.max(inRangeNow ? 0 : 1, Math.ceil(Math.max(0, enemyDist - attack.range) / stride))
     : (enemy ? slots : 0);
 
   const wishes: Wish[] = [];
   const moveWish = (repeat = false): Wish => ({ fn: { type: 'move' }, repeat });
   const shieldWish = (): Wish => ({ fn: { type: 'shield' } });
 
-  if (attack && enemy && movesNeeded === 0) {
+  if (attack && enemy && inRangeNow) {
     // Ya a alcance: ráfaga
     if (lowLife && threatened) wishes.push(shieldWish());
     const nAtk = level === 3 && attack.cost > 0
