@@ -153,6 +153,14 @@ export class SimulatorPlay implements OnInit {
     ([1, 2] as PlayerId[]).some(p => cpuLevelOf(this.currentState(), p) !== null),
   );
 
+  /** Los numbers son información oculta: en PvC la RAM de los bots CPU no se
+   *  muestra al humano (peekMemory existe para revelarla). En CvC no hay nadie
+   *  de quien esconderla, y el modo Debug es la mesa del árbitro. */
+  hideCpuInfo(p: PlayerId): boolean {
+    if (!this.isCpu(p) || this.debugMode()) return false;
+    return ([1, 2] as PlayerId[]).some(q => !this.isCpu(q));
+  }
+
   readonly subPhase = computed<DeploySubPhase>(() => {
     if (this.deployStarter()) return 'done';
     const c1 = this.choiceP1();

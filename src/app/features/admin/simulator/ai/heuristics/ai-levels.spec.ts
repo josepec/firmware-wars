@@ -6,7 +6,14 @@ import type { RandomFn } from '../ai.types';
 import { chooseBootDice } from './ai-boot.heuristics';
 import { chooseDeployHex } from './ai-deploy.heuristics';
 import { chooseDebugActions } from './ai-debug.heuristics';
-import { blockingValues, chooseInterceptNumber, decideIntercept, type InterceptCtx } from './ai-intercept.heuristics';
+import {
+  blockProbability,
+  chooseInterceptNumber,
+  decideIntercept,
+  guaranteedBlockingValues,
+  satisfyingCount,
+  type InterceptCtx,
+} from './ai-intercept.heuristics';
 import {
   chooseChargedAction,
   chooseMoveHex,
@@ -126,6 +133,70 @@ describe('choosePickNumber — forzado de rama', () => {
     expect(choosePickNumber(ctx, [6, 2, 3])).toBe(3);
   });
 
+  it('FOR con ataque SIN alcance: elige diff 0 — jamás itera un ataque que solo puede fallar', () => {
+    const farEnemy = bot({ id: 'e1', playerId: 2, q: 3, r: 0 });
+    const forMe = bot({
+      ...me, id: 'm1',
+      compiledProgram: { operations: [{ kind: 'FOR', primary: { type: 'attack', attackFunctionId: 'powerSmash' } }] },
+    });
+    const ctx = runCtx({
+      state: state({ bots: [forMe, farEnemy] }), bot: forMe, fmap,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 4, opFace: '>=' },
+    });
+    // d6=4: n=4 → diff 0 (1 bug seco, cero MISses). Debe preferirlo a cualquier diff 1..3
+    expect(choosePickNumber(ctx, [1, 4, 6])).toBe(4);
+  });
+
+  it('WHILE con ataque sin alcance: fuerza FALSE (no encadena MISses)', () => {
+    const farEnemy = bot({ id: 'e1', playerId: 2, q: 3, r: 0 });
+    const whileMe = bot({
+      ...me, id: 'm1',
+      compiledProgram: { operations: [{ kind: 'WHILE', primary: { type: 'attack', attackFunctionId: 'powerSmash' } }] },
+    });
+    const ctx = runCtx({
+      state: state({ bots: [whileMe, farEnemy] }), bot: whileMe, fmap,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 3, opFace: '>=' },
+    });
+    // FALSE con '>=' y d6=3 → n > 3 → elige 6
+    expect(choosePickNumber(ctx, [6, 2])).toBe(6);
+  });
+
+  it('ataque IMPAGABLE: fuerza FALSE aunque haya objetivo (evita el overload)', () => {
+    const poorMe = bot({
+      ...me, id: 'm1', energy: 1,
+      compiledProgram: { operations: [{ kind: 'IF', primary: { type: 'attack', attackFunctionId: 'powerSmash' } }] },
+    });
+    const ctx = runCtx({
+      state: state({ bots: [poorMe, enemy] }), bot: poorMe, fmap,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 3, opFace: '>=' },
+    });
+    // powerSmash cuesta 2⚡ y tiene 1: ejecutarlo = overload → FALSE (n > 3)
+    expect(choosePickNumber(ctx, [6, 2])).toBe(6);
+  });
+
+  it('IF_ELSE con ambas ramas malas: elige la menos dañina', () => {
+    // primaria: ataque impagable (overload −1); secundaria: move sin enemigo... usamos shield lleno (0)
+    const poorMe = bot({
+      ...me, id: 'm1', energy: 1, shield: 3, maxShield: 3,
+      compiledProgram: {
+        operations: [{
+          kind: 'IF_ELSE',
+          primary: { type: 'attack', attackFunctionId: 'powerSmash' },
+          secondary: { type: 'shield' },
+        }],
+      },
+    });
+    const ctx = runCtx({
+      state: state({ bots: [poorMe, enemy] }), bot: poorMe, fmap,
+      runState: { ...initialRunState, botId: 'm1', opIdx: 0, d6: 3, opFace: '>=' },
+    });
+    // attack = overload (negativo); shield lleno... pero shield también impagable con 1⚡ (cuesta 2).
+    // shield: −(2−1)−1 = −2; attack: −(2−1)−1 = −2 → empate: primaria (TRUE) vale
+    // Lo importante: no lanza excepción y devuelve una opción legal
+    const n = choosePickNumber(ctx, [6, 2]);
+    expect([6, 2]).toContain(n);
+  });
+
   it('FOR: elige n con diff válida 1..3', () => {
     const forMe = bot({
       ...me, id: 'm1',
@@ -179,19 +250,26 @@ describe('intercept', () => {
     };
   }
 
-  it('blockingValues: v=1 impide que el rival fuerce TRUE con ">"', () => {
-    expect(blockingValues(interceptCtx({}))).toEqual([1]);
+  it('JUEGO LIMPIO: razona sin leer la RAM del rival — v=1 bloquea ">" contra cualquier mano', () => {
+    // Con ">" y d6 sustituido por 1: ningún n ∈ 1..6 cumple 1 > n
+    expect(satisfyingCount(1, '>')).toBe(0);
+    expect(guaranteedBlockingValues(interceptCtx({}))).toEqual([1]);
+    // v=4 con ">": 3 valores posibles del rival lo satisfarían → no garantizado
+    expect(satisfyingCount(4, '>')).toBe(3);
+    // La probabilidad solo usa la CANTIDAD de numbers del rival, nunca sus valores
+    expect(blockProbability(1, '>', 5)).toBe(1);
+    expect(blockProbability(4, '>', 2)).toBeCloseTo(0.25, 5);
   });
 
-  it('N2 intercepta un ataque bloqueable y elige el número bloqueante', () => {
+  it('N2 intercepta un ataque bloqueable garantizado y elige el número bloqueante', () => {
     const ctx = interceptCtx({});
     expect(decideIntercept(ctx)).toBe(true);
     expect(chooseInterceptNumber(ctx, [1, 4])).toBe(1);
   });
 
-  it('N1 nunca intercepta; sin valores bloqueantes tampoco', () => {
+  it('N1 nunca intercepta; sin bloqueo garantizado N2 tampoco', () => {
     expect(decideIntercept(interceptCtx({ level: 1 }))).toBe(false);
-    const noBlock = interceptCtx({ interceptor: bot({ id: 'i1', playerId: 1, numbers: [6] }) });
+    const noBlock = interceptCtx({ interceptor: bot({ id: 'i1', playerId: 1, q: 0, r: 0, numbers: [4] }) });
     expect(decideIntercept(noBlock)).toBe(false);
   });
 

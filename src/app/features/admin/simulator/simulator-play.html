@@ -555,6 +555,9 @@
         No interceptar
       </button>
       } @else if (runState().step === 'intercept-picking') {
+      @if (ib && hideCpuInfo(ib.playerId)) {
+      <div class="text-[8px] text-yellow-400/70 tracking-wider animate-pulse">CPU eligiendo número…</div>
+      } @else {
       <div class="text-[8px] text-yellow-400/70 tracking-wider">Elige número para sustituir el d6:</div>
       <div class="flex flex-wrap gap-1">
         @for (n of ib?.numbers ?? []; track $index) {
@@ -565,6 +568,7 @@
         </button>
         }
       </div>
+      }
       }
     </div>
     } @else {
@@ -881,6 +885,16 @@
       @if (br.numbers; as nev) {
       <div class="border border-green-500/15 bg-black/40 px-2 py-1.5 text-[10px]">
         <div class="text-[8px] tracking-[0.2em] text-green-500/50 uppercase mb-0.5">getNumbers()</div>
+        @if (hideCpuInfo(bot.playerId)) {
+        <div>
+          Tirada:
+          @for (n of $any(nev.payload).rolled; track $index) {
+          <span class="inline-block w-5 h-5 mx-0.5 text-center border border-green-500/20
+                               bg-green-500/5 text-green-500/40 text-[10px] leading-5 font-bold">?</span>
+          }
+          <span class="text-green-500/40 italic"> · ocultos</span>
+        </div>
+        } @else {
         @if ($any(nev.payload).rolled.length > 0) {
         <div>
           Tirada:
@@ -894,6 +908,7 @@
           Numbers:
           <span class="text-green-300">[{{ $any(nev.payload).numbers.join(', ') }}]</span>
         </div>
+        }
       </div>
       }
 
@@ -924,7 +939,7 @@
   <app-simulator-bot-card [bot]="sb" [index]="selectedBotIdxFor(p)" [totalBots]="totalBotsFor(p)" [playerId]="p"
     [active]="isActive(p)" [expandedVersion]="expandedVersionFor(sb.id)" [functionsMap]="functionsMap()"
     [activatedThisTurn]="isActivatedThisTurn(sb.id)" [compiledThisTurn]="compiledThisTurn().has(sb.id)"
-    [canIntercept]="canBotIntercept(sb)" (prev)="onBotPrev(p)" (next)="onBotNext(p)"
+    [canIntercept]="canBotIntercept(sb)" [hideNumbers]="hideCpuInfo(p)" (prev)="onBotPrev(p)" (next)="onBotNext(p)"
     (versionToggled)="toggleAttackVersion(sb.id, $event)" />
   }
 </ng-template>

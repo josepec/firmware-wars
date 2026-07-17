@@ -167,7 +167,9 @@ function rangeInfo(range: string): { abbr: string; name: string; description: st
             @for (slot of ramSlots(); track $index) {
               @if (slot !== null) {
                 <div class="w-7 h-7 border border-green-500/40 bg-green-500/10 flex items-center justify-center
-                            text-[11px] text-green-300 font-bold">{{ slot }}</div>
+                            text-[11px] font-bold"
+                     [class.text-green-300]="!hideNumbers()"
+                     [class.text-green-500\/40]="hideNumbers()">{{ hideNumbers() ? '?' : slot }}</div>
               } @else {
                 <div class="w-7 h-7 border border-dashed border-green-500/15 flex items-center justify-center
                             text-[8px] text-green-500/30">—</div>
@@ -335,6 +337,8 @@ export class SimulatorBotCard {
   activatedThisTurn = input<boolean>(false);
   compiledThisTurn = input<boolean>(false);
   canIntercept = input<boolean>(false);
+  /** PvC: la RAM del rival es información oculta — muestra '?' en vez del valor. */
+  hideNumbers = input<boolean>(false);
 
   private readonly statusEffectDefs = toSignal(inject(DataService).getStatusEffects(), { initialValue: [] });
   private readonly statusDescMap = computed(() => new Map(this.statusEffectDefs().map(s => [s.name, s.description])));
