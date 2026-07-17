@@ -838,6 +838,11 @@ export class SimulatorPlay implements OnInit {
         this.report.set(r);
         this.events.set(r.events ?? []);
         this.restoreUiState(r.events ?? []);
+        // Reparación: partidas con evento victory pero aún 'in_progress' en el
+        // backend (anteriores al auto-cierre) se cierran al abrirlas
+        if (r.status === 'in_progress' && this.currentState().status === 'finished') {
+          void this.persistFinish();
+        }
       }
     } catch (e) {
       this.error.set(String(e));
@@ -1543,6 +1548,10 @@ export class SimulatorPlay implements OnInit {
     const op = this.currentRunOp();
     const bot = this.currentRunBot();
     if (!op || !bot) return;
+    if (bot.destroyed) {
+      this.runState.update(s => ({ ...s, step: 'bot-done', lastOpNotice: 'Bot destruido — activación terminada' }));
+      return;
+    }
     if (op.kind === 'IF' || op.kind === 'IF_ELSE') return this.resolveIfLike(op, bot);
     if (op.kind === 'FOR') return this.resolveFor(op, bot);
     if (op.kind === 'TRY_CATCH') return this.resolveTryCatch(op, bot);
@@ -2306,6 +2315,16 @@ export class SimulatorPlay implements OnInit {
   }
 
   private async afterFnExecuted(): Promise<void> {
+    // Un bot destruido en plena ejecución (overload, corona de Nodo al mover,
+    // autodaño de berserk, bust de chargedStrike…) termina su activación AQUÍ:
+    // ni el WHILE tira otra condición, ni el FOR itera, ni se mueve un muerto.
+    if (this.currentRunBot()?.destroyed) {
+      this.runState.update(s => ({
+        ...s, step: 'bot-done', pendingFn: null, forRemaining: 0,
+        lastOpNotice: 'Bot destruido — activación terminada',
+      }));
+      return;
+    }
     const rs = this.runState();
     // WHILE loop: continue with new condition check each iteration
     const whileOp = this.currentRunOp();
@@ -2498,6 +2517,10 @@ export class SimulatorPlay implements OnInit {
   async advanceOp(): Promise<void> {
     const bot = this.currentRunBot();
     if (!bot) return;
+    if (bot.destroyed) {
+      this.runState.update(s => ({ ...s, step: 'bot-done', lastOpNotice: 'Bot destruido — activación terminada' }));
+      return;
+    }
     const program = bot.compiledProgram?.operations ?? [];
     const nextIdx = this.runState().opIdx + 1;
     if (nextIdx >= program.length) {
@@ -2704,6 +2727,9 @@ export class SimulatorPlay implements OnInit {
         { turn: s.turn, activation: s.currentActivationIdx, phase: 'finished', timestamp: ts, kind: 'victory', payload: { winner } },
       ]);
       this.runState.set(initialRunState);
+      // Persistir el cierre: sin esto la partida queda "En curso" en la lista
+      // (nadie pulsa Cerrar partida en una victoria, y menos contra la IA)
+      await this.persistFinish();
       return;
     }
 
@@ -2906,20 +2932,30 @@ export class SimulatorPlay implements OnInit {
     return saved;
   }
 
-  async finish(): Promise<void> {
+  /** Marca la partida como finalizada en el backend, con el ganador real del
+   *  estado (null = cierre manual sin victoria). Idempotente. */
+  private async persistFinish(): Promise<void> {
     const r = this.report();
     if (!r) return;
-    this.finishing.set(true);
     try {
       await fetch(`${API_URL}/api/battles/${r.id}/finish`, {
         method: 'PATCH',
         headers: this.auth.authHeaders(),
-        body: JSON.stringify({ winner: null, finalState: this.currentState() }),
+        body: JSON.stringify({
+          winner: this.currentState().winner ?? null,
+          finalState: this.currentState(),
+        }),
       });
-      this.router.navigate(['/admin/simulator']);
-    } catch (e) {
-      this.error.set(String(e));
+    } catch {
+      // Si falla, la partida queda "En curso" y el botón Cerrar partida sigue como respaldo
     }
+  }
+
+  async finish(): Promise<void> {
+    if (!this.report()) return;
+    this.finishing.set(true);
+    await this.persistFinish();
+    this.router.navigate(['/admin/simulator']);
     this.finishing.set(false);
   }
 }

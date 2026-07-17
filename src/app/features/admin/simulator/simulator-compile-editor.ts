@@ -72,7 +72,7 @@ function hasSecondarySlot(op: OperationKind): boolean {
                   class="flex-1 min-w-0 bg-black/80 border border-green-500/20 text-[9px]
                          text-green-300 px-1 py-0.5 cursor-pointer">
                   <option value="">-- función --</option>
-                  @for (opt of fnOptions(); track opt.value) {
+                  @for (opt of primaryOptions(i); track opt.value) {
                     <option [value]="opt.value" [selected]="draftPrimary()[i] === opt.value">
                       {{ opt.label }}
                     </option>
@@ -90,7 +90,7 @@ function hasSecondarySlot(op: OperationKind): boolean {
                     class="flex-1 min-w-0 bg-black/80 border border-green-500/20 text-[9px]
                            text-green-300 px-1 py-0.5 cursor-pointer">
                     <option value="">-- función --</option>
-                    @for (opt of fnOptions(); track opt.value) {
+                    @for (opt of secondaryOptions(i); track opt.value) {
                       <option [value]="opt.value" [selected]="draftSecondary()[i] === opt.value">
                         {{ opt.label }}
                       </option>
@@ -178,6 +178,25 @@ export class CompileEditor {
     }
     return opts;
   });
+
+  /** Opciones de la rama TRUE/TRY: excluye la firma ya elegida en la otra rama.
+   *  La regla "primaria y secundaria de distinta firma" se aplica en el propio
+   *  desplegable — no se ofrece lo que no se puede compilar. */
+  primaryOptions(i: number): FnOption[] {
+    const ops = this.draftOps();
+    if (!hasSecondarySlot(ops[i])) return this.fnOptions();
+    const secSig = funcSig(this.draftSecondary()[i] ?? null);
+    if (!secSig) return this.fnOptions();
+    return this.fnOptions().filter(o => funcSig(o.value) !== secSig);
+  }
+
+  /** Opciones de la rama FALSE/CATCH: excluye la firma de la primaria
+  *   (todos los ataques comparten firma: con un ataque en el TRY, ninguno aparece). */
+  secondaryOptions(i: number): FnOption[] {
+    const primSig = funcSig(this.draftPrimary()[i] ?? null);
+    if (!primSig) return this.fnOptions();
+    return this.fnOptions().filter(o => funcSig(o.value) !== primSig);
+  }
 
   readonly isValid = computed<boolean>(() => {
     const ops = this.draftOps();
