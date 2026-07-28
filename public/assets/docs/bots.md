@@ -41,6 +41,7 @@ Debe elegir:
 - **{{slotsPerVersion.v2}} Funciones** de **Versión 2**.
 - **{{slotsPerVersion.v3}} Función** de **Versión 3**.
 
+/table-cards
 /json tables/attack-functions.json
 
 /img-center /assets/img/lady.png print-only h:200px

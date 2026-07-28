@@ -1,18 +1,19 @@
 <div class="flex flex-col md:flex-row min-h-screen">
 
-  <!-- Sidebar ───────────────────────────────────────────────── -->
-  <aside class="bg-black/85 backdrop-blur-sm border-b md:border-b-0 md:border-r border-green-500/15
-                sticky top-0 z-30
-                md:w-56 md:flex-shrink-0 md:h-screen md:overflow-y-auto">
+  <!-- ══════════════════════════════════════════════════════════
+       SIDEBAR — desktop
+       ══════════════════════════════════════════════════════════ -->
+  <aside class="hidden md:block bg-black/85 backdrop-blur-sm border-r border-green-500/15
+                sticky top-[var(--fw-nav-h)] z-30
+                w-56 flex-shrink-0 h-[calc(100vh-var(--fw-nav-h))] overflow-y-auto">
 
-    <!-- ── Desktop header ────────────────────────────────────── -->
-    <div class="hidden md:block px-6 pt-6 pb-3">
-      <span class="text-[10px] tracking-[0.4em] text-green-500/55">// {{ currentCategory().label }}</span>
+    <div class="px-6 pt-6 pb-3">
+      <span class="text-[10px] tracking-[0.4em] text-green-400/80">// {{ currentCategory().label }}</span>
     </div>
 
-    <!-- ── Search (only for searchable categories) ─────────────── -->
+    <!-- Search (only for searchable categories) -->
     @if (currentCategory().searchable) {
-    <div class="px-3 md:px-6 pb-3 relative">
+    <div class="px-6 pb-3 relative">
       <div class="relative">
         <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-green-500/40 pointer-events-none"
           width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -29,8 +30,8 @@
                  placeholder:text-green-500/30
                  focus:border-green-400/40 focus:outline-none transition-colors" />
         @if (searchQuery()) {
-        <button (click)="clearSearch()" type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2 text-green-500/40 hover:text-green-400
+        <button (click)="clearSearch()" type="button" aria-label="Limpiar búsqueda"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-green-400/70 hover:text-green-400
                  text-xs cursor-pointer">
           ✕
         </button>
@@ -40,17 +41,17 @@
       <!-- Search results -->
       @if (searchActive() && searchResults().length > 0) {
       <ul class="mt-1 border border-green-500/20 bg-[#060e0a] shadow-xl shadow-black/50
-                 max-h-[50vh] overflow-y-auto absolute left-3 right-3 md:left-6 md:right-6 z-40
+                 max-h-[50vh] overflow-y-auto absolute left-6 right-6 z-40
                  search-results">
         @for (r of searchResults(); track $index) {
         <li>
           <button (click)="goToResult(r)" type="button"
             class="w-full text-left px-3 py-2.5 hover:bg-green-500/8 transition-colors
                    border-b border-green-500/8 last:border-b-0 cursor-pointer">
-            <div class="text-[9px] tracking-[0.2em] uppercase text-green-500/50 mb-1">
+            <div class="text-[9px] tracking-[0.2em] uppercase text-green-400/70 mb-1">
               {{ r.sectionTitle }}
             </div>
-            <div class="text-[10px] text-green-400/75 leading-relaxed"
+            <div class="text-[11px] text-green-400/85 leading-relaxed"
               [innerHTML]="highlightSnippet(r.snippet)">
             </div>
           </button>
@@ -60,88 +61,27 @@
       }
       @if (searchActive() && searchResults().length === 0) {
       <div class="mt-1 border border-green-500/20 bg-[#060e0a] px-3 py-3
-                  absolute left-3 right-3 md:left-6 md:right-6 z-40">
-        <span class="text-[10px] text-green-500/40 tracking-wider">Sin resultados.</span>
+                  absolute left-6 right-6 z-40">
+        <span class="text-[11px] text-green-400/70 tracking-wider">Sin resultados.</span>
       </div>
       }
     </div>
     }
 
-    <!-- ── Mobile nav: dropdown ──────────────────────────────── -->
-    <nav class="md:hidden py-2 px-3 mobile-nav-dropdown">
-      <div class="flex items-center gap-2">
-
-        <!-- Dropdown trigger -->
-        <button (click)="toggleMobileMenu()" type="button"
-          class="flex-1 flex items-center gap-2 px-3 py-2 text-[10px] tracking-[0.15em] uppercase
-                 text-green-400 border border-green-500/25 bg-green-500/5
-                 hover:border-green-400/40 transition-all"
-          [class.opacity-50]="sections().length === 0"
-          [disabled]="sections().length === 0">
-          <span class="text-green-500/40 text-[8px] transition-transform duration-200"
-            [class.rotate-180]="mobileMenuOpen()">▼</span>
-          @if (currentSection(); as s) {
-            <span>{{ s.subtitle }}</span>
-          } @else if (sections().length === 0) {
-            <span class="text-green-500/40">Sin secciones</span>
-          } @else {
-            <span class="text-green-500/40">Seleccionar sección</span>
-          }
-        </button>
-
-        <!-- PDF button -->
-        @if (currentCategory().id === 'reglamento' || currentCategory().id === 'escenarios' || currentCategory().id === 'campaign') {
-        <a [href]="currentCategory().id === 'reglamento' ? pdfUrl : currentCategory().id === 'escenarios' ? scenariosPdfUrl : campaignPdfUrl" target="_blank" rel="noopener" aria-label="Descargar PDF"
-          class="flex items-center justify-center px-2.5 py-2 border border-green-500/40 bg-green-500/10
-                 text-green-400 hover:bg-green-500/20 hover:border-green-400/60 transition-all">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round">
-            <path d="M12 16V4M12 16l-4-4M12 16l4-4" />
-            <path d="M4 20h16" />
-          </svg>
-        </a>
-        }
-      </div>
-
-      <!-- Dropdown list -->
-      @if (mobileMenuOpen() && sections().length > 0) {
-      <ul class="mt-1 border border-green-500/20 bg-black/95 backdrop-blur-sm
-                 max-h-[60vh] overflow-y-auto">
-        @for (s of sections(); track s.id) {
-        <li>
-          @if (s.type === 'header') {
-          <span class="block px-4 py-3 text-[10px] tracking-[0.3em] uppercase text-green-500/40
-                       border-b border-green-500/8 border-t border-green-500/15 mt-1">
-            {{ s.subtitle }}
-          </span>
-          } @else {
-          <a [routerLink]="'/docs/' + currentCategory().id + '/' + s.id" routerLinkActive="!text-green-300 !bg-green-500/10"
-            class="block px-4 py-2.5 text-[10px] tracking-[0.12em] uppercase
-                   text-green-400/55 hover:text-green-300 hover:bg-green-500/5 transition-colors
-                   border-b border-green-500/8 last:border-b-0">
-            <span class="text-green-500/25 mr-2">{{ s.num }}</span>
-            {{ s.subtitle }}
-          </a>
-          }
-        </li>
-        }
-      </ul>
-      }
-    </nav>
-
-    <!-- ── Desktop nav: vertical ─────────────────────────────── -->
-    <nav class="hidden md:block px-6 pb-6">
+    <!-- Nav vertical -->
+    <nav class="px-6 pb-6">
       @if (sections().length > 0) {
       <ul class="flex flex-col gap-0.5">
         @for (s of sections(); track s.id) {
         <li>
           @if (s.type === 'header') {
-          <span class="block py-2 mt-3 mb-1 text-[10px] tracking-[0.3em] text-green-500/40
+          <span class="block py-2 mt-3 mb-1 text-[10px] tracking-[0.3em] text-green-400/70
                        border-t border-green-500/15">
             {{ s.subtitle }}
           </span>
           } @else {
-          <a [routerLink]="'/docs/' + currentCategory().id + '/' + s.id" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3" class="block text-green-400/60 hover:text-green-300 transition-colors
+          <a [routerLink]="sectionLink(s.id)" routerLinkActive="text-green-400 border-l-2 border-green-400 pl-3"
+            class="block text-green-400/80 hover:text-green-300 transition-colors
                    py-1 pl-0 text-xs tracking-widest uppercase">
             @if (s.num) { <span class="mr-1">{{ s.num }} —</span> }{{ s.subtitle }}
           </a>
@@ -150,15 +90,15 @@
         }
       </ul>
       } @else {
-      <p class="text-green-500/35 text-[10px] tracking-widest py-2">
+      <p class="text-green-400/70 text-[11px] tracking-widest py-2">
         &gt; Sin secciones disponibles.
       </p>
       }
 
-      <!-- ── PDF download ──────────────────────────────────────── -->
-      @if (currentCategory().id === 'reglamento' || currentCategory().id === 'escenarios' || currentCategory().id === 'campaign') {
+      <!-- PDF download -->
+      @if (pdfLink(); as pdf) {
       <div class="mt-5 pt-4 border-t border-green-500/15">
-        <a [href]="currentCategory().id === 'reglamento' ? pdfUrl : currentCategory().id === 'escenarios' ? scenariosPdfUrl : campaignPdfUrl" target="_blank" rel="noopener"
+        <a [href]="pdf" target="_blank" rel="noopener"
           class="flex items-center justify-center gap-2 px-3 py-2 text-[10px] tracking-[0.2em] uppercase
                  text-green-400 bg-green-500/10 hover:bg-green-500/20 border border-green-500/40
                  hover:border-green-400/60 transition-all">
@@ -175,10 +115,35 @@
 
   </aside>
 
-  <!-- Content ───────────────────────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════
+       SUB-BARRA STICKY DE LECTURA — mobile
+       ══════════════════════════════════════════════════════════ -->
+  @if (currentSection(); as s) {
+  <div class="md:hidden sticky top-[var(--fw-nav-h)] z-30
+              bg-[#040c0f]/95 backdrop-blur-sm border-b border-green-500/15
+              px-3 py-2.5 flex items-center gap-2.5">
+    <a [routerLink]="indexLink()" aria-label="Volver al índice"
+      class="flex items-center justify-center w-11 h-11 shrink-0
+             border border-green-500/30 text-green-400 text-sm
+             hover:bg-green-500/10 transition-colors">
+      ←
+    </a>
+    <div class="flex-1 min-w-0">
+      <div class="text-[10px] tracking-[0.2em] text-green-400/85 mb-[3px] truncate">{{ s.title }}</div>
+      <div class="text-sm tracking-[0.06em] leading-[1.3] text-green-300 truncate">
+        @if (s.num) { {{ s.num }} · }{{ s.subtitle }}
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════
+       CONTENIDO
+       ══════════════════════════════════════════════════════════ -->
   <main class="flex-1 min-w-0 p-6 md:p-10 relative z-20 overflow-x-hidden"
         [class.max-w-4xl]="currentCategory().id !== 'escenarios'"
         [class.max-w-7xl]="currentCategory().id === 'escenarios'">
+
     @if (isThreatSection() && currentSectionId()) {
     <app-threat-viewer [threatId]="currentSectionId()!" />
     } @else if (currentCategory().id === 'escenarios' && currentSectionId()) {
@@ -186,9 +151,141 @@
     } @else if (markdownSrc(); as src) {
     <markdown [src]="src" [disableSanitizer]="true" (load)="onMarkdownReady()" />
     } @else {
-    <p class="text-green-400/65 text-xs tracking-widest">
+
+    <!-- ── Índice — mobile: tarjetas de sección ──────────────── -->
+    <div class="md:hidden">
+      <!-- Jerarquía del prototipo: cejilla con la categoría activa,
+           título fijo DOCUMENTACIÓN y las categorías solo en los chips. -->
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs tracking-[0.2em] text-green-400/80 whitespace-nowrap shrink-0">
+          // {{ currentCategory().label }}
+        </span>
+        <div class="flex-1 h-px bg-green-500/15"></div>
+      </div>
+      <h1 class="font-orbitron text-2xl font-black tracking-tight text-green-300 uppercase mb-4">
+        Documentación
+      </h1>
+
+      <!-- Selector de categoría: chips en carril horizontal, más ligeros
+           que las tarjetas de sección. Escala solo si crecen (scroll-x). -->
+      @if (visibleCategories().length > 1) {
+      <div class="flex gap-2 overflow-x-auto mb-5 -mx-6 px-6 pb-1.5" role="tablist"
+        aria-label="Categorías de documentación">
+        @for (cat of visibleCategories(); track cat.id) {
+        <a [routerLink]="'/docs/' + cat.id" role="tab"
+          [attr.aria-selected]="cat.id === currentCategory().id"
+          class="shrink-0 whitespace-nowrap inline-flex items-center min-h-11 px-3.5
+                 text-xs tracking-[0.12em] uppercase border transition-colors"
+          [ngClass]="cat.id === currentCategory().id
+                  ? 'border-green-400 text-green-300 bg-green-500/10 font-bold'
+                  : 'border-green-500/20 text-green-400/80 bg-transparent hover:text-green-300 hover:border-green-400/40'">
+          {{ cat.label }}
+        </a>
+        }
+      </div>
+      }
+
+      @if (currentCategory().searchable) {
+      <div class="relative mb-4">
+        <input type="text" placeholder="Buscar..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($any($event.target).value)"
+          (keydown.escape)="clearSearch()"
+          class="w-full px-3.5 py-3 text-sm tracking-wider
+                 bg-green-500/5 border border-green-500/25 text-green-300
+                 placeholder:text-green-400/60
+                 focus:border-green-400/50 focus:outline-none transition-colors" />
+        @if (searchActive() && searchResults().length > 0) {
+        <ul class="mt-1 border border-green-500/20 bg-[#060e0a] shadow-xl shadow-black/50
+                   max-h-[50vh] overflow-y-auto absolute inset-x-0 z-40 search-results">
+          @for (r of searchResults(); track $index) {
+          <li>
+            <button (click)="goToResult(r)" type="button"
+              class="w-full text-left px-4 py-3 hover:bg-green-500/8 transition-colors
+                     border-b border-green-500/8 last:border-b-0 cursor-pointer">
+              <div class="text-xs tracking-[0.15em] uppercase text-green-400/80 mb-1">
+                {{ r.sectionTitle }}
+              </div>
+              <div class="text-xs text-green-400/90 leading-relaxed"
+                [innerHTML]="highlightSnippet(r.snippet)"></div>
+            </button>
+          </li>
+          }
+        </ul>
+        }
+        @if (searchActive() && searchResults().length === 0) {
+        <div class="mt-1 border border-green-500/20 bg-[#060e0a] px-4 py-3 absolute inset-x-0 z-40">
+          <span class="text-xs text-green-400/85 tracking-wider">Sin resultados.</span>
+        </div>
+        }
+      </div>
+      }
+
+      @if (sections().length > 0) {
+      <div class="flex flex-col gap-2">
+        @for (s of sections(); track s.id) {
+        @if (s.type === 'header') {
+        <div class="pt-3 text-xs tracking-[0.25em] uppercase text-green-400/85">{{ s.subtitle }}</div>
+        } @else {
+        <a [routerLink]="sectionLink(s.id)"
+          class="flex items-center gap-3 min-h-[56px] px-4 py-3
+                 border border-green-500/20 bg-black/40
+                 hover:border-green-400/40 hover:bg-green-500/5 transition-all">
+          <span class="text-xs text-green-400/80 shrink-0">{{ s.num }}</span>
+          <span class="flex-1 text-sm tracking-[0.06em] text-green-300 min-w-0">{{ s.subtitle }}</span>
+          <span class="text-xs text-green-400/85 shrink-0 truncate max-w-[35%]">{{ s.title }}</span>
+        </a>
+        }
+        }
+      </div>
+      } @else {
+      <p class="text-green-400/80 text-sm tracking-wider">
+        &gt; Sin secciones disponibles.
+      </p>
+      }
+
+      @if (pdfLink(); as pdf) {
+      <a [href]="pdf" target="_blank" rel="noopener"
+        class="mt-4 flex items-center justify-center gap-2 min-h-[52px] px-4
+               text-sm tracking-[0.12em] uppercase
+               text-green-400 bg-green-500/8 border border-green-500/40
+               hover:bg-green-500/15 hover:border-green-400/60 transition-all">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+          stroke-linecap="round">
+          <path d="M12 16V4M12 16l-4-4M12 16l4-4" />
+          <path d="M4 20h16" />
+        </svg>
+        Descargar PDF
+      </a>
+      }
+    </div>
+
+    <!-- ── Índice — desktop: la navegación ya está en el sidebar ── -->
+    <p class="hidden md:block text-green-400/80 text-xs tracking-widest">
       &gt; Selecciona una sección del menú.<span class="cursor-blink ml-1">&#9646;</span>
     </p>
+    }
+
+    <!-- ── Sección anterior / siguiente — mobile ─────────────── -->
+    @if (currentSectionId() && (prevSection() || nextSection())) {
+    <div class="md:hidden flex gap-2.5 mt-10 pt-5 border-t border-green-500/15">
+      @if (prevSection(); as p) {
+      <a [routerLink]="sectionLink(p.id)"
+        class="flex-1 flex items-center min-h-[48px] px-3 py-2 gap-2
+               border border-green-500/30 text-green-400 text-xs
+               hover:bg-green-500/10 transition-colors">
+        <span aria-hidden="true">←</span><span class="truncate">{{ p.subtitle }}</span>
+      </a>
+      }
+      @if (nextSection(); as n) {
+      <a [routerLink]="sectionLink(n.id)"
+        class="flex-1 flex items-center justify-end min-h-[48px] px-3 py-2 gap-2
+               border border-green-500/30 text-green-400 text-xs
+               hover:bg-green-500/10 transition-colors">
+        <span class="truncate">{{ n.subtitle }}</span><span aria-hidden="true">→</span>
+      </a>
+      }
+    </div>
     }
   </main>
 

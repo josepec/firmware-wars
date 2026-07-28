@@ -1,0 +1,5 @@
+/* El shell necesita ser un bloque para que la navbar sticky
+   tenga un contenedor de referencia con la altura de la página. */
+:host {
+  display: block;
+}

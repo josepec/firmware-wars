@@ -22,7 +22,7 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
 
       <!-- Cabecera -->
       <div class="flex items-center gap-3 sm:gap-4 mb-2">
-        <span class="text-[9px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] text-green-500/55">
+        <span class="text-xs tracking-[0.15em] sm:tracking-[0.5em] text-green-400/80 whitespace-nowrap shrink-0">
           // HELPDESK.SYS
         </span>
         <div class="flex-1 h-px bg-green-500/15"></div>
@@ -30,25 +30,25 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
       <h1 class="font-orbitron text-2xl sm:text-3xl font-black tracking-tight text-green-400 uppercase mb-2">
         Soporte
       </h1>
-      <p class="text-[10px] tracking-[0.2em] text-green-500/50 uppercase mb-10 leading-relaxed">
+      <p class="text-xs tracking-[0.12em] text-green-400/80 uppercase mb-10 leading-relaxed">
         Centro de soporte. Consulta la base de conocimiento o abre un ticket directo con el Product Owner.
       </p>
 
       <!-- ── FAQ ─────────────────────────────────────────────── -->
       <section class="mb-12">
         <div class="flex items-center gap-3 mb-4">
-          <span class="text-[9px] tracking-[0.3em] text-green-500/55">// FAQ.SYS</span>
+          <span class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-green-400/80 whitespace-nowrap shrink-0">// FAQ.SYS</span>
           <div class="flex-1 h-px bg-green-500/15"></div>
-          <span class="text-[9px] tracking-[0.3em] text-green-500/55 uppercase">Preguntas frecuentes</span>
+          <span class="hidden sm:inline text-[10px] tracking-[0.3em] text-green-400/80 uppercase">Preguntas frecuentes</span>
         </div>
 
         @if (loadingFaqs()) {
-          <div class="text-[10px] text-green-500/40 tracking-wider animate-pulse py-4">
+          <div class="text-xs text-green-400/85 tracking-wider animate-pulse py-4">
             > CARGANDO FAQ.SYS...
           </div>
         } @else if (faqs().length === 0) {
           <div class="border border-green-500/15 bg-black/30 px-5 py-6 text-center
-                      text-[10px] tracking-[0.2em] text-green-500/45">
+                      text-xs tracking-[0.15em] text-green-400/80">
             > FAQ.SYS SIN REGISTROS.
           </div>
         } @else {
@@ -56,12 +56,13 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
             @for (f of faqs(); track f.id) {
               <div class="border border-green-500/15 bg-black/30">
                 <button type="button" (click)="toggleFaq(f.id)"
-                  class="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer
+                  [attr.aria-expanded]="openFaqId() === f.id"
+                  class="w-full min-h-[52px] flex items-center gap-3 px-4 py-3 text-left cursor-pointer
                          hover:bg-green-500/5 transition-colors">
-                  <span class="text-green-500/40 text-[10px] font-mono">
+                  <span class="text-green-400/80 text-xs font-mono shrink-0">
                     {{ openFaqId() === f.id ? '▾' : '▸' }}
                   </span>
-                  <span class="text-[11px] sm:text-xs tracking-wider text-green-300 uppercase font-bold">
+                  <span class="text-[13px] sm:text-xs tracking-wider text-green-300 uppercase font-bold">
                     {{ f.question }}
                   </span>
                 </button>
@@ -79,7 +80,7 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
       <!-- ── Consultar al Product Owner ───────────────────────── -->
       <section>
         <div class="flex items-center gap-3 mb-4">
-          <span class="text-[9px] tracking-[0.3em] text-green-500/55">// CONSULTAR AL PRODUCT OWNER</span>
+          <span class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-green-400/80 shrink-0">// CONSULTAR AL PRODUCT OWNER</span>
           <div class="flex-1 h-px bg-green-500/15"></div>
         </div>
 
@@ -93,15 +94,15 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
             } @else {
               <div class="w-full max-w-[140px] aspect-square border border-dashed border-green-500/25
                           flex items-center justify-center text-center px-2 mx-auto sm:mx-0
-                          text-[8px] tracking-[0.15em] text-green-500/40">
+                          text-[10px] tracking-[0.12em] text-green-400/70">
                 [ PRODUCT_OWNER.PNG<br>— SEÑAL PERDIDA ]
               </div>
             }
             <div>
-              <div class="font-mono text-[10px] sm:text-[11px] text-cyan-300/80 mb-3">
+              <div class="font-mono text-xs sm:text-[11px] text-cyan-300/90 mb-3">
                 $ ping product_owner --msg "tu_consulta"
               </div>
-              <p class="text-[10px] tracking-[0.15em] text-green-400/70 uppercase leading-relaxed">
+              <p class="text-xs tracking-[0.1em] text-green-400/85 uppercase leading-relaxed">
                 El Product Owner procesa todas las consultas personalmente.
                 Tiempo medio de respuesta: &lt;48 ciclos.
               </p>
@@ -110,7 +111,7 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
 
           @if (sendState() === 'sent') {
             <div class="border border-green-400/40 bg-green-500/10 px-4 py-4 text-center
-                        text-[10px] tracking-[0.2em] text-green-300">
+                        text-xs tracking-[0.15em] text-green-300">
               > CONSULTA TRANSMITIDA. RESPUESTA ESTIMADA: &lt;48 CICLOS.
             </div>
           } @else {
@@ -118,13 +119,13 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input type="text" [(ngModel)]="name" name="name" maxlength="80" required
                   placeholder="ALIAS / ID DE NODO"
-                  class="w-full px-3 py-2 text-[11px] tracking-wider bg-green-500/5
-                         border border-green-500/20 text-green-300 placeholder:text-green-500/30
+                  class="w-full px-3 py-3 text-[13px] sm:text-[11px] tracking-wider bg-green-500/5
+                         border border-green-500/20 text-green-300 placeholder:text-green-400/60
                          focus:border-green-400/50 focus:outline-none" />
                 <input type="email" [(ngModel)]="email" name="email" maxlength="120"
                   placeholder="CANAL DE RESPUESTA (OPCIONAL)"
-                  class="w-full px-3 py-2 text-[11px] tracking-wider bg-green-500/5
-                         border border-green-500/20 text-green-300 placeholder:text-green-500/30
+                  class="w-full px-3 py-3 text-[13px] sm:text-[11px] tracking-wider bg-green-500/5
+                         border border-green-500/20 text-green-300 placeholder:text-green-400/60
                          focus:border-green-400/50 focus:outline-none" />
               </div>
               <!-- Honeypot: invisible para humanos, irresistible para bots -->
@@ -132,28 +133,28 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error' | 'ratelimited';
                      autocomplete="off" aria-hidden="true" class="hp-field" />
               <textarea [(ngModel)]="message" name="message" rows="5" maxlength="2000" required
                 placeholder="> ESCRIBE TU CONSULTA..."
-                class="w-full px-3 py-2 text-[11px] tracking-wider bg-green-500/5
-                       border border-green-500/20 text-green-300 placeholder:text-green-500/30
+                class="w-full px-3 py-3 text-[13px] sm:text-[11px] tracking-wider bg-green-500/5
+                       border border-green-500/20 text-green-300 placeholder:text-green-400/60
                        focus:border-green-400/50 focus:outline-none resize-y"></textarea>
 
               @if (validationError()) {
-                <div class="text-[9px] tracking-[0.15em] text-yellow-400/80">
+                <div class="text-xs tracking-[0.1em] text-yellow-400/90">
                   ⚠ {{ validationError() }}
                 </div>
               }
               @if (sendState() === 'error') {
-                <div class="text-[9px] tracking-[0.15em] text-red-400/80">
+                <div class="text-xs tracking-[0.1em] text-red-400/90">
                   > ERROR DE TRANSMISIÓN. REINTENTA EN UNOS CICLOS.
                 </div>
               }
               @if (sendState() === 'ratelimited') {
-                <div class="text-[9px] tracking-[0.15em] text-orange-400/80">
+                <div class="text-xs tracking-[0.1em] text-orange-400/90">
                   > CANAL SATURADO. DEMASIADAS TRANSMISIONES — ESPERA 1 HORA.
                 </div>
               }
 
               <button type="submit" [disabled]="sendState() === 'sending'"
-                class="w-full px-4 py-3 text-[11px] tracking-[0.25em] uppercase font-bold
+                class="w-full px-4 py-3.5 text-[13px] sm:text-[11px] tracking-[0.15em] sm:tracking-[0.25em] uppercase font-bold
                        bg-green-500/10 border border-green-500/30 text-green-400
                        hover:bg-green-500/20 hover:border-green-400/50 transition-all
                        disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">

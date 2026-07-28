@@ -2,6 +2,7 @@
 
 ## Ciclo de Turno
 
+/table-cards
 /json tables/turn-cycle.json
 
 ---
@@ -44,6 +45,7 @@
 
 ## Funciones Ataque
 
+/table-cards
 /json tables/attack-functions.json
 
 > **LR** — {{rangeTypes.LR.name}}: {{rangeTypes.LR.description}}

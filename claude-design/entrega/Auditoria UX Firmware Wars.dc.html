@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#070d0b; color:#d3e2d8; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; }
+  a { color:#00ff88; } a:hover { color:#7dffc0; }
+</style>
+</helmet>
+
+<div style="max-width:900px; margin:0 auto; padding:48px 24px 96px; display:flex; flex-direction:column; gap:56px;">
+
+  <!-- HEADER -->
+  <header style="display:flex; flex-direction:column; gap:16px; border-bottom:1px solid rgba(0,255,136,0.2); padding-bottom:32px;">
+    <div style="font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:0.3em; color:rgba(0,255,136,0.6);">// AUDIT_REPORT.SYS — 23 JUL 2026</div>
+    <h1 style="font-family:'Orbitron',sans-serif; font-size:40px; font-weight:900; margin:0; color:#eafff3; line-height:1.1;">Auditoría UX/UI<br><span style="color:#00ff88;">firmwarewars.josepec.eu</span></h1>
+    <p style="margin:0; font-size:16px; line-height:1.6; color:#a8bfb2; max-width:640px;">Alcance: landing, navegación, quick-start, docs, army builder y footer. Admin excluido. Foco principal: <strong style="color:#eafff3;">experiencia mobile</strong>. Basada en el código fuente (Angular + Tailwind).</p>
+  </header>
+
+  <!-- RESUMEN -->
+  <section style="display:flex; flex-direction:column; gap:20px;">
+    <h2 style="font-family:'Orbitron',sans-serif; font-size:20px; margin:0; color:#eafff3;">Resumen ejecutivo</h2>
+    <p style="margin:0; font-size:16px; line-height:1.7; color:#c2d4c8;">El sitio tiene una identidad excepcional —estética terminal coherente, ilustraciones propias, la demo quick-start es una gran pieza de onboarding— pero en mobile <strong style="color:#eafff3;">la legibilidad y la ergonomía táctil fallan de forma sistémica</strong>: casi todo el texto informativo está entre 8 y 10px con letter-spacing extremo, los objetivos táctiles están muy por debajo de 44px, y hay información funcional que solo existe en tooltips de hover (inexistentes en táctil). No es un problema de páginas concretas: es la escala tipográfica global. Arreglando 3 cosas (escala de texto, nav móvil, tooltips) el salto de calidad es enorme.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
+      <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,255,136,0.04); padding:16px;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.2em; color:rgba(0,255,136,0.6);">IDENTIDAD VISUAL</div>
+        <div style="font-family:'Orbitron',sans-serif; font-size:26px; font-weight:900; color:#00ff88; margin-top:6px;">9/10</div>
+      </div>
+      <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,255,136,0.04); padding:16px;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.2em; color:rgba(0,255,136,0.6);">UX DESKTOP</div>
+        <div style="font-family:'Orbitron',sans-serif; font-size:26px; font-weight:900; color:#9fe8c3; margin-top:6px;">7/10</div>
+      </div>
+      <div style="border:1px solid rgba(255,184,77,0.35); background:rgba(255,184,77,0.05); padding:16px;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.2em; color:rgba(255,184,77,0.7);">UX MOBILE</div>
+        <div style="font-family:'Orbitron',sans-serif; font-size:26px; font-weight:900; color:#ffb84d; margin-top:6px;">4/10</div>
+      </div>
+      <div style="border:1px solid rgba(255,92,92,0.35); background:rgba(255,92,92,0.05); padding:16px;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.2em; color:rgba(255,92,92,0.7);">ACCESIBILIDAD</div>
+        <div style="font-family:'Orbitron',sans-serif; font-size:26px; font-weight:900; color:#ff5c5c; margin-top:6px;">3/10</div>
+      </div>
+    </div>
+    <div style="border-left:2px solid rgba(0,255,136,0.4); padding:4px 0 4px 16px; font-size:14px; line-height:1.7; color:#a8bfb2;">
+      <strong style="color:#00ff88;">Lo que ya está muy bien:</strong> dirección de arte y tono de copy coherentes · quick-start interactivo con soporte de teclado y aria-live · dropdown de secciones en docs móvil · print styles cuidados · uso de <span style="font-family:'Share Tech Mono',monospace;">scroll-mt</span>, tabular-nums, focus en detalles.
+    </div>
+  </section>
+
+  <!-- P1 -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:13px; background:#ff5c5c; color:#160404; padding:4px 10px;">P1</span>
+      <h2 style="font-family:'Orbitron',sans-serif; font-size:20px; margin:0; color:#eafff3;">Crítico — bloquea el uso en móvil</h2>
+    </div>
+
+    <div style="border:1px solid rgba(255,92,92,0.3); background:rgba(255,92,92,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">1 · Tipografía por debajo del umbral de legibilidad en todo el sitio</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,92,92,0.8);">text-[8px] / text-[9px] / text-[10px] + tracking-[0.3em] — landing, navbar, docs, builder, footer</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Etiquetas de stats a 8px, navegación a 10px, footer a 10px, resultados de búsqueda a 10px. En un móvil real eso es texto de 6–8px físicos con letter-spacing de 0.3em, que además rompe el reconocimiento de palabra. El mínimo funcional en móvil es <strong style="color:#eafff3;">12px, ideal 14px</strong> para cualquier texto que el usuario deba leer.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> define una escala: micro-labels decorativos 11px/0.15em (solo ornamento), texto funcional 14px, cuerpo 15–16px. En Tailwind: sustituir <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">text-[9px]→text-xs</span>, <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">text-[10px]/[11px]→text-sm</span> en mobile y bajar solo en <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">sm:</span> si hace falta. El "vibe terminal" se mantiene con la fuente mono y el tracking, no con el tamaño.</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,92,92,0.3); background:rgba(255,92,92,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">2 · Nav móvil: fila de 5–6 enlaces que desborda y desaparece al hacer scroll</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,92,92,0.8);">navbar.html — segunda barra md:hidden con gap-6 y 6 enlaces a 10px</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">"Inicio · Cómo se juega · Docs ▼ · Lista · Noticias · Soporte" en una fila centrada no cabe en 360px: o desborda o se comprime hasta lo ilegible. Además el header no es sticky: en la landing (muy larga) el usuario pierde la navegación tras el primer scroll. El dropdown de Docs centrado con <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">-translate-x-1/2</span> puede recortarse en el borde del viewport.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> en móvil, barra superior mínima (logo + estado) y <strong>tab bar inferior fija con 4 destinos</strong>: Inicio · Jugar (army builder) · Docs · Más. Es el patrón natural para un sitio que se consulta en la mesa mientras se juega. Ver mockup abajo.</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,92,92,0.3); background:rgba(255,92,92,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">3 · Información funcional atrapada en tooltips de hover</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,92,92,0.8);">[data-tooltip] en styles.css — usado en army-builder para validación, nibbles, descripciones de atributos</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">En táctil no existe hover: el estado "INCOMPLETE" no explica qué falta, los atributos (VEL, ARM…) no tienen descripción alcanzable, y el coste de nibbles no se aclara. El army builder es la herramienta que más se usará con el móvil sobre la mesa.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> convertir la info crítica a texto visible (una línea bajo el estado: "Faltan 2 mejoras y 1 función V1") y las descripciones a tap-to-toggle (un ⓘ que expande) o a un pie fijo que muestra la descripción del último elemento tocado.</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,92,92,0.3); background:rgba(255,92,92,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">4 · Objetivos táctiles de 10px</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,92,92,0.8);">quick-start dots w-2.5 (10px) · botón cerrar terminal w-2.5 · [DEL] · steppers · caret de dropdowns</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Los dots de paso del quick-start, el botón rojo de cerrar el terminal y varios controles del builder están entre 10 y 24px. Mínimo recomendado: <strong style="color:#eafff3;">44×44px</strong> (Apple HIG / WCAG 2.5.8).</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> mantener el tamaño visual pero ampliar el área con padding + <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">margin negativo</span>, o en el quick-start sustituir los 8 dots por una barra de progreso no interactiva (la navegación ya la dan Anterior/Siguiente).</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,92,92,0.3); background:rgba(255,92,92,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">5 · Contraste insuficiente en texto informativo</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,92,92,0.8);">text-green-400/45 · /55 · /65 sobre #040c0f — en labels, footer, nav, metadatos</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Verde al 45–65% de opacidad sobre negro casi puro queda en ~2–3.5:1; combinado con 9px es texto invisible bajo luz solar (escenario típico: jugar en una mesa). AA exige 4.5:1 en texto normal.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> reservar las opacidades bajas para líneas y ornamentos; el texto informativo mínimo a <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">green-400/80</span> o un verde-gris dedicado (p. ej. #8fb8a2).</p>
+    </div>
+  </section>
+
+  <!-- P2 -->
+  <sc-if value="{{ showP2 }}" hint-placeholder-val="{{ true }}">
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:13px; background:#ffb84d; color:#160e04; padding:4px 10px;">P2</span>
+      <h2 style="font-family:'Orbitron',sans-serif; font-size:20px; margin:0; color:#eafff3;">Importante — fricción notable</h2>
+    </div>
+
+    <div style="border:1px solid rgba(255,184,77,0.3); background:rgba(255,184,77,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">6 · La animación de boot bloquea el contenido en cada visita</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,184,77,0.8);">landing.html — showContent() gated por la secuencia del terminal</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Gran primera impresión, pero castiga las visitas repetidas (y el LCP). En móvil, cada vuelta a la home = esperar el boot otra vez.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> reproducir solo la primera visita (localStorage), tap en cualquier punto = skip, y renderizar el hero debajo desde el primer frame (el terminal encima, no en lugar de).</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,184,77,0.3); background:rgba(255,184,77,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">7 · Quick-start: pipeline y controles no dimensionados para 360px</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,184,77,0.8);">quick-start.html — .qs-pipeline con 8 fases · fila Anterior/dots/Siguiente · terminal min-h-[380px]</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Ocho chips de fase en una fila desbordan o se encogen; los controles compiten en una fila con 8 dots en medio; el terminal con alto mínimo fijo genera mucho scroll entre tablero y texto.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> pipeline con scroll horizontal + snap (auto-centrando la fase activa), controles en fila propia con Siguiente ocupando ~60% del ancho, y "PASO 3/8" como texto + barra fina en lugar de dots. Ver mockup.</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,184,77,0.3); background:rgba(255,184,77,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">8 · Docs: tablas y columnas markdown sin estrategia móvil clara</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,184,77,0.8);">_markdown.scss — table width:max-content · .md-col-2/.md-col-3 sin colapso en viewport estrecho verificado</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Las tablas del reglamento (funciones de ataque, equivalencias de dados) son el contenido que más se consulta en la mesa; con <span style="font-family:'Share Tech Mono',monospace; font-size:13px;">max-content</span> quedan a scroll horizontal sin affordance visible. Las directivas de columna deben forzarse a 1 columna bajo 640px.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> media query que colapse md-col-* a 1 columna; en tablas, sombra de borde como affordance de scroll y primera columna sticky. Para las tablas clave, considerar formato de tarjetas apiladas en móvil.</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,184,77,0.3); background:rgba(255,184,77,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">9 · Army builder: densidad de escritorio en pantalla de 360px</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,184,77,0.8);">army-builder.html — atributos grid-cols-2 con botones de 9px · metadatos del header que desbordan</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">Las tarjetas de atributo meten título + valor + 2 botones de 9px en ~160px de ancho; la línea de estado del bot (UNIT_1 // COMPILED — 12/16◈) se rompe mal en pantallas estrechas.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> en móvil, atributos a 1 columna como filas horizontales (nombre | valor | stepper −/+ de 44px); el patrón .num-stepper que ya existe en styles.css es el correcto — usarlo aquí.</p>
+    </div>
+
+    <div style="border:1px solid rgba(255,184,77,0.3); background:rgba(255,184,77,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:10px;">
+      <h3 style="margin:0; font-size:17px; color:#eafff3;">10 · Stats de la home: 3 columnas forzadas con labels de 8px</h3>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; color:rgba(255,184,77,0.8);">landing.html — grid-cols-3 fijo, labels text-[8px]</div>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#c2d4c8;">"PROGRAMADORES" a 8px con tracking-widest en un tercio de 360px es ruido, no información.</p>
+      <p style="margin:0; font-size:15px; line-height:1.7; color:#9fe8c3;"><strong>Fix:</strong> mantener 3 columnas (los números son cortos) pero labels a 11px/0.1em, o pasar a filas horizontales número+label.</p>
+    </div>
+  </section>
+  </sc-if>
+
+  <!-- P3 -->
+  <sc-if value="{{ showP3 }}" hint-placeholder-val="{{ true }}">
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:13px; background:#6aa7ff; color:#040a16; padding:4px 10px;">P3</span>
+      <h2 style="font-family:'Orbitron',sans-serif; font-size:20px; margin:0; color:#eafff3;">Menor — pulido</h2>
+    </div>
+    <div style="border:1px solid rgba(106,167,255,0.25); background:rgba(106,167,255,0.04); padding:20px 24px; display:flex; flex-direction:column; gap:14px; font-size:15px; line-height:1.7; color:#c2d4c8;">
+      <div><strong style="color:#eafff3;">11 · Estado solo por color.</strong> El dot verde/amarillo de validación del bot no dice nada a un daltónico — añadir icono o texto (ya existe COMPILED/INCOMPLETE: acercarlos).</div>
+      <div><strong style="color:#eafff3;">12 · Sin focus-visible definido.</strong> Con tanto usuario "programador", la navegación por teclado merece un outline verde consistente en enlaces y botones.</div>
+      <div><strong style="color:#eafff3;">13 · Footer.</strong> 10px con enlace admin de 10px — subir a 12px y dar 44px al icono de candado (o moverlo fuera del flujo visible).</div>
+      <div><strong style="color:#eafff3;">14 · Scrollbar de 4px.</strong> En desktop es elegante; en contenedores con overflow-x (tablas, pre) es el único indicio de scroll — añadir fade/sombra en los bordes.</div>
+    </div>
+  </section>
+  </sc-if>
+
+  <!-- MOCKUPS -->
+  <section style="display:flex; flex-direction:column; gap:24px;">
+    <h2 style="font-family:'Orbitron',sans-serif; font-size:20px; margin:0; color:#eafff3;">Propuesta mobile — antes / después</h2>
+    <p style="margin:0; font-size:15px; line-height:1.7; color:#a8bfb2;">Misma identidad, misma paleta. Cambian: escala tipográfica, tab bar inferior, jerarquía táctil.</p>
+
+    <div style="display:flex; flex-wrap:wrap; gap:32px; justify-content:center;">
+
+      <!-- ANTES -->
+      <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:0.25em; color:rgba(255,92,92,0.8);">ANTES — HOME</div>
+        <div style="width:300px; border:2px solid #1a2f24; border-radius:28px; background:#040c0f; overflow:hidden; font-family:'Share Tech Mono',monospace;">
+          <div style="height:18px;"></div>
+          <div style="border-bottom:1px solid rgba(0,255,136,0.2); padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:8px; letter-spacing:0.15em; color:rgba(74,222,128,0.75);">:: FIRMWARE WARS ::</span>
+            <span style="font-size:8px; color:rgba(74,222,128,0.5); display:flex; align-items:center; gap:4px;"><span style="width:5px; height:5px; border-radius:50%; background:#4ade80; display:inline-block;"></span>ONLINE</span>
+          </div>
+          <div style="border-bottom:1px solid rgba(0,255,136,0.1); padding:6px 8px; display:flex; gap:10px; justify-content:center; white-space:nowrap; overflow:hidden;">
+            <span style="font-size:7px; letter-spacing:0.2em; color:#4ade80;">INICIO</span>
+            <span style="font-size:7px; letter-spacing:0.2em; color:rgba(74,222,128,0.6);">CÓMO SE JUEGA</span>
+            <span style="font-size:7px; letter-spacing:0.2em; color:rgba(74,222,128,0.6);">DOCS ▾</span>
+            <span style="font-size:7px; letter-spacing:0.2em; color:rgba(74,222,128,0.6);">LISTA</span>
+            <span style="font-size:7px; letter-spacing:0.2em; color:rgba(74,222,128,0.6);">NOTICI</span>
+          </div>
+          <div style="padding:24px 16px 20px; text-align:center; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:6px; letter-spacing:0.35em; color:rgba(74,222,128,0.55);">:: 28TH CYCLE — CORE COMBAT TOURNAMENT ::</div>
+            <div style="font-family:'Orbitron',sans-serif; font-weight:900; line-height:0.95;">
+              <div style="font-size:30px; color:#d4ffe8;">FIRMWARE</div>
+              <div style="font-size:30px; color:#00ff88; text-shadow:0 0 16px rgba(0,255,136,0.5);">WARS</div>
+            </div>
+            <div style="font-size:6px; letter-spacing:0.2em; line-height:2; color:rgba(134,239,172,0.7);">ESCRIBE CÓDIGO. COMPILA TU ESTRATEGIA.<br>DESENSAMBLA AL ENEMIGO. DOMINA EL CICLO.</div>
+            <div style="display:flex; flex-direction:column; gap:6px; padding:4px 12px 0;">
+              <div style="background:#22c55e; color:#000; font-family:'Orbitron',sans-serif; font-weight:700; font-size:8px; letter-spacing:0.15em; padding:8px; text-align:center;">INICIAR SISTEMA →</div>
+              <div style="border:1px solid rgba(0,255,136,0.4); color:#4ade80; font-family:'Orbitron',sans-serif; font-weight:700; font-size:8px; letter-spacing:0.15em; padding:8px; text-align:center;">REGLAMENTO</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1px solid rgba(0,255,136,0.15);">
+            <div style="padding:10px 4px; text-align:center; border-right:1px solid rgba(0,255,136,0.1);"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:15px; color:#00ff88;">2–3</div><div style="font-size:5px; letter-spacing:0.15em; color:rgba(74,222,128,0.6); margin-top:3px;">PROGRAMADORES</div></div>
+            <div style="padding:10px 4px; text-align:center; border-right:1px solid rgba(0,255,136,0.1);"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:15px; color:#00ff88;">1–2</div><div style="font-size:5px; letter-spacing:0.15em; color:rgba(74,222,128,0.6); margin-top:3px;">BOTS POR EQUIPO</div></div>
+            <div style="padding:10px 4px; text-align:center;"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:15px; color:#00ff88;">28</div><div style="font-size:5px; letter-spacing:0.15em; color:rgba(74,222,128,0.6); margin-top:3px;">CICLOS ACTIVOS</div></div>
+          </div>
+          <div style="height:20px;"></div>
+        </div>
+        <div style="max-width:280px; font-size:13px; line-height:1.6; color:#8fa89a;">Doble barra, 6 enlaces desbordando, texto de 6–8px, sin nav persistente.</div>
+      </div>
+
+      <!-- DESPUÉS HOME -->
+      <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:0.25em; color:#00ff88;">DESPUÉS — HOME</div>
+        <div style="width:300px; border:2px solid #1a2f24; border-radius:28px; background:#040c0f; overflow:hidden; font-family:'Share Tech Mono',monospace; position:relative;">
+          <div style="height:18px;"></div>
+          <div style="border-bottom:1px solid rgba(0,255,136,0.2); padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; letter-spacing:0.12em; color:#86efac;">:: FIRMWARE WARS ::</span>
+            <span style="font-size:10px; color:rgba(134,239,172,0.9); display:flex; align-items:center; gap:5px;"><span style="width:6px; height:6px; border-radius:50%; background:#4ade80; display:inline-block; box-shadow:0 0 6px #4ade80;"></span>ONLINE</span>
+          </div>
+          <div style="padding:28px 16px 24px; text-align:center; display:flex; flex-direction:column; gap:14px;">
+            <div style="font-size:9px; letter-spacing:0.25em; color:rgba(134,239,172,0.85);">:: 28TH CYCLE — TOURNAMENT ::</div>
+            <div style="font-family:'Orbitron',sans-serif; font-weight:900; line-height:0.95;">
+              <div style="font-size:34px; color:#d4ffe8;">FIRMWARE</div>
+              <div style="font-size:34px; color:#00ff88; text-shadow:0 0 16px rgba(0,255,136,0.5);">WARS</div>
+            </div>
+            <div style="font-size:11px; letter-spacing:0.06em; line-height:1.7; color:#a7f3c9;">Escribe código. Compila tu estrategia.<br>Domina el ciclo.</div>
+            <div style="display:flex; flex-direction:column; gap:8px; padding:2px 4px 0;">
+              <div style="background:#22c55e; color:#000; font-family:'Orbitron',sans-serif; font-weight:700; font-size:12px; letter-spacing:0.12em; padding:14px; text-align:center; box-shadow:0 4px 20px rgba(0,255,136,0.25);">INICIAR SISTEMA →</div>
+              <div style="border:1px solid rgba(0,255,136,0.5); color:#4ade80; font-family:'Orbitron',sans-serif; font-weight:700; font-size:12px; letter-spacing:0.12em; padding:13px; text-align:center;">▶ VER UN TURNO EN 8 PASOS</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1px solid rgba(0,255,136,0.15);">
+            <div style="padding:12px 4px; text-align:center; border-right:1px solid rgba(0,255,136,0.1);"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:17px; color:#00ff88;">2–3</div><div style="font-size:8px; letter-spacing:0.06em; color:#8fd8ae; margin-top:4px;">jugadores</div></div>
+            <div style="padding:12px 4px; text-align:center; border-right:1px solid rgba(0,255,136,0.1);"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:17px; color:#00ff88;">1–2</div><div style="font-size:8px; letter-spacing:0.06em; color:#8fd8ae; margin-top:4px;">bots/equipo</div></div>
+            <div style="padding:12px 4px; text-align:center;"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:17px; color:#00ff88;">28</div><div style="font-size:8px; letter-spacing:0.06em; color:#8fd8ae; margin-top:4px;">ciclos</div></div>
+          </div>
+          <div style="height:44px;"></div>
+          <div style="position:absolute; bottom:0; left:0; right:0; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; background:rgba(2,8,6,0.95); border-top:1px solid rgba(0,255,136,0.25); backdrop-filter:blur(4px);">
+            <div style="padding:9px 0 11px; text-align:center; color:#00ff88;"><div style="font-size:13px; line-height:1;">⌂</div><div style="font-size:8px; letter-spacing:0.08em; margin-top:3px;">Inicio</div></div>
+            <div style="padding:9px 0 11px; text-align:center; color:rgba(134,239,172,0.6);"><div style="font-size:13px; line-height:1;">▶</div><div style="font-size:8px; letter-spacing:0.08em; margin-top:3px;">Jugar</div></div>
+            <div style="padding:9px 0 11px; text-align:center; color:rgba(134,239,172,0.6);"><div style="font-size:13px; line-height:1;">▤</div><div style="font-size:8px; letter-spacing:0.08em; margin-top:3px;">Docs</div></div>
+            <div style="padding:9px 0 11px; text-align:center; color:rgba(134,239,172,0.6);"><div style="font-size:13px; line-height:1;">⋯</div><div style="font-size:8px; letter-spacing:0.08em; margin-top:3px;">Más</div></div>
+          </div>
+        </div>
+        <div style="max-width:280px; font-size:13px; line-height:1.6; color:#8fa89a;">Barra superior mínima, texto legible (equiv. 12–14px), CTA de 48px, tab bar fija con 4 destinos.</div>
+      </div>
+
+      <!-- DESPUÉS QUICK-START -->
+      <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:0.25em; color:#00ff88;">DESPUÉS — QUICK-START</div>
+        <div style="width:300px; border:2px solid #1a2f24; border-radius:28px; background:#040c0f; overflow:hidden; font-family:'Share Tech Mono',monospace;">
+          <div style="height:18px;"></div>
+          <div style="padding:16px 14px 20px; display:flex; flex-direction:column; gap:12px;">
+            <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:15px; text-align:center; line-height:1.3;"><span style="color:#d4ffe8;">TU PRIMER TURNO,</span><br><span style="color:#00ff88;">EN 8 PASOS</span></div>
+            <div style="display:flex; gap:6px; overflow:hidden; padding:2px 0;">
+              <span style="flex-shrink:0; font-size:9px; letter-spacing:0.06em; padding:5px 10px; border:1px solid rgba(0,255,136,0.15); color:rgba(134,239,172,0.5);">BOOT</span>
+              <span style="flex-shrink:0; font-size:9px; letter-spacing:0.06em; padding:5px 10px; border:1px solid #00ff88; color:#00ff88; background:rgba(0,255,136,0.1);">COMPILE</span>
+              <span style="flex-shrink:0; font-size:9px; letter-spacing:0.06em; padding:5px 10px; border:1px solid rgba(0,255,136,0.15); color:rgba(134,239,172,0.5);">RUN</span>
+              <span style="flex-shrink:0; font-size:9px; letter-spacing:0.06em; padding:5px 10px; border:1px solid rgba(0,255,136,0.15); color:rgba(134,239,172,0.5);">DEBUG</span>
+              <span style="flex-shrink:0; font-size:9px; color:rgba(134,239,172,0.4); align-self:center;">→</span>
+            </div>
+            <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.5); height:110px; display:flex; align-items:center; justify-content:center; color:rgba(134,239,172,0.4); font-size:9px; letter-spacing:0.15em;">[ TABLERO HEX ]</div>
+            <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.6); padding:12px;">
+              <div style="font-size:8px; letter-spacing:0.15em; color:rgba(134,239,172,0.6);">FASE 2/8 — COMPILE</div>
+              <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:14px; color:#00ff88; margin-top:4px;">COMPILA TU SCRIPT</div>
+              <div style="font-size:10px; line-height:1.6; color:#a7f3c9; margin-top:6px;">Lanza los dados y asigna los valores a tu BattleScript…</div>
+            </div>
+            <div style="height:3px; background:rgba(0,255,136,0.12); border-radius:2px; overflow:hidden;"><div style="width:25%; height:100%; background:#00ff88;"></div></div>
+            <div style="display:flex; gap:8px;">
+              <div style="flex:2; border:1px solid rgba(0,255,136,0.4); color:#4ade80; font-family:'Orbitron',sans-serif; font-weight:700; font-size:10px; letter-spacing:0.1em; padding:13px 0; text-align:center;">← ANTERIOR</div>
+              <div style="flex:3; background:#22c55e; color:#000; font-family:'Orbitron',sans-serif; font-weight:700; font-size:10px; letter-spacing:0.1em; padding:13px 0; text-align:center;">SIGUIENTE →</div>
+            </div>
+          </div>
+          <div style="height:16px;"></div>
+        </div>
+        <div style="max-width:280px; font-size:13px; line-height:1.6; color:#8fa89a;">Pipeline con scroll-snap centrando la fase activa, barra de progreso en lugar de 8 dots, botones de 48px.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- QUICK WINS -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <h2 style="font-family:'Orbitron',sans-serif; font-size:20px; margin:0; color:#eafff3;">Plan de acción — orden recomendado</h2>
+    <ol style="margin:0; padding-left:24px; display:flex; flex-direction:column; gap:12px; font-size:15px; line-height:1.7; color:#c2d4c8;">
+      <li><strong style="color:#eafff3;">Escala tipográfica</strong> (medio día): buscar y reemplazar los text-[8/9/10px] por mínimos de 12px en móvil. Es el 60% del problema.</li>
+      <li><strong style="color:#eafff3;">Tab bar inferior</strong> (1 día): sustituye la segunda fila de nav; 4 destinos + "Más" para Noticias/Soporte.</li>
+      <li><strong style="color:#eafff3;">Tooltips → texto visible / tap</strong> (medio día): prioridad en army builder.</li>
+      <li><strong style="color:#eafff3;">Quick-start móvil</strong> (medio día): pipeline con scroll-snap, progreso, botones grandes.</li>
+      <li><strong style="color:#eafff3;">Boot skippable + solo primera visita</strong> (1 h).</li>
+      <li><strong style="color:#eafff3;">Contraste + focus-visible + hit areas</strong> (1 día): pasada global.</li>
+      <li><strong style="color:#eafff3;">Tablas de docs en móvil</strong> (1 día): affordance de scroll, colapso de columnas, tarjetas para las tablas clave.</li>
+    </ol>
+    <p style="margin:0; font-size:14px; color:#8fa89a;">Si quieres, el siguiente paso natural es que construya un <strong style="color:#c2d4c8;">prototipo interactivo</strong> de la home + quick-start móvil con estos cambios aplicados, para validar antes de tocar el Angular.</p>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;filtroSeveridad&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Todas&quot;,&quot;P1 + P2&quot;,&quot;Solo P1&quot;],&quot;default&quot;:&quot;Todas&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Informe&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const f = this.props.filtroSeveridad ?? 'Todas';
+    return { showP2: f !== 'Solo P1', showP3: f === 'Todas' };
+  }
+}
+</script>
+</body>
+</html>

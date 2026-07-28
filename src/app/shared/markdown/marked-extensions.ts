@@ -101,6 +101,9 @@ const columnDirectiveExt = {
       case 'end-columns':
       case 'end-col':
         return '</div>';
+      case 'table-cards':
+        // Marca la tabla siguiente: en móvil se pinta como tarjetas apiladas.
+        return '<div class="md-cards-next"></div>';
       case 'page':
         return '<div class="md-page-break"></div>';
       case 'space':

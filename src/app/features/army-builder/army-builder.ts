@@ -337,6 +337,38 @@ export class ArmyBuilder implements OnInit, OnDestroy {
     return true;
   }
 
+  /**
+   * Qué le falta al Bot para compilar, en texto legible.
+   * Sustituye al tooltip de hover: en táctil esta información
+   * se pinta siempre visible bajo el estado INCOMPLETE.
+   */
+  getMissingRequirements(bot: BotConfig): string[] {
+    const missing: string[] = [];
+
+    const mejoras = this.gameConfig.improvementPoints - this.getMejorasUsed(bot);
+    if (mejoras > 0) missing.push(`${mejoras} ${mejoras === 1 ? 'mejora' : 'mejoras'}`);
+
+    const desventajas = this.gameConfig.disadvantagePoints - this.getDesventajasUsed(bot);
+    if (desventajas > 0) missing.push(`${desventajas} ${desventajas === 1 ? 'desventaja' : 'desventajas'}`);
+
+    const slots =
+      bot.attackFunctions.v1.filter(f => !f).length +
+      bot.attackFunctions.v2.filter(f => !f).length +
+      (bot.attackFunctions.v3 ? 0 : 1);
+    if (slots > 0) missing.push(`${slots} ${slots === 1 ? 'función' : 'funciones'} de ataque`);
+
+    return missing;
+  }
+
+  getMissingText(bot: BotConfig): string {
+    const missing = this.getMissingRequirements(bot);
+    if (!missing.length) return '';
+    const verb = missing.length === 1 && missing[0].startsWith('1 ') ? 'Falta' : 'Faltan';
+    const last = missing[missing.length - 1];
+    const head = missing.slice(0, -1);
+    return head.length ? `${verb} ${head.join(', ')} y ${last}.` : `${verb} ${last}.`;
+  }
+
   isListValid(): boolean {
     return this.bots().every(b => this.isBotValid(b));
   }

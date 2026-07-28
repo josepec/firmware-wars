@@ -1,9 +1,11 @@
-import { ChangeDetectorRef, Component, computed, ElementRef, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Subscription, filter } from 'rxjs';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
+import { enhanceTables } from '../../shared/markdown/table-enhancer';
 import { DocsSearchIndex, SearchResult } from './docs-search';
 import { ScenarioViewer } from './scenario-viewer';
 import { ThreatViewer } from './threat-viewer';
@@ -31,7 +33,7 @@ const CATEGORIES: DocsCategory[] = [
 
 @Component({
   selector: 'app-docs',
-  imports: [RouterLink, RouterLinkActive, MarkdownComponent, ScenarioViewer, ThreatViewer],
+  imports: [NgClass, RouterLink, RouterLinkActive, MarkdownComponent, ScenarioViewer, ThreatViewer],
   templateUrl: './docs.html',
   styleUrl: './docs.scss',
 })
@@ -44,7 +46,8 @@ export class Docs implements OnInit, OnDestroy {
   sections = signal<{ id: string; num: string; title: string; subtitle: string; type?: string }[]>([]);
   currentSectionId = signal<string | null>(null);
   currentCategory = signal<DocsCategory>(CATEGORIES[0]);
-  mobileMenuOpen = signal(false);
+  /** Categorías visibles según app.config — alimenta los chips del índice móvil. */
+  visibleCategories = signal<DocsCategory[]>([]);
 
   /* ── Search ──────────────────────────────────────────────── */
   searchQuery = signal('');
@@ -61,20 +64,47 @@ export class Docs implements OnInit, OnDestroy {
 
   isThreatSection = computed(() => this.currentSection()?.type === 'threat');
 
+  /* ── Navegación entre secciones (sub-barra móvil) ─────────── */
+
+  /** Secciones navegables: los separadores de tipo `header` no cuentan. */
+  private readableSections = computed(() => this.sections().filter(s => s.type !== 'header'));
+
+  private currentIndex = computed(() => {
+    const id = this.currentSectionId();
+    return this.readableSections().findIndex(s => s.id === id);
+  });
+
+  prevSection = computed(() => {
+    const i = this.currentIndex();
+    return i > 0 ? this.readableSections()[i - 1] : null;
+  });
+
+  nextSection = computed(() => {
+    const list = this.readableSections();
+    const i = this.currentIndex();
+    return i >= 0 && i < list.length - 1 ? list[i + 1] : null;
+  });
+
+  /** Ruta del índice de la categoría actual. */
+  indexLink = computed(() => `/docs/${this.currentCategory().id}`);
+
+  sectionLink(id: string): string {
+    return `/docs/${this.currentCategory().id}/${id}`;
+  }
+
+  pdfLink(): string | null {
+    const id = this.currentCategory().id;
+    if (id === 'reglamento') return this.pdfUrl;
+    if (id === 'escenarios') return this.scenariosPdfUrl;
+    if (id === 'campaign') return this.campaignPdfUrl;
+    return null;
+  }
+
   private readonly router = inject(Router);
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly cdr = inject(ChangeDetectorRef);
   private loadedCategory: string | null = null;
   private routerSub!: Subscription;
-
-  toggleMobileMenu() { this.mobileMenuOpen.update(v => !v); }
-
-  @HostListener('document:click', ['$event'])
-  onDocClick(e: Event) {
-    if (this.mobileMenuOpen() && !(e.target as HTMLElement).closest('.mobile-nav-dropdown')) {
-      this.mobileMenuOpen.set(false);
-    }
-  }
 
   async ngOnInit() {
     await this.initCategories();
@@ -92,6 +122,7 @@ export class Docs implements OnInit, OnDestroy {
       if (await this.appConfig.isCategoryVisible(c.id)) visible.add(c.id);
     }
     this.visibleIds = visible;
+    this.visibleCategories.set(CATEGORIES.filter(c => visible.has(c.id)));
   }
 
   ngOnDestroy() {
@@ -183,7 +214,6 @@ export class Docs implements OnInit, OnDestroy {
     this.currentCategory.set(cat);
     this.currentSectionId.set(section);
     this.markdownSrc.set(cat.id !== 'escenarios' && section ? `${cat.docsPath}/${section}.md` : null);
-    this.mobileMenuOpen.set(false);
 
     if (this.loadedCategory !== cat.id) {
       this.loadedCategory = cat.id;
@@ -238,7 +268,7 @@ export class Docs implements OnInit, OnDestroy {
   }
 
   onMarkdownReady(): void {
-    hydrateJsonTables(this.el.nativeElement);
+    hydrateJsonTables(this.el.nativeElement).then(() => enhanceTables(this.el.nativeElement));
     hydrateConfigVars(this.el.nativeElement);
 
     // Scroll to matched text if pending

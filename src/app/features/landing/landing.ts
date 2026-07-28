@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { QuickStart } from './quick-start/quick-start';
 
-const TERMINAL_KEY = 'fw_terminal_closed';
+/** El boot solo se reproduce en la primera visita del navegador. */
+const BOOT_SEEN_KEY = 'fw_boot_seen';
 
 @Component({
   selector: 'app-landing',
@@ -16,8 +17,8 @@ export class Landing implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   readonly bootLines = signal<string[]>([]);
   readonly bootDone = signal(false);
-  readonly showContent = signal(false);
-  readonly terminalVisible = signal(true);
+  /** Overlay del boot. El hero se renderiza siempre debajo, desde el primer frame. */
+  readonly terminalVisible = signal(false);
 
   private interval: ReturnType<typeof setInterval> | null = null;
   private timeout: ReturnType<typeof setTimeout> | null = null;
@@ -35,23 +36,16 @@ export class Landing implements OnInit, OnDestroy {
   ngOnInit() {
     // Clic en "Quick Start" estando ya en la home: solo cambia el fragment.
     this.fragSub = this.route.fragment.subscribe(f => {
-      if (f === 'quick-start' && this.showContent()) this.scrollToQuickStart();
+      if (f === 'quick-start') {
+        this.closeTerminal();
+        this.timeout = setTimeout(() => this.scrollToQuickStart(), 120);
+      }
     });
 
-    // Si llegamos con #quick-start (navbar u otra página), saltar el boot y bajar a la demo.
-    if (this.route.snapshot.fragment === 'quick-start') {
-      this.terminalVisible.set(false);
-      this.showContent.set(true);
-      this.timeout = setTimeout(() => this.scrollToQuickStart(), 120);
-      return;
-    }
+    // Llegamos con #quick-start, o el boot ya se vio antes: nada de animación.
+    if (this.route.snapshot.fragment === 'quick-start' || this.bootAlreadySeen()) return;
 
-    if (sessionStorage.getItem(TERMINAL_KEY)) {
-      this.terminalVisible.set(false);
-      this.showContent.set(true);
-      return;
-    }
-
+    this.terminalVisible.set(true);
     let i = 0;
     this.interval = setInterval(() => {
       if (i < this.allBootLines.length) {
@@ -59,20 +53,45 @@ export class Landing implements OnInit, OnDestroy {
         i++;
       } else {
         clearInterval(this.interval!);
+        this.interval = null;
         this.bootDone.set(true);
-        this.timeout = setTimeout(() => this.showContent.set(true), 500);
+        this.timeout = setTimeout(() => this.closeTerminal(), 500);
       }
     }, 380);
+  }
+
+  private bootAlreadySeen(): boolean {
+    try {
+      return !!localStorage.getItem(BOOT_SEEN_KEY);
+    } catch {
+      return false;
+    }
   }
 
   scrollToQuickStart() {
     document.getElementById('quick-start')?.scrollIntoView({ behavior: 'smooth' });
   }
 
+  /** Cierra el overlay del boot: por tap/click, tecla o fin de la secuencia. */
   closeTerminal() {
-    sessionStorage.setItem(TERMINAL_KEY, '1');
-    this.terminalVisible.set(false);
-    this.showContent.set(true);
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    // Solo se marca como visto si llegó a mostrarse: quien entra por un
+    // enlace con #quick-start conserva su primera visita al boot.
+    if (this.terminalVisible()) {
+      try {
+        localStorage.setItem(BOOT_SEEN_KEY, '1');
+      } catch { /* modo privado sin storage: el boot volverá a verse */ }
+      this.terminalVisible.set(false);
+    }
+  }
+
+  /** Cualquier tecla salta el boot. El tap/click lo gestiona el propio overlay. */
+  @HostListener('document:keydown')
+  onAnyKey() {
+    if (this.terminalVisible()) this.closeTerminal();
   }
 
   ngOnDestroy() {

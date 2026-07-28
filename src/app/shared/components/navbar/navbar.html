@@ -1,45 +1,46 @@
-<header class="relative z-50">
+<header class="relative">
 
   <!-- Barra principal ─────────────────────────────────────── -->
   <div class="border-b border-green-500/20 px-4 sm:px-8 py-3 flex justify-between items-center
-              text-green-500/50 tracking-widest bg-black/40 backdrop-blur-sm">
+              text-green-500/50 tracking-widest bg-[#040c0f]/95 md:bg-black/40 backdrop-blur-sm">
     <div class="flex items-center gap-3 sm:gap-6">
-      <span class="text-green-400/75 text-[10px] sm:text-xs">
+      <span class="text-green-300 md:text-green-400/85 text-xs tracking-[0.1em] md:tracking-widest">
         :: FIRMWARE WARS ::
       </span>
       <!-- Nav links — sólo desktop -->
       <div class="hidden md:flex items-center gap-6 border-l border-green-500/15 ml-2 pl-6">
         <a routerLink="/"
-          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          class="hover:text-green-300 transition-colors uppercase text-xs tracking-[0.2em]"
           [class.text-green-400]="isHomeActive()"
-          [class.text-green-400/70]="!isHomeActive()">
+          [class.text-green-400/80]="!isHomeActive()">
           Inicio
         </a>
 
         <a routerLink="/" fragment="quick-start"
-          class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
+          class="text-green-400/80 hover:text-green-300 transition-colors uppercase text-xs tracking-[0.2em]">
           Cómo&nbsp;se&nbsp;juega
         </a>
 
         <!-- Docs dropdown (click) -->
         <div class="docs-dropdown relative">
           <button (click)="toggleDocsMenu()" type="button"
-            class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]
+            class="hover:text-green-300 transition-colors uppercase text-xs tracking-[0.2em]
                    flex items-center gap-1 cursor-pointer"
+            [attr.aria-expanded]="docsMenuOpen()"
             [class.text-green-400]="isDocsActive()"
-            [class.text-green-400/70]="!isDocsActive()">
+            [class.text-green-400/80]="!isDocsActive()">
             Docs
-            <span class="text-[7px] text-green-500/40 transition-transform duration-200"
+            <span class="text-[8px] text-green-500/60 transition-transform duration-200"
               [class.rotate-180]="docsMenuOpen()">▼</span>
           </button>
           @if (docsMenuOpen()) {
-          <div class="absolute top-full left-0 pt-1 min-w-[160px]">
+          <div class="absolute top-full left-0 pt-1 min-w-[180px] max-w-[calc(100vw-2rem)]">
             <ul class="border border-green-500/25 bg-[#060e0a] shadow-xl shadow-black/70">
               @for (cat of categories(); track cat.id) {
               <li>
                 <a [routerLink]="'/docs/' + cat.id"
-                  class="block px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase
-                         text-green-400/55 hover:text-green-300 hover:bg-green-500/8 transition-colors
+                  class="block px-4 py-3 text-xs tracking-[0.12em] uppercase
+                         text-green-400/80 hover:text-green-300 hover:bg-green-500/8 transition-colors
                          border-b border-green-500/10 last:border-b-0">
                   {{ cat.label }}
                 </a>
@@ -51,104 +52,35 @@
         </div>
 
         <a routerLink="/army-builder"
-          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          class="hover:text-green-300 transition-colors uppercase text-xs tracking-[0.2em]"
           [class.text-green-400]="isListActive()"
-          [class.text-green-400/70]="!isListActive()">
+          [class.text-green-400/80]="!isListActive()">
           Lista
         </a>
 
         @if (showNews()) {
         <a routerLink="/noticias"
-          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          class="hover:text-green-300 transition-colors uppercase text-xs tracking-[0.2em]"
           [class.text-green-400]="isNewsActive()"
-          [class.text-green-400/70]="!isNewsActive()">
+          [class.text-green-400/80]="!isNewsActive()">
           Noticias
         </a>
         }
 
         @if (showSupport()) {
         <a routerLink="/soporte"
-          class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
+          class="hover:text-green-300 transition-colors uppercase text-xs tracking-[0.2em]"
           [class.text-green-400]="isSupportActive()"
-          [class.text-green-400/70]="!isSupportActive()">
+          [class.text-green-400/80]="!isSupportActive()">
           Soporte
         </a>
         }
       </div>
     </div>
-    <div class="flex items-center gap-2 text-[10px] sm:text-xs">
-      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+    <div class="flex items-center gap-2 text-xs text-green-300 md:text-green-400/80">
+      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_#4ade80]"></span>
       <span><span class="hidden xs:inline">ARENA </span>ONLINE</span>
     </div>
-  </div>
-
-  <!-- Nav links — sólo mobile/tablet ──────────────────────── -->
-  <div class="md:hidden flex items-center justify-center gap-6 px-4 py-2
-              border-b border-green-500/10 bg-black/30 backdrop-blur-sm">
-    <a routerLink="/"
-      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
-      [class.text-green-400]="isHomeActive()"
-      [class.text-green-400/70]="!isHomeActive()">
-      Inicio
-    </a>
-
-    <a routerLink="/" fragment="quick-start"
-      class="text-green-400/70 hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]">
-      Cómo&nbsp;se&nbsp;juega
-    </a>
-
-    <!-- Docs dropdown (mobile) -->
-    <div class="docs-dropdown relative">
-      <button (click)="toggleDocsMenu()" type="button"
-        class="uppercase text-[10px] tracking-[0.3em] flex items-center gap-1 transition-colors cursor-pointer"
-        [class.text-green-400]="isDocsActive()"
-        [class.text-green-400/70]="!isDocsActive()">
-        Docs
-        <span class="text-[7px] text-green-500/40 transition-transform duration-200"
-          [class.rotate-180]="docsMenuOpen()">▼</span>
-      </button>
-      @if (docsMenuOpen()) {
-      <div class="absolute top-full left-1/2 -translate-x-1/2 pt-1 min-w-[160px]">
-        <ul class="border border-green-500/25 bg-[#060e0a] shadow-xl shadow-black/70">
-          @for (cat of categories(); track cat.id) {
-          <li>
-            <a [routerLink]="'/docs/' + cat.id"
-              class="block px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase
-                     text-green-400/55 hover:text-green-300 hover:bg-green-500/8 transition-colors
-                     border-b border-green-500/10 last:border-b-0">
-              {{ cat.label }}
-            </a>
-          </li>
-          }
-        </ul>
-      </div>
-      }
-    </div>
-
-    <a routerLink="/army-builder"
-      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
-      [class.text-green-400]="isListActive()"
-      [class.text-green-400/70]="!isListActive()">
-      Lista
-    </a>
-
-    @if (showNews()) {
-    <a routerLink="/noticias"
-      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
-      [class.text-green-400]="isNewsActive()"
-      [class.text-green-400/70]="!isNewsActive()">
-      Noticias
-    </a>
-    }
-
-    @if (showSupport()) {
-    <a routerLink="/soporte"
-      class="hover:text-green-300 transition-colors uppercase text-[10px] tracking-[0.3em]"
-      [class.text-green-400]="isSupportActive()"
-      [class.text-green-400/70]="!isSupportActive()">
-      Soporte
-    </a>
-    }
   </div>
 
 </header>

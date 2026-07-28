@@ -34,6 +34,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/support/support').then(m => m.Support)
   },
   {
+    path: 'mas',
+    loadComponent: () => import('./features/more/more').then(m => m.More)
+  },
+  {
     path: 'list/:id',
     canActivate: [(route: import('@angular/router').ActivatedRouteSnapshot) => {
       return inject(Router).createUrlTree(['/army-builder'], { queryParams: { from: route.paramMap.get('id') } });

@@ -1,0 +1,17 @@
+<!-- Tab bar inferior — sólo mobile ─────────────────────────── -->
+@if (visible()) {
+<!-- La barra es `fixed`; este hueco al final del flujo es lo que evita
+     que tape el pie de página. Va aquí y no en cada página porque el
+     footer se pinta después del <main>. -->
+<div class="fw-tabbar-spacer" aria-hidden="true"></div>
+
+<nav class="fw-tabbar" aria-label="Navegación principal">
+  @for (t of tabs; track t.path) {
+  <a [routerLink]="t.path" class="fw-tab" [class.on]="isActive(t)"
+    [attr.aria-current]="isActive(t) ? 'page' : null">
+    <span class="fw-tab-icon" aria-hidden="true">{{ t.icon }}</span>
+    <span class="fw-tab-label">{{ t.label }}</span>
+  </a>
+  }
+</nav>
+}

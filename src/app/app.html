@@ -4,12 +4,6 @@
 <!-- Fixed: overlay scanlines ─────────────────────────────── -->
 <div class="fixed inset-0 scanline-overlay pointer-events-none z-10 opacity-60 print:hidden"></div>
 
-<!-- Fixed: esquinas decorativas ──────────────────────────── -->
-<div class="fixed top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-green-500/30 pointer-events-none z-99 print:hidden"></div>
-<div class="fixed top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-green-500/30 pointer-events-none z-99 print:hidden"></div>
-<div class="fixed bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-green-500/30 pointer-events-none z-99 print:hidden"></div>
-<div class="fixed bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-green-500/30 pointer-events-none z-99 print:hidden"></div>
-
 <app-navbar class="print:hidden" />
 
 <main class="min-h-screen">
@@ -17,3 +11,6 @@
 </main>
 
 <app-footer class="print:hidden" />
+
+<!-- Navegación principal en mobile ───────────────────────── -->
+<app-tab-bar />

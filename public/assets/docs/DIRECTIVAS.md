@@ -83,6 +83,18 @@ El JSON debe tener la estructura `{ columns: [...], rows: [...] }`.
 
 ---
 
+## Tablas como tarjetas en móvil
+
+```
+/table-cards      ← delante de la tabla (markdown o /json)
+```
+
+En pantallas de menos de 640px la tabla siguiente se pinta como tarjetas
+apiladas: una fila = una tarjeta, con «etiqueta: valor» por línea.
+En escritorio y en el PDF la tabla no cambia.
+
+---
+
 ## Imágenes
 
 ```

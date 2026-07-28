@@ -1,0 +1,78 @@
+/* ============================================================
+   TAB BAR INFERIOR — navegación principal en mobile
+   4 destinos: Inicio · Jugar · Docs · Más
+   ============================================================ */
+
+:host {
+  display: contents;
+}
+
+/* Reserva exactamente el alto de la barra al final del documento. */
+.fw-tabbar-spacer {
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+
+  @media (min-width: 48rem) {
+    display: none;
+  }
+
+  @media print {
+    display: none;
+  }
+}
+
+/* OJO: el ocultado NO puede delegarse en `md:hidden`/`print:hidden`.
+   Angular añade [_ngcontent-*] a los selectores de este fichero, así que
+   `.fw-tabbar[_ngcontent-x]` (0,2,0) gana a `.md\:hidden` (0,1,0) y la
+   barra seguiría visible en escritorio. Se oculta aquí mismo. */
+.fw-tabbar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(2, 8, 6, 0.96);
+  border-top: 1px solid rgba(0, 255, 136, 0.25);
+  backdrop-filter: blur(6px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+
+  @media (min-width: 48rem) {
+    display: none;
+  }
+
+  @media print {
+    display: none;
+  }
+}
+
+.fw-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 9px 2px 11px;
+  text-decoration: none;
+  color: rgba(134, 239, 172, 0.7);
+  transition: color 0.2s ease;
+
+  &.on {
+    color: #00ff88;
+  }
+
+  &:focus-visible {
+    outline-offset: -3px;
+  }
+}
+
+.fw-tab-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.fw-tab-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}

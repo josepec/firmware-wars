@@ -1,11 +1,15 @@
 <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-14 relative z-20">
 
-  <!-- ── TERMINAL BOOT ──────────────────────────────────────── -->
+  <!-- ── TERMINAL BOOT ──────────────────────────────────────────
+       Diseño intacto. Lo único que cambia es el comportamiento:
+       solo en la primera visita, y un tap o tecla en cualquier
+       punto lo salta. El hero ya está renderizado justo debajo. -->
   @if (terminalVisible()) {
-  <div class="mb-10 sm:mb-14 bg-black/70 border border-green-500/25 rounded-sm p-4 sm:p-6
+  <div (click)="closeTerminal()" class="mb-10 sm:mb-14 bg-black/70 border border-green-500/25 rounded-sm p-4 sm:p-6
                 shadow-xl shadow-green-500/5 backdrop-blur-sm">
     <div class="flex items-center gap-2 mb-4 sm:mb-5 pb-3 border-b border-green-500/15">
-      <button (click)="closeTerminal()" data-tooltip="Cerrar terminal" aria-label="Cerrar terminal" class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/70
+      <button (click)="closeTerminal(); $event.stopPropagation()" data-tooltip="Cerrar terminal"
+        aria-label="Cerrar terminal" class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/70
                        hover:bg-red-500 transition-colors cursor-pointer"></button>
       <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500/70"></span>
       <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500/70"></span>
@@ -25,12 +29,11 @@
   }
 
   <!-- ── MAIN CONTENT ───────────────────────────────────────── -->
-  @if (showContent()) {
   <div class="fade-in space-y-12 md:space-y-20">
 
     <!-- HERO ──────────────────────────────────────────────── -->
     <div class="text-center space-y-4 sm:space-y-6">
-      <div class="text-[9px] sm:text-xs tracking-[0.3em] sm:tracking-[0.6em] text-green-400/65 uppercase">
+      <div class="text-xs tracking-[0.15em] sm:tracking-[0.6em] text-green-300/85 uppercase leading-relaxed">
         :: 28TH CYCLE &mdash; CORE COMBAT TOURNAMENT ::
       </div>
 
@@ -45,20 +48,20 @@
         </div>
       </div>
 
-      <p class="text-green-300/80 text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.3em]
-                  max-w-lg mx-auto leading-loose px-2 sm:px-0">
+      <p class="text-green-300/90 text-[13px] sm:text-xs tracking-[0.1em] sm:tracking-[0.3em]
+                  max-w-lg mx-auto leading-relaxed sm:leading-loose px-2 sm:px-0">
         ESCRIBE CÓDIGO. COMPILA TU ESTRATEGIA.<br>
         DESENSAMBLA AL ENEMIGO. DOMINA EL CICLO.
       </p>
 
       <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center
                     pt-2 sm:pt-4 px-4 sm:px-0">
-        <a routerLink="/army-builder" class="font-orbitron px-8 py-3 bg-green-500 text-black font-bold tracking-widest text-xs
+        <a routerLink="/army-builder" class="font-orbitron px-8 py-3.5 bg-green-500 text-black font-bold tracking-widest text-sm sm:text-xs
                     text-center hover:bg-green-300 transition-all
                     shadow-lg shadow-green-500/30 hover:shadow-green-400/50">
           INICIAR SISTEMA &#8594;
         </a>
-        <a routerLink="/docs" class="font-orbitron px-8 py-3 bg-transparent text-green-400 font-bold tracking-widest text-xs
+        <a routerLink="/docs" class="font-orbitron px-8 py-3.5 bg-transparent text-green-400 font-bold tracking-widest text-sm sm:text-xs
                     text-center border border-green-500/40
                     hover:border-green-400 hover:bg-green-500/5 transition-all">
           REGLAMENTO
@@ -66,8 +69,8 @@
       </div>
 
       <button type="button" (click)="scrollToQuickStart()"
-        class="text-[10px] sm:text-[11px] tracking-[0.25em] text-green-400/60 hover:text-green-300
-               transition-colors uppercase cursor-pointer mt-1">
+        class="text-xs sm:text-[11px] tracking-[0.15em] sm:tracking-[0.25em] text-green-300/85 hover:text-green-300
+               transition-colors uppercase cursor-pointer mt-1 py-3 px-2">
         ▶ Mira cómo se juega un turno — 8 pasos
       </button>
     </div>
@@ -77,19 +80,19 @@
                   overflow-hidden rounded-sm">
       <div class="bg-[#040c0f] px-3 sm:px-6 py-4 sm:py-6 text-center">
         <div class="text-2xl sm:text-4xl font-black font-orbitron" style="color:#00ff88;">2&ndash;3</div>
-        <div class="text-[8px] sm:text-[10px] tracking-widest text-green-400/65 mt-1 sm:mt-2">
+        <div class="text-xs sm:text-[10px] tracking-normal sm:tracking-widest text-green-300/80 mt-1 sm:mt-2">
           PROGRAMADORES
         </div>
       </div>
       <div class="bg-[#040c0f] px-3 sm:px-6 py-4 sm:py-6 text-center border-x border-green-500/10">
         <div class="text-2xl sm:text-4xl font-black font-orbitron" style="color:#00ff88;">1&ndash;2</div>
-        <div class="text-[8px] sm:text-[10px] tracking-widest text-green-400/65 mt-1 sm:mt-2">
+        <div class="text-xs sm:text-[10px] tracking-normal sm:tracking-widest text-green-300/80 mt-1 sm:mt-2">
           BOTS POR EQUIPO
         </div>
       </div>
       <div class="bg-[#040c0f] px-3 sm:px-6 py-4 sm:py-6 text-center">
         <div class="text-2xl sm:text-4xl font-black font-orbitron" style="color:#00ff88;">28</div>
-        <div class="text-[8px] sm:text-[10px] tracking-widest text-green-400/65 mt-1 sm:mt-2">
+        <div class="text-xs sm:text-[10px] tracking-normal sm:tracking-widest text-green-300/80 mt-1 sm:mt-2">
           CICLOS ACTIVOS
         </div>
       </div>
@@ -101,55 +104,59 @@
     <!-- BOTS GRID ─────────────────────────────────────────── -->
     <div>
       <div class="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-        <span class="text-[9px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] text-green-500/55">
+        <span class="text-xs tracking-[0.15em] sm:tracking-[0.5em] text-green-400/80 whitespace-nowrap shrink-0">
           // BOTS.CFG
         </span>
         <div class="flex-1 h-px bg-green-500/15"></div>
-        <span class="hidden sm:inline text-[10px] tracking-[0.4em] text-green-500/55">
+        <span class="text-xs sm:text-[10px] tracking-[0.1em] sm:tracking-[0.4em] text-green-400/80
+                     whitespace-nowrap shrink-0">
           UNIDADES DISPONIBLES
         </span>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <!-- Mobile: 2×2 con tarjeta compacta · Desktop: la rejilla de siempre -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         @for (bot of bots; track bot.name) {
-        <a [routerLink]="['/army-builder']" [queryParams]="{ preset: bot.preset }" class="card-hover bg-black/60 border rounded-sm p-4 sm:p-5
+        <a [routerLink]="['/army-builder']" [queryParams]="{ preset: bot.preset }" class="card-hover bg-black/60 border rounded-sm p-3 sm:p-5
                         cursor-pointer hover:bg-black/80 shadow-lg block no-underline" [ngClass]="bot.cardClass">
 
-          <div class="text-[9px] tracking-widest text-green-500/55 mb-1">UNIT_TYPE</div>
-          <div class="font-orbitron text-lg sm:text-xl font-black tracking-wide mb-0.5" [ngClass]="bot.nameClass">{{
+          <div class="hidden sm:block text-xs tracking-widest text-green-400/80 mb-1">UNIT_TYPE</div>
+          <div class="font-orbitron text-base sm:text-xl font-black tracking-wide mb-0.5" [ngClass]="bot.nameClass">{{
             bot.name }}</div>
-          <div class="text-[9px] tracking-widest mb-4 sm:mb-5" [ngClass]="bot.subtitleClass">{{ bot.type }}</div>
+          <div class="text-[11px] sm:text-xs tracking-[0.08em] sm:tracking-widest mb-3 sm:mb-5"
+            [ngClass]="bot.subtitleClass">{{ bot.type }}</div>
 
-          <div class="space-y-2 sm:space-y-2.5 text-xs">
+          <div class="space-y-2 sm:space-y-2.5 text-[11px] sm:text-xs">
             <!-- Life bar -->
-            <div class="flex justify-between items-center">
-              <span class="text-green-400/65">life</span>
-              <div class="flex items-center gap-2">
-                <div class="w-16 sm:w-20 h-1 bg-white/5 rounded-full overflow-hidden">
+            <div class="flex justify-between items-center gap-2">
+              <span class="text-green-300/85 shrink-0">life</span>
+              <div class="flex items-center gap-2 flex-1 sm:flex-none justify-end min-w-0">
+                <div class="flex-1 sm:flex-none sm:w-20 h-1 bg-white/5 rounded-full overflow-hidden">
                   <div class="h-full bg-green-400/70 rounded-full" [style.width.%]="bot.lifePercent"></div>
                 </div>
-                <span class="text-green-200/90 w-4 text-right">{{ bot.life }}</span>
+                <span class="text-green-200/90 w-4 text-right shrink-0">{{ bot.life }}</span>
               </div>
             </div>
             <!-- Energy bar -->
-            <div class="flex justify-between items-center">
-              <span class="text-green-400/65">energy</span>
-              <div class="flex items-center gap-2">
-                <div class="w-16 sm:w-20 h-1 bg-white/5 rounded-full overflow-hidden">
+            <div class="flex justify-between items-center gap-2">
+              <span class="text-green-300/85 shrink-0">energy</span>
+              <div class="flex items-center gap-2 flex-1 sm:flex-none justify-end min-w-0">
+                <div class="flex-1 sm:flex-none sm:w-20 h-1 bg-white/5 rounded-full overflow-hidden">
                   <div class="h-full rounded-full" [ngClass]="bot.energyBarClass" [style.width.%]="bot.energyPercent">
                   </div>
                 </div>
-                <span class="text-green-200/90 w-4 text-right">{{ bot.energy }}</span>
+                <span class="text-green-200/90 w-4 text-right shrink-0">{{ bot.energy }}</span>
               </div>
             </div>
-            <!-- SHD / MOV -->
-            <div class="flex justify-between pt-2 border-t border-white/5 text-[10px]">
-              <span class="text-green-400/60">SHD <span [ngClass]="bot.statClass">{{ bot.shield }}</span></span>
-              <span class="text-green-400/60">MOV <span [ngClass]="bot.statClass">{{ bot.move }}</span></span>
+            <!-- SHD / MOV — en móvil los nibbles se pliegan a esta misma fila -->
+            <div class="flex justify-between gap-1.5 pt-2 border-t border-white/5 text-[11px] sm:text-xs">
+              <span class="text-green-300/85 whitespace-nowrap">SHD <span [ngClass]="bot.statClass">{{ bot.shield }}</span></span>
+              <span class="text-green-300/85 whitespace-nowrap">MOV <span [ngClass]="bot.statClass">{{ bot.move }}</span></span>
+              <span class="sm:hidden text-green-300/85 whitespace-nowrap">{{ bot.nibbles }}&#9670;</span>
             </div>
           </div>
 
-          <div class="mt-3 sm:mt-4 pt-3 border-t border-white/5 text-[9px] tracking-widest text-green-500/40">
+          <div class="hidden sm:block mt-4 pt-3 border-t border-white/5 text-xs tracking-widest text-green-400/80">
             V1&ndash;3 | NIBBLES: {{ bot.nibbles }}&#9670;
           </div>
         </a>
@@ -159,12 +166,12 @@
 
     <!-- BATTLESCRIPT EXAMPLE ──────────────────────────────── -->
     <div class="bg-black/70 border border-green-500/20 rounded-sm p-4 sm:p-7 shadow-lg">
-      <div class="text-[10px] tracking-widest text-green-500/55 mb-4 sm:mb-5 flex items-center gap-3">
-        <img src="assets/img/bs-logo.png" alt="BS" class="h-5 w-5 opacity-50" />
-        <span>// BATTLESCRIPT_EXAMPLE.BS</span>
+      <div class="text-xs tracking-[0.15em] sm:tracking-widest text-green-400/80 mb-4 sm:mb-5 flex items-center gap-3">
+        <img src="assets/img/bs-logo.png" alt="BS" class="h-5 w-5 opacity-50 shrink-0" />
+        <span class="whitespace-nowrap shrink-0">// BATTLESCRIPT_EXAMPLE.BS</span>
         <div class="hidden sm:block flex-1 h-px bg-green-500/10"></div>
       </div>
-      <pre class="text-[11px] sm:text-sm leading-6 sm:leading-8 overflow-x-auto"><span class="bs-phase">START</span>
+      <pre class="text-xs sm:text-sm leading-7 sm:leading-8 overflow-x-auto"><span class="bs-phase">START</span>
   <span class="bs-kw">IF</span> <span class="bs-type">(</span><span class="bs-num">1</span> <span class="bs-op">==</span> <span class="bs-num">1</span><span class="bs-type">)</span>
     <span class="bs-kw">THEN</span> <span class="bs-fn">attack</span><span class="bs-type">(</span><span class="bs-fn">rocketPunch</span><span class="bs-type">(</span><span class="bs-type">)</span><span class="bs-type">)</span>
 
@@ -178,6 +185,5 @@
     </div>
 
   </div>
-  }
 
 </div>

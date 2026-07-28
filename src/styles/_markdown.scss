@@ -80,10 +80,16 @@
 
   /* ── Párrafos ─────────────────────────────────────────────── */
   p {
-    color: rgba(74, 222, 128, 0.8);
+    color: rgba(74, 222, 128, 0.85);
     line-height: 1.85;
     margin: 0 0 1.1rem;
     font-size: 0.9rem;
+
+    /* En móvil el cuerpo sube a 15px para poder leerse en la mesa. */
+    @media (max-width: 639px) {
+      font-size: 0.9375rem;
+      line-height: 1.75;
+    }
   }
 
   strong {
@@ -115,12 +121,17 @@
     margin: 0 0 1.25rem;
 
     li {
-      color: rgba(74, 222, 128, 0.8);
+      color: rgba(74, 222, 128, 0.85);
       font-size: 0.9rem;
       line-height: 1.8;
       padding-left: 1.5rem;
       margin-bottom: 0.3rem;
       position: relative;
+
+      @media (max-width: 639px) {
+        font-size: 0.9375rem;
+        line-height: 1.75;
+      }
 
       &::before {
         content: '→';
@@ -142,13 +153,18 @@
     counter-reset: fw-ol;
 
     li {
-      color: rgba(74, 222, 128, 0.8);
+      color: rgba(74, 222, 128, 0.85);
       font-size: 0.9rem;
       line-height: 1.8;
       padding-left: 2.25rem;
       margin-bottom: 0.4rem;
       position: relative;
       counter-increment: fw-ol;
+
+      @media (max-width: 639px) {
+        font-size: 0.9375rem;
+        line-height: 1.75;
+      }
 
       &::before {
         content: counter(fw-ol, decimal-leading-zero) '.';
@@ -169,6 +185,10 @@
     font-family: 'Share Tech Mono', 'Courier New', monospace;
     font-size: 0.85em;
     color: #00ff88;
+
+    @media (max-width: 639px) {
+      font-size: max(0.85em, 13px);
+    }
     background: rgba(0, 255, 136, 0.07);
     border: 1px solid rgba(0, 255, 136, 0.22);
     padding: 0.1em 0.45em;
@@ -248,6 +268,18 @@
     font-size: 0.875rem;
     border: 1px solid rgba(0, 255, 136, 0.12);
 
+    /* Affordance de scroll: las sombras laterales solo aparecen cuando
+       queda contenido oculto a ese lado (truco background-attachment). */
+    background-image:
+      linear-gradient(to right, #040c0f 30%, rgba(4, 12, 15, 0)),
+      linear-gradient(to left,  #040c0f 30%, rgba(4, 12, 15, 0)),
+      radial-gradient(farthest-side at 0 50%,   rgba(0, 255, 136, 0.28), rgba(0, 255, 136, 0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(0, 255, 136, 0.28), rgba(0, 255, 136, 0));
+    background-position: 0 0, 100% 0, 0 0, 100% 0;
+    background-repeat: no-repeat;
+    background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+    background-attachment: local, local, scroll, scroll;
+
     thead {
       background: rgba(0, 255, 136, 0.04);
       border-bottom: 1px solid rgba(0, 255, 136, 0.25);
@@ -257,10 +289,12 @@
         font-size: 0.65rem;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: rgba(0, 255, 136, 0.65);
+        color: rgba(0, 255, 136, 0.75);
         padding: 0.65rem 1rem;
         text-align: left;
         white-space: nowrap;
+
+        @media (max-width: 639px) { font-size: 0.7rem; letter-spacing: 0.12em; }
       }
     }
 
@@ -273,7 +307,7 @@
         &:hover { background: rgba(0, 255, 136, 0.03); }
 
         td {
-          color: rgba(74, 222, 128, 0.75);
+          color: rgba(74, 222, 128, 0.85);
           padding: 0.6rem 1rem;
           vertical-align: top;
           line-height: 1.6;
@@ -283,6 +317,80 @@
 
     .text-center { text-align: center; }
 
+    /* Primera columna anclada al hacer scroll horizontal. */
+    @media (max-width: 639px) {
+      th:first-child,
+      td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background: #061410;
+        box-shadow: 1px 0 0 rgba(0, 255, 136, 0.12);
+      }
+    }
+  }
+
+  /* ── Tabla como tarjetas apiladas (móvil) ───────────────────
+     Se activa con la directiva /table-cards delante de la tabla.
+     Cada fila pasa a ser una tarjeta con «etiqueta: valor» por línea;
+     las etiquetas las inyecta table-enhancer.ts como data-label.     */
+  @media (max-width: 639px) {
+    table.md-table-cards {
+      display: block;
+      width: 100%;
+      border: none;
+      background-image: none;
+
+      thead { display: none; }
+
+      tbody { display: block; }
+
+      tbody tr {
+        display: block;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        background: rgba(0, 0, 0, 0.45);
+        padding: 0.8rem 0.9rem;
+        margin-bottom: 0.625rem;
+
+        &:last-child { border-bottom: 1px solid rgba(0, 255, 136, 0.2); }
+      }
+
+      tbody td {
+        display: grid;
+        grid-template-columns: minmax(5.5rem, 38%) 1fr;
+        gap: 0.75rem;
+        position: static;
+        padding: 0.25rem 0;
+        background: none;
+        box-shadow: none;
+        text-align: left !important;
+        font-size: 0.875rem;
+        line-height: 1.6;
+
+        &::before {
+          content: attr(data-label);
+          font-family: 'Orbitron', monospace;
+          font-size: 0.7rem;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(0, 255, 136, 0.75);
+          padding-top: 0.15rem;
+        }
+
+        /* La primera celda hace de título de la tarjeta. */
+        &:first-child {
+          display: block;
+          font-size: 0.9375rem;
+          font-weight: bold;
+          color: #86efac;
+          padding-bottom: 0.4rem;
+          margin-bottom: 0.4rem;
+          border-bottom: 1px dashed rgba(0, 255, 136, 0.18);
+
+          &::before { content: none; }
+        }
+      }
+    }
   }
 
   /* ── Cita (Space Grey) ────────────────────────────────────── */

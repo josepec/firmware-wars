@@ -21,7 +21,7 @@ export interface PostSummary {
 
       <!-- Cabecera de sección -->
       <div class="flex items-center gap-3 sm:gap-4 mb-2">
-        <span class="text-[9px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] text-green-500/55">
+        <span class="text-xs tracking-[0.15em] sm:tracking-[0.5em] text-green-400/80 whitespace-nowrap shrink-0">
           // PATCH_NOTES.LOG
         </span>
         <div class="flex-1 h-px bg-green-500/15"></div>
@@ -29,17 +29,17 @@ export interface PostSummary {
       <h1 class="font-orbitron text-2xl sm:text-3xl font-black tracking-tight text-green-400 uppercase mb-2">
         Noticias
       </h1>
-      <p class="text-[10px] tracking-[0.2em] text-green-500/50 uppercase mb-8">
+      <p class="text-xs tracking-[0.12em] text-green-400/80 uppercase mb-8 leading-relaxed">
         Registro de actualizaciones del sistema — novedades, cambios y comunicados
       </p>
 
       @if (loading()) {
-        <div class="text-[10px] text-green-500/40 tracking-wider animate-pulse py-8">
+        <div class="text-xs text-green-400/85 tracking-wider animate-pulse py-8">
           > CARGANDO PATCH_NOTES.LOG...
         </div>
       } @else if (posts().length === 0) {
         <div class="border border-green-500/15 bg-black/30 px-5 py-8 text-center
-                    text-[10px] tracking-[0.2em] text-green-500/45">
+                    text-xs tracking-[0.15em] text-green-400/80">
           > PATCH_NOTES.LOG VACÍO. VUELVE EN EL PRÓXIMO CICLO.
         </div>
       } @else {
@@ -53,14 +53,14 @@ export interface PostSummary {
                      class="w-full max-h-56 object-cover border-b border-green-500/10" />
               }
               <div class="px-5 py-4">
-                <div class="text-[9px] tracking-[0.25em] text-green-500/40 mb-1">
+                <div class="text-xs tracking-[0.15em] text-green-400/80 mb-1">
                   {{ p.published_at | date: 'dd/MM/yyyy' }}
                 </div>
-                <div class="font-orbitron text-sm sm:text-base font-bold tracking-wide
+                <div class="font-orbitron text-[15px] sm:text-base font-bold tracking-wide
                             text-green-300 group-hover:text-green-200 uppercase">
                   {{ p.title }}
                 </div>
-                <div class="mt-2 text-[9px] tracking-[0.2em] text-cyan-400/50
+                <div class="mt-2 text-xs tracking-[0.15em] text-cyan-400/80
                             group-hover:text-cyan-300 uppercase">
                   Leer entrada →
                 </div>

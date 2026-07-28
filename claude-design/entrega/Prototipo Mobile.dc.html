@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#020604; color:#a7f3c9; font-family:'Share Tech Mono',monospace; }
+  a { color:#00ff88; } a:hover { color:#7dffc0; }
+  @keyframes fwFadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
+  @keyframes fwBlink { 0%,100% { opacity:1;} 50% { opacity:0;} }
+  @keyframes fwBeam { from { opacity:0;} to { opacity:1;} }
+</style>
+</helmet>
+
+<div style="min-height:100vh; display:flex; justify-content:center; background:#020604;">
+<div style="width:100%; max-width:420px; min-height:100vh; background:#040c0f; position:relative; display:flex; flex-direction:column; box-shadow:0 0 60px rgba(0,255,136,0.06);">
+
+  <!-- BOOT OVERLAY -->
+  <sc-if value="{{ bootVisible }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ skipBoot }}" style="position:absolute; inset:0; z-index:50; background:#040c0f; padding:24px 20px; display:flex; flex-direction:column; gap:12px; cursor:pointer;">
+      <div style="display:flex; align-items:center; gap:8px; padding-bottom:12px; border-bottom:1px solid rgba(0,255,136,0.15);">
+        <span style="width:10px; height:10px; border-radius:50%; background:rgba(239,68,68,0.7);"></span>
+        <span style="width:10px; height:10px; border-radius:50%; background:rgba(234,179,8,0.7);"></span>
+        <span style="width:10px; height:10px; border-radius:50%; background:rgba(34,197,94,0.7);"></span>
+        <span style="margin-left:8px; font-size:11px; letter-spacing:0.2em; color:rgba(74,222,128,0.6);">TERMINAL_INIT.SYS — CORE COMBAT</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:#4ade80;">
+        <sc-for list="{{ bootShown }}" as="ln" hint-placeholder-count="1">
+          <div style="animation:fwFadeIn 0.25s ease-out both;">{{ ln }}</div>
+        </sc-for>
+        <span style="animation:fwBlink 1s step-end infinite;">▮</span>
+      </div>
+      <div style="margin-top:auto; text-align:center; font-size:12px; letter-spacing:0.2em; color:rgba(134,239,172,0.55); padding-bottom:16px;">TOCA PARA SALTAR ▸</div>
+    </div>
+  </sc-if>
+
+  <!-- TOP BAR -->
+  <div style="position:sticky; top:0; z-index:30; background:rgba(4,12,15,0.92); backdrop-filter:blur(6px); border-bottom:1px solid rgba(0,255,136,0.2); padding:14px 16px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:13px; letter-spacing:0.1em; color:#86efac;">:: FIRMWARE WARS ::</span>
+    <span style="font-size:12px; color:#86efac; display:flex; align-items:center; gap:6px;"><span style="width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px #4ade80;"></span>ARENA ONLINE</span>
+  </div>
+
+  <!-- ═══ TAB: INICIO ═══ -->
+  <sc-if value="{{ tabInicio }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1; display:flex; flex-direction:column; gap:40px; padding-bottom:96px;">
+
+    <!-- HERO -->
+    <div style="text-align:center; padding:36px 20px 0; display:flex; flex-direction:column; gap:16px;">
+      <div style="font-size:11px; letter-spacing:0.3em; color:rgba(134,239,172,0.8);">:: 28TH CYCLE — TOURNAMENT ::</div>
+      <div style="font-family:'Orbitron',sans-serif; font-weight:900; line-height:0.95;">
+        <div style="font-size:46px; color:#d4ffe8; text-shadow:0 0 40px rgba(0,255,136,0.2);">FIRMWARE</div>
+        <div style="font-size:46px; color:#00ff88; text-shadow:0 0 30px #00ff88;">WARS</div>
+      </div>
+      <div style="font-size:13px; line-height:1.8; color:#a7f3c9;">Escribe código. Compila tu estrategia.<br>Desensambla al enemigo. Domina el ciclo.</div>
+      <div style="display:flex; flex-direction:column; gap:10px; padding:4px 8px 0;">
+        <a href="#" onClick="{{ goJugar }}" style="display:block; background:#22c55e; color:#000; text-decoration:none; font-family:'Orbitron',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.12em; padding:15px; text-align:center; box-shadow:0 4px 24px rgba(0,255,136,0.25);">INICIAR SISTEMA →</a>
+        <a href="#" onClick="{{ goQuickStart }}" style="display:block; border:1px solid rgba(0,255,136,0.5); color:#4ade80; text-decoration:none; font-family:'Orbitron',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.12em; padding:14px; text-align:center;">▶ VER UN TURNO EN 8 PASOS</a>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1px solid rgba(0,255,136,0.15); border-bottom:1px solid rgba(0,255,136,0.15);">
+      <div style="padding:16px 4px; text-align:center; border-right:1px solid rgba(0,255,136,0.1);"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:24px; color:#00ff88;">2–3</div><div style="font-size:11px; color:#8fd8ae; margin-top:4px;">programadores</div></div>
+      <div style="padding:16px 4px; text-align:center; border-right:1px solid rgba(0,255,136,0.1);"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:24px; color:#00ff88;">1–2</div><div style="font-size:11px; color:#8fd8ae; margin-top:4px;">bots/equipo</div></div>
+      <div style="padding:16px 4px; text-align:center;"><div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:24px; color:#00ff88;">28</div><div style="font-size:11px; color:#8fd8ae; margin-top:4px;">ciclos activos</div></div>
+    </div>
+
+    <!-- QUICK START -->
+    <div style="display:flex; flex-direction:column; gap:16px; padding:0 14px;" x-ref="{{ qsRef }}">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6);">// QUICK_START.EXE</span>
+        <div style="flex:1; height:1px; background:rgba(0,255,136,0.15);"></div>
+      </div>
+      <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:22px; text-align:center; line-height:1.25;">
+        <span style="color:#d4ffe8;">TU PRIMER TURNO,</span><br><span style="color:#00ff88;">COMPILADO EN 8 PASOS</span>
+      </div>
+      <p style="margin:0; font-size:13px; line-height:1.7; color:#a7f3c9; text-align:center;">Una ronda real, con la partida en marcha. Controlas a <b style="color:#86efac;">KERNEL-9</b>; el rival, <b style="color:#f87171;">R3AP-R</b>, está a 4 Hexes. Pulsa <b style="color:#86efac;">Siguiente</b> y ejecuta el ciclo.</p>
+
+      <!-- Pipeline: scroll-snap -->
+      <div x-ref="{{ pipeRef }}" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:4px 2px;">
+        <sc-for list="{{ chips }}" as="c" hint-placeholder-count="6">
+          <span style="font-size:12px; letter-spacing:0.08em; padding:7px 12px; border:1px solid {{ c.border }}; color:{{ c.color }}; background:{{ c.bg }};">{{ c.label }}</span>
+        </sc-for>
+      </div>
+
+      <!-- Board (hex, fiel al original) -->
+      <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.5); padding:8px;">
+        <svg viewBox="0 0 460 245" style="width:100%; height:auto; display:block;" role="img" aria-label="Tablero hexagonal: KERNEL-9 contra R3AP-R">
+          <sc-for list="{{ hexes }}" as="h" hint-placeholder-count="10">
+            <polygon points="{{ h.points }}" fill="{{ h.fill }}" stroke="{{ h.stroke }}" stroke-width="1" style="transition:fill 0.3s;"></polygon>
+          </sc-for>
+          <sc-if value="{{ showBeam }}" hint-placeholder-val="{{ false }}">
+            <line x1="{{ beamX1 }}" y1="{{ beamY1 }}" x2="{{ beamX2 }}" y2="{{ beamY2 }}" stroke="#00ff88" stroke-width="2.5" style="filter:drop-shadow(0 0 6px #00ff88); animation:fwBeam 0.3s ease-out both;"></line>
+            <text x="{{ dmgX }}" y="{{ dmgY }}" text-anchor="middle" fill="#f87171" font-family="Orbitron, sans-serif" font-weight="900" font-size="16" style="animation:fwFadeIn 0.4s ease-out both;">−1</text>
+          </sc-if>
+          <g style="transform:{{ foeTransform }};">
+            <image href="assets/bot.png" x="-23" y="-30" width="46" height="46" style="filter:drop-shadow(0 0 8px rgba(248,113,113,0.6)) hue-rotate(140deg);"></image>
+            <sc-if value="{{ foeShieldOn }}" hint-placeholder-val="{{ false }}"><text x="18" y="-16" font-size="14" fill="#7dd3fc">◈</text></sc-if>
+            <text y="30" text-anchor="middle" fill="#f87171" font-size="11" letter-spacing="1" style="paint-order:stroke; stroke:#040c0f; stroke-width:3px;">R3AP-R</text>
+          </g>
+          <g style="transform:{{ meTransform }}; transition:transform 0.5s ease;">
+            <image href="assets/bot.png" x="-23" y="-30" width="46" height="46" style="filter:drop-shadow(0 0 8px rgba(0,255,136,0.5));"></image>
+            <sc-if value="{{ meShieldOn }}" hint-placeholder-val="{{ false }}"><text x="18" y="-16" font-size="14" fill="#7dd3fc">◈</text></sc-if>
+            <text y="30" text-anchor="middle" fill="#86efac" font-size="11" letter-spacing="1" style="paint-order:stroke; stroke:#040c0f; stroke-width:3px;">KERNEL-9</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Status -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.4); padding:12px; display:flex; flex-direction:column; gap:7px;">
+          <div style="font-size:11px; letter-spacing:0.15em; font-weight:bold; color:#4ade80;">KERNEL-9 · TÚ</div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:12px;"><span style="color:rgba(134,239,172,0.7); width:44px;">life</span><div style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;"><div style="height:100%; width:100%; background:rgba(74,222,128,0.7); border-radius:3px;"></div></div><b style="color:#d1fae5;">20/20</b></div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:12px;"><span style="color:rgba(134,239,172,0.7); width:44px;">energy</span><div style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;"><div style="height:100%; width:{{ enPct }}; background:rgba(253,224,71,0.7); border-radius:3px; transition:width 0.4s;"></div></div><b style="color:#d1fae5;">{{ en }}/16</b></div>
+          <div style="display:flex; justify-content:space-between; font-size:12px;"><span style="color:rgba(134,239,172,0.7);">shield</span><b style="color:#d1fae5;">{{ meShield }}</b></div>
+          <sc-if value="{{ showNums }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:2px;">
+              <sc-for list="{{ ramNums }}" as="n" hint-placeholder-count="5">
+                <span style="font-size:12px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:1px solid {{ n.border }}; color:{{ n.color }}; background:{{ n.bg }}; text-decoration:{{ n.deco }};">{{ n.v }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="border:1px solid rgba(248,113,113,0.3); background:rgba(0,0,0,0.4); padding:12px; display:flex; flex-direction:column; gap:7px;">
+          <div style="font-size:11px; letter-spacing:0.15em; font-weight:bold; color:#f87171;">R3AP-R · RIVAL</div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:12px;"><span style="color:rgba(134,239,172,0.7); width:44px;">life</span><div style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;"><div style="height:100%; width:{{ foeLifePct }}; background:rgba(248,113,113,0.7); border-radius:3px; transition:width 0.4s;"></div></div><b style="color:#d1fae5;">{{ foeLife }}/20</b></div>
+          <div style="display:flex; justify-content:space-between; font-size:12px;"><span style="color:rgba(134,239,172,0.7);">shield</span><b style="color:#d1fae5;">{{ foeShield }}</b></div>
+        </div>
+      </div>
+
+      <!-- Terminal step card -->
+      <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.6);">
+        <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid rgba(0,255,136,0.15); background:rgba(0,0,0,0.4);">
+          <span style="width:9px; height:9px; border-radius:50%; background:rgba(239,68,68,0.7);"></span>
+          <span style="width:9px; height:9px; border-radius:50%; background:rgba(234,179,8,0.7);"></span>
+          <span style="width:9px; height:9px; border-radius:50%; background:rgba(34,197,94,0.7);"></span>
+          <span style="margin-left:6px; font-size:11px; letter-spacing:0.15em; color:rgba(134,239,172,0.6);">TERMINAL://KERNEL-9</span>
+          <span style="margin-left:auto; font-size:11px; letter-spacing:0.15em; color:rgba(134,239,172,0.6);">PASO {{ stepNum }}/8</span>
+        </div>
+        <div style="padding:16px 14px; display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <div style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(134,239,172,0.65);">{{ stepTag }}</div>
+            <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:19px; color:#00ff88; margin-top:4px;">{{ stepName }}</div>
+          </div>
+          <div style="font-size:13px; line-height:1.7; color:#a7f3c9;">{{ stepText }}</div>
+          <sc-if value="{{ hasDice }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:6px;">
+              <sc-for list="{{ stepDice }}" as="d" hint-placeholder-count="2">
+                <div style="flex:1; min-width:0; border:1px solid {{ d.border }}; background:rgba(0,0,0,0.4); padding:6px 8px; text-align:center;">
+                  <div style="font-size:10px; color:rgba(134,239,172,0.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ d.k }}</div>
+                  <div style="font-size:13px; font-weight:bold; color:{{ d.color }}; margin-top:2px; white-space:nowrap;">{{ d.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasScript }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid rgba(0,255,136,0.15); background:rgba(0,0,0,0.5); padding:10px 12px; display:flex; flex-direction:column; font-size:12px; line-height:1.9; white-space:pre; overflow-x:auto;">
+              <sc-for list="{{ scriptLines }}" as="ln" hint-placeholder-count="6">
+                <span style="color:{{ ln.color }}; background:{{ ln.bg }}; font-weight:{{ ln.weight }};">{{ ln.t }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="font-size:12px; line-height:1.6; color:rgba(134,239,172,0.55); border-left:2px solid rgba(0,255,136,0.3); padding-left:10px;">{{ stepNote }}</div>
+        </div>
+      </div>
+
+      <!-- Progress + controls -->
+      <div style="height:4px; background:rgba(0,255,136,0.12); border-radius:2px; overflow:hidden;"><div style="width:{{ progPct }}; height:100%; background:#00ff88; transition:width 0.3s;"></div></div>
+      <div style="display:flex; gap:10px;">
+        <button onClick="{{ prev }}" style="flex:2; border:1px solid rgba(0,255,136,0.4); background:transparent; color:#4ade80; font-family:'Orbitron',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.1em; padding:15px 0; cursor:pointer; opacity:{{ prevOpacity }};">← ANTERIOR</button>
+        <button onClick="{{ next }}" style="flex:3; border:none; background:#22c55e; color:#000; font-family:'Orbitron',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.1em; padding:15px 0; cursor:pointer; box-shadow:0 4px 20px rgba(0,255,136,0.25);">{{ nextLabel }}</button>
+      </div>
+    </div>
+
+    <!-- BOTS GRID -->
+    <div style="display:flex; flex-direction:column; gap:14px; padding:0 14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6); white-space:nowrap; flex-shrink:0;">// BOTS.CFG</span>
+        <div style="flex:1; height:1px; background:rgba(0,255,136,0.15);"></div>
+        <span style="font-size:11px; letter-spacing:0.15em; color:rgba(0,255,136,0.6);">UNIDADES</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <sc-for list="{{ botCards }}" as="b" hint-placeholder-count="4">
+          <div onClick="{{ goJugar }}" style="border:1px solid {{ b.border }}; background:rgba(0,0,0,0.6); padding:14px; display:flex; flex-direction:column; gap:8px; cursor:pointer;">
+            <div>
+              <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:15px; color:{{ b.accent }};">{{ b.name }}</div>
+              <div style="font-size:10px; letter-spacing:0.12em; color:{{ b.accentDim }}; margin-top:2px;">{{ b.type }}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px;"><span style="color:rgba(134,239,172,0.7); width:34px;">life</span><div style="flex:1; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;"><div style="height:100%; width:{{ b.lifePct }}; background:rgba(74,222,128,0.7);"></div></div><b style="color:#d1fae5;">{{ b.life }}</b></div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px;"><span style="color:rgba(134,239,172,0.7); width:34px;">energy</span><div style="flex:1; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;"><div style="height:100%; width:{{ b.enPct }}; background:{{ b.accentBar }};"></div></div><b style="color:#d1fae5;">{{ b.energy }}</b></div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; border-top:1px solid rgba(255,255,255,0.06); padding-top:7px; color:rgba(134,239,172,0.7);"><span>SHD <b style="color:#d1fae5;">{{ b.shield }}</b></span><span>MOV <b style="color:#d1fae5;">{{ b.move }}</b></span><span>{{ b.nibbles }}◈</span></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- BATTLESCRIPT EXAMPLE -->
+    <div style="display:flex; flex-direction:column; gap:14px; padding:0 14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="assets/bs-logo.png" alt="BS" style="height:22px; width:22px; opacity:0.6;" />
+        <span style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6); white-space:nowrap; flex-shrink:0;">// BATTLESCRIPT_EXAMPLE.BS</span>
+        <div style="flex:1; height:1px; background:rgba(0,255,136,0.15);"></div>
+      </div>
+      <pre style="margin:0; border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.7); padding:14px; font-family:'Share Tech Mono',monospace; font-size:12px; line-height:2; overflow-x:auto;"><span style="color:rgba(0,255,136,0.5);">START</span>
+  <span style="color:#fdba74;">IF</span> <span style="color:#c4b5fd;">(</span><span style="color:#86efac;">1</span> <span style="color:#f8fafc;">==</span> <span style="color:#86efac;">1</span><span style="color:#c4b5fd;">)</span>
+    <span style="color:#fdba74;">THEN</span> <span style="color:#fde047;">attack</span><span style="color:#c4b5fd;">(</span><span style="color:#fde047;">rocketPunch</span><span style="color:#c4b5fd;">())</span>
+
+  <span style="color:#fdba74;">IF-ELSE</span> <span style="color:#c4b5fd;">(</span><span style="color:#86efac;">5</span> <span style="color:#f8fafc;">&gt;=</span> <span style="color:#86efac;">3</span><span style="color:#c4b5fd;">)</span>
+    <span style="color:#fdba74;">THEN</span> <span style="color:#fde047;">move</span><span style="color:#c4b5fd;">()</span>
+    <span style="color:#fdba74;">ELSE</span> <span style="color:#fde047;">attack</span><span style="color:#c4b5fd;">(</span><span style="color:#fde047;">powerSmash</span><span style="color:#c4b5fd;">())</span>
+
+  <span style="color:#fdba74;">FOR</span> <span style="color:#c4b5fd;">(</span><span style="color:#86efac;">3</span><span style="color:#c4b5fd;">)</span>
+    <span style="color:#fde047;">shield</span><span style="color:#c4b5fd;">()</span><span style="color:rgba(0,255,136,0.5);">
+END</span></pre>
+    </div>
+
+    <!-- Footer mini -->
+    <div style="text-align:center; font-size:12px; color:rgba(134,239,172,0.5); padding:8px 16px 0;">:: FIRMWARE WARS — CORE COMBAT SYSTEM ::</div>
+  </div>
+  </sc-if>
+
+  <!-- ═══ TAB: JUGAR ═══ -->
+  <sc-if value="{{ tabJugar }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; padding:32px 16px 110px; display:flex; flex-direction:column; gap:18px;">
+      <div style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6);">// ARMY_BUILDER.CFG</div>
+      <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:24px; color:#86efac;">CREADOR DE LISTA</div>
+
+      <!-- Alias -->
+      <div style="border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.5); padding:14px;">
+        <div style="font-size:11px; letter-spacing:0.25em; color:rgba(134,239,172,0.65); margin-bottom:8px;">PROGRAMADOR // ALIAS</div>
+        <input type="text" value="{{ alias }}" onInput="{{ onAlias }}" maxLength="20" style="width:100%; box-sizing:border-box; padding:12px; font-family:'Orbitron',sans-serif; font-weight:700; font-size:16px; letter-spacing:0.08em; text-transform:uppercase; color:#86efac; background:transparent; border:1px solid rgba(0,255,136,0.25); outline:none;" />
+      </div>
+
+      <!-- Bot card -->
+      <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.55);">
+        <!-- Header con estado visible -->
+        <div style="padding:14px; border-bottom:1px solid rgba(0,255,136,0.15); background:rgba(0,0,0,0.4); display:flex; align-items:center; gap:12px;">
+          <span style="width:9px; height:9px; border-radius:50%; flex-shrink:0; background:{{ statusDot }};"></span>
+          <div style="flex:1; min-width:0;">
+            <div style="font-family:'Orbitron',sans-serif; font-weight:700; font-size:16px; color:#86efac;">{{ botName }}</div>
+            <div style="font-size:12px; color:{{ statusColor }}; margin-top:3px;">{{ statusText }}</div>
+          </div>
+          <span style="font-size:13px; color:#a7f3c9; flex-shrink:0;">{{ nibbles }}/120◈</span>
+        </div>
+
+        <div style="padding:14px; display:flex; flex-direction:column; gap:20px;">
+          <!-- Nombre -->
+          <div>
+            <div style="font-size:11px; letter-spacing:0.25em; color:rgba(134,239,172,0.65); margin-bottom:8px;">DESIGNACIÓN DEL BOT</div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" value="{{ botName }}" onInput="{{ onBotName }}" maxLength="16" style="flex:1; min-width:0; box-sizing:border-box; padding:12px; font-family:'Orbitron',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.08em; text-transform:uppercase; color:#86efac; background:rgba(0,0,0,0.5); border:1px solid rgba(0,255,136,0.25); outline:none;" />
+              <button onClick="{{ randomName }}" style="width:46px; height:46px; flex-shrink:0; border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.5); color:#4ade80; font-size:17px; cursor:pointer;">⟳</button>
+            </div>
+          </div>
+
+          <!-- Atributos -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+              <span style="font-size:11px; letter-spacing:0.25em; color:rgba(134,239,172,0.65); white-space:nowrap; flex-shrink:0;">// ATRIBUTOS</span>
+              <span style="font-size:12px; color:{{ pointsColor }}; text-align:right;">Mejoras {{ mejorasUsed }}/2 · Desventaja {{ desvUsed }}/1</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <sc-for list="{{ points }}" as="p" hint-placeholder-count="4">
+                <div style="border:1px solid {{ p.border }}; background:rgba(0,0,0,0.4); padding:12px 14px; display:flex; align-items:center; gap:12px;">
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; letter-spacing:0.1em; color:#86efac;">{{ p.name }} <b style="color:{{ p.valColor }}; font-family:'Orbitron',sans-serif; margin-left:6px;">{{ p.val }}</b></div>
+                    <div style="font-size:12px; line-height:1.5; color:rgba(134,239,172,0.6); margin-top:3px;">{{ p.desc }}</div>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-shrink:0;">
+                    <button onClick="{{ p.up }}" style="min-width:44px; height:44px; border:1px solid {{ p.upBorder }}; background:{{ p.upBg }}; color:{{ p.upColor }}; font-size:14px; cursor:pointer;">{{ p.mejora }}</button>
+                    <button onClick="{{ p.down }}" style="min-width:44px; height:44px; border:1px solid {{ p.downBorder }}; background:{{ p.downBg }}; color:{{ p.downColor }}; font-size:14px; cursor:pointer;">{{ p.desventaja }}</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- Funciones V1 -->
+          <div>
+            <div style="margin-bottom:10px;">
+              <span style="font-size:11px; letter-spacing:0.25em; color:#fdba74; white-space:nowrap;">VERSION 1 · 2 FUNCIONES</span>
+            </div>
+            <div style="height:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(0,255,136,0.2); border-radius:3px; overflow:hidden; margin-bottom:6px;"><div style="height:100%; width:{{ nibPct }}; background:rgba(0,255,136,0.5); transition:width 0.3s;"></div></div>
+            <div style="display:flex; justify-content:space-between; gap:10px; font-size:11px; color:rgba(134,239,172,0.5); margin-bottom:10px;"><span style="white-space:nowrap;">Memoria: {{ nibbles }}◈</span><span style="white-space:nowrap;">120◈</span></div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <sc-for list="{{ slots }}" as="sl" hint-placeholder-count="2">
+                <div>
+                  <button onClick="{{ sl.toggle }}" style="width:100%; box-sizing:border-box; border:1px solid {{ sl.border }}; background:rgba(0,0,0,0.4); padding:13px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; text-align:left; font-family:'Share Tech Mono',monospace;">
+                    <span style="flex:1; font-size:14px; color:{{ sl.color }};">{{ sl.label }}</span>
+                    <span style="font-size:12px; color:rgba(134,239,172,0.55);">{{ sl.cost }}</span>
+                    <span style="font-size:11px; color:rgba(0,255,136,0.5);">{{ sl.caret }}</span>
+                  </button>
+                  <sc-if value="{{ sl.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid rgba(0,255,136,0.2); border-top:none; background:#060e0a;">
+                      <sc-for list="{{ v1Fns }}" as="f" hint-placeholder-count="4">
+                        <button onClick="{{ f.pick }}" style="width:100%; box-sizing:border-box; border:none; border-bottom:1px solid rgba(0,255,136,0.08); background:transparent; padding:13px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; text-align:left; font-family:'Share Tech Mono',monospace;">
+                          <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; color:#fdba74;">{{ f.name }}</div>
+                            <div style="font-size:12px; color:rgba(134,239,172,0.55); margin-top:2px;">{{ f.desc }}</div>
+                          </div>
+                          <span style="font-size:12px; color:#a7f3c9; flex-shrink:0;">{{ f.cost }}◈</span>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="margin:0; font-size:12px; line-height:1.7; color:rgba(134,239,172,0.5); border-left:2px solid rgba(0,255,136,0.3); padding-left:10px;">Patrón propuesto: estado y requisitos siempre visibles (sin tooltips), atributos en filas de 1 columna con botones de 44px, selector de funciones inline con coste y descripción.</p>
+    </div>
+  </sc-if>
+
+  <!-- ═══ TAB: DOCS · ÍNDICE ═══ -->
+  <sc-if value="{{ tabDocsIndex }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; padding:32px 20px 110px; display:flex; flex-direction:column; gap:16px;">
+      <div style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6);">// REGLAMENTO</div>
+      <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:24px; color:#86efac;">DOCUMENTACIÓN</div>
+      <input type="text" placeholder="Buscar sección…" value="{{ docQuery }}" onInput="{{ onDocSearch }}" style="width:100%; box-sizing:border-box; padding:13px 14px; font-family:'Share Tech Mono',monospace; font-size:14px; color:#a7f3c9; background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.25); outline:none;" />
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <sc-for list="{{ docSections }}" as="d" hint-placeholder-count="8">
+          <button onClick="{{ d.open }}" style="border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.4); padding:15px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; text-align:left; width:100%; font-family:'Share Tech Mono',monospace;">
+            <span style="font-size:12px; color:rgba(0,255,136,0.5);">{{ d.num }}</span>
+            <span style="flex:1; font-size:14px; letter-spacing:0.08em; color:#86efac;">{{ d.subtitle }}</span>
+            <span style="font-size:11px; color:rgba(134,239,172,0.4);">{{ d.title }}</span>
+          </button>
+        </sc-for>
+        <div style="border:1px solid rgba(0,255,136,0.4); background:rgba(0,255,136,0.08); padding:15px 16px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; margin-top:6px;">
+          <span style="font-size:13px; letter-spacing:0.15em; color:#4ade80;">↓ DESCARGAR PDF (PRINT &amp; PLAY)</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══ TAB: DOCS · LECTURA ═══ -->
+  <sc-if value="{{ tabDocsRead }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; display:flex; flex-direction:column; padding-bottom:96px;">
+      <div style="position:sticky; top:49px; z-index:20; background:rgba(4,12,15,0.94); backdrop-filter:blur(6px); border-bottom:1px solid rgba(0,255,136,0.15); padding:10px 12px; display:flex; align-items:center; gap:10px;">
+        <button onClick="{{ closeDocSec }}" style="border:1px solid rgba(0,255,136,0.3); background:transparent; color:#4ade80; font-family:'Share Tech Mono',monospace; font-size:13px; padding:9px 14px; cursor:pointer;">←</button>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:10px; letter-spacing:0.2em; color:rgba(0,255,136,0.5); margin-bottom:3px;">{{ docSecTitle }}</div>
+          <div style="font-size:14px; letter-spacing:0.06em; line-height:1.3; color:#86efac; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ docSecNum }} · {{ docSecSubtitle }}</div>
+        </div>
+      </div>
+      <sc-if value="{{ docHasContent }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:24px 18px; display:flex; flex-direction:column; gap:18px;">
+          <h2 style="margin:0; font-family:'Orbitron',sans-serif; font-weight:900; font-size:20px; color:#d4ffe8;">Fases del Sistema</h2>
+          <p style="margin:0; font-size:15px; line-height:1.75; color:#c4e3d0;">Cada ronda representa un ciclo de procesamiento compartido donde los Bots compiten por prioridad y recursos del sistema.</p>
+          <div style="font-size:12px; letter-spacing:0.2em; color:rgba(0,255,136,0.6); border-bottom:1px solid rgba(0,255,136,0.15); padding-bottom:8px;">TABLA · CICLO DE TURNO</div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{ cycleRows }}" as="r" hint-placeholder-count="6">
+              <div style="border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.45); padding:13px 14px; display:flex; flex-direction:column; gap:5px;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+                  <span style="font-size:14px; font-weight:bold; color:#00ff88;">{{ r.fase }}</span>
+                  <span style="font-size:11px; color:rgba(134,239,172,0.55); text-align:right;">{{ r.momento }}</span>
+                </div>
+                <div style="font-size:13px; line-height:1.65; color:#a7f3c9;">{{ r.acciones }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <p style="margin:0; font-size:13px; line-height:1.7; color:rgba(134,239,172,0.55); border-left:2px solid rgba(0,255,136,0.3); padding-left:10px;">Patrón propuesto: las tablas clave del reglamento se muestran en móvil como tarjetas apiladas (una fila = una tarjeta), en vez de tabla con scroll horizontal.</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{ docNoContent }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px 18px; text-align:center; font-size:13px; line-height:1.8; color:rgba(134,239,172,0.55);">&gt; Sección de demo sin contenido.<br>En el prototipo solo "Ciclo de Turno" (05) tiene contenido real.</div>
+      </sc-if>
+      <div style="margin-top:auto; display:flex; gap:10px; padding:12px 18px 0;">
+        <button onClick="{{ docPrev }}" style="flex:1; border:1px solid rgba(0,255,136,0.3); background:transparent; color:#4ade80; font-family:'Share Tech Mono',monospace; font-size:12px; padding:13px 0; cursor:pointer; opacity:{{ docPrevOp }};">← {{ docPrevLabel }}</button>
+        <button onClick="{{ docNext }}" style="flex:1; border:1px solid rgba(0,255,136,0.3); background:transparent; color:#4ade80; font-family:'Share Tech Mono',monospace; font-size:12px; padding:13px 0; cursor:pointer; opacity:{{ docNextOp }};">{{ docNextLabel }} →</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══ TAB: MÁS · MENÚ ═══ -->
+  <sc-if value="{{ tabMasMenu }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; padding:32px 20px 110px; display:flex; flex-direction:column; gap:16px;">
+      <div style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6);">// MORE.SYS</div>
+      <div style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:24px; color:#86efac;">MÁS</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <sc-for list="{{ masItems }}" as="m" hint-placeholder-count="3">
+          <button onClick="{{ m.go }}" style="border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.4); padding:17px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; width:100%; text-align:left; font-family:'Share Tech Mono',monospace;">
+            <span style="display:flex; flex-direction:column; gap:3px;">
+              <span style="font-size:14px; letter-spacing:0.1em; color:#86efac;">{{ m.label }}</span>
+              <span style="font-size:11px; color:rgba(134,239,172,0.5);">{{ m.hint }}</span>
+            </span>
+            <span style="color:rgba(0,255,136,0.5);">→</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══ TAB: MÁS · NOTICIAS ═══ -->
+  <sc-if value="{{ tabNoticias }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; padding-bottom:110px; display:flex; flex-direction:column;">
+      <div style="position:sticky; top:49px; z-index:20; background:rgba(4,12,15,0.94); backdrop-filter:blur(6px); border-bottom:1px solid rgba(0,255,136,0.15); padding:10px 12px; display:flex; align-items:center; gap:10px;">
+        <button onClick="{{ masBack }}" style="border:1px solid rgba(0,255,136,0.3); background:transparent; color:#4ade80; font-family:'Share Tech Mono',monospace; font-size:13px; padding:9px 14px; cursor:pointer;">←</button>
+        <div style="min-width:0;">
+          <div style="font-size:10px; letter-spacing:0.2em; color:rgba(0,255,136,0.5); margin-bottom:3px;">NEWS.LOG</div>
+          <div style="font-size:14px; letter-spacing:0.06em; color:#86efac;">Noticias</div>
+        </div>
+      </div>
+      <div style="padding:20px 16px; display:flex; flex-direction:column; gap:12px;">
+        <sc-for list="{{ newsItems }}" as="n" hint-placeholder-count="3">
+          <article style="border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.4); padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+              <span style="font-size:10px; letter-spacing:0.15em; padding:3px 8px; border:1px solid {{ n.tagBorder }}; color:{{ n.tagColor }}; white-space:nowrap;">{{ n.tag }}</span>
+              <span style="font-size:11px; color:rgba(134,239,172,0.5); white-space:nowrap;">{{ n.date }}</span>
+            </div>
+            <h3 style="margin:0 0 6px; font-family:'Orbitron',sans-serif; font-weight:700; font-size:15px; line-height:1.35; color:#d4ffe8;">{{ n.title }}</h3>
+            <p style="margin:0; font-size:13px; line-height:1.65; color:#a7c9b5;">{{ n.excerpt }}</p>
+            <div style="margin-top:12px; font-size:12px; letter-spacing:0.1em; color:#4ade80; padding:6px 0;">LEER MÁS →</div>
+          </article>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══ TAB: MÁS · SOPORTE ═══ -->
+  <sc-if value="{{ tabSoporte }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; padding-bottom:110px; display:flex; flex-direction:column;">
+      <div style="position:sticky; top:49px; z-index:20; background:rgba(4,12,15,0.94); backdrop-filter:blur(6px); border-bottom:1px solid rgba(0,255,136,0.15); padding:10px 12px; display:flex; align-items:center; gap:10px;">
+        <button onClick="{{ masBack }}" style="border:1px solid rgba(0,255,136,0.3); background:transparent; color:#4ade80; font-family:'Share Tech Mono',monospace; font-size:13px; padding:9px 14px; cursor:pointer;">←</button>
+        <div style="min-width:0;">
+          <div style="font-size:10px; letter-spacing:0.2em; color:rgba(0,255,136,0.5); margin-bottom:3px;">SUPPORT.SYS</div>
+          <div style="font-size:14px; letter-spacing:0.06em; color:#86efac;">Soporte</div>
+        </div>
+      </div>
+      <div style="padding:20px 16px; display:flex; flex-direction:column; gap:20px;">
+        <div>
+          <div style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6); margin-bottom:10px;">// FAQ</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ faqItems }}" as="f" hint-placeholder-count="4">
+              <div style="border:1px solid rgba(0,255,136,0.2); background:rgba(0,0,0,0.4);">
+                <button onClick="{{ f.toggle }}" style="width:100%; border:none; background:transparent; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px; cursor:pointer; text-align:left; font-family:'Share Tech Mono',monospace;">
+                  <span style="font-size:13px; line-height:1.5; color:#c4e3d0;">{{ f.q }}</span>
+                  <span style="color:#00ff88; font-size:14px; flex-shrink:0;">{{ f.caret }}</span>
+                </button>
+                <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 16px 14px; font-size:13px; line-height:1.7; color:#a7c9b5; border-top:1px solid rgba(0,255,136,0.1); padding-top:12px;">{{ f.a }}</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px; letter-spacing:0.25em; color:rgba(0,255,136,0.6); margin-bottom:10px;">// CONTACTO</div>
+          <div style="border:1px solid rgba(0,255,136,0.25); background:rgba(0,0,0,0.5); padding:16px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:13px; line-height:1.6; color:#c4e3d0;">¿Un bug en las reglas o en la web? Abre un ticket y te responde un humano (no un bot… probablemente).</div>
+            <textarea placeholder="> describe el problema_" style="background:rgba(0,0,0,0.6); border:1px solid rgba(0,255,136,0.3); color:#86efac; font-family:'Share Tech Mono',monospace; font-size:14px; padding:12px; min-height:90px; resize:vertical; outline:none;"></textarea>
+            <button style="background:#22c55e; color:#000; border:none; font-family:'Orbitron',sans-serif; font-weight:700; font-size:12px; letter-spacing:0.12em; padding:14px; cursor:pointer;">ENVIAR TICKET →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- BOTTOM TAB BAR -->
+  <div style="position:sticky; bottom:0; z-index:30; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; background:rgba(2,8,6,0.96); border-top:1px solid rgba(0,255,136,0.25); backdrop-filter:blur(6px);">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <button onClick="{{ t.go }}" style="border:none; background:transparent; padding:10px 0 14px; text-align:center; color:{{ t.color }}; cursor:pointer; font-family:'Share Tech Mono',monospace;">
+        <div style="font-size:17px; line-height:1;">{{ t.icon }}</div>
+        <div style="font-size:11px; letter-spacing:0.08em; margin-top:4px;">{{ t.label }}</div>
+      </button>
+    </sc-for>
+  </div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:900},&quot;saltarBoot&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototipo&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 'inicio', step: 0, boot: true, bootN: 0, docSec: null, docQuery: '', alias: 'ANON_DEV', botName: 'KERNEL-9', pointTypes: {}, slotFns: [null, null], openSlot: null, masView: null, faqOpen: null };
+  NEWS = [
+    { tag: 'TORNEO', tagColor: '#fdba74', tagBorder: 'rgba(253,186,116,0.5)', date: '21 JUL 2026', title: '28º Ciclo: inscripciones abiertas', excerpt: 'El Core Combat Tournament arranca en agosto. Formato suizo, 3 rondas, bots de 120◈. Plazas limitadas a 16 programadores.' },
+    { tag: 'REGLAS', tagColor: '#86efac', tagBorder: 'rgba(134,239,172,0.5)', date: '14 JUL 2026', title: 'Errata v1.2: stabilizerHit()', excerpt: 'Aclaración oficial: el frenado se aplica antes de la fase de movimiento del rival, no después. Actualizado en TECH.REF.' },
+    { tag: 'COMUNIDAD', tagColor: '#93c5fd', tagBorder: 'rgba(147,197,253,0.5)', date: '02 JUL 2026', title: 'Nuevos tapetes hex imprimibles', excerpt: 'Versión A4 y A3 del tablero en la sección de descargas, con marcadores de energía y escudo recortables.' }
+  ];
+  FAQ = [
+    { q: '¿Cuántos jugadores hacen falta?', a: 'De 2 a 3 programadores, cada uno con 1 o 2 bots. La partida estándar es 1v1 con un bot por equipo.' },
+    { q: '¿Qué necesito para jugar?', a: 'El reglamento (Docs), dados d6, los BattleScripts impresos y un tablero hex. Todo lo imprimible está en descargas.' },
+    { q: '¿Puedo cambiar mi bot entre partidas?', a: 'Sí. La lista se recompila entre partidas; en torneo, solo entre rondas y con el mismo total de nibbles.' },
+    { q: '¿Dónde reporto una errata?', a: 'Con el formulario de contacto de abajo o en el canal #erratas de la comunidad. Las confirmadas salen en Noticias.' }
+  ];
+  POINT_DEFS = [
+    { key: 'MAX_LIFE', desc: 'Vida máxima del núcleo', base: 20, delta: 2, mejora: '+2', desventaja: '−2' },
+    { key: 'MAX_ENERGY', desc: 'Energía máxima almacenable', base: 16, delta: 2, mejora: '+2', desventaja: '−2' },
+    { key: 'MAX_MOVEMENT', desc: 'Hexes máximos por move()', base: 2, delta: 1, mejora: '+1', desventaja: '−1' },
+    { key: 'MAX_SHIELD', desc: 'Escudo máximo acumulable', base: 2, delta: 1, mejora: '+1', desventaja: '−1' }
+  ];
+  V1_FNS = [
+    { name: 'pulseShot()', desc: 'Daño 2 a rango 2', cost: 25 },
+    { name: 'rocketPunch()', desc: 'Daño 3 cuerpo a cuerpo', cost: 30 },
+    { name: 'powerSmash()', desc: 'Daño 4, cuesta 3 energía', cost: 40 },
+    { name: 'laserBeam()', desc: 'Daño 2 en línea recta', cost: 35 },
+    { name: 'dashStrike()', desc: 'Mueve 1 y golpea (daño 2)', cost: 30 },
+    { name: 'stabilizerHit()', desc: 'Daño 1 y frena al rival', cost: 20 }
+  ];
+  BOT_NAMES = ['KERNEL-9', 'R3AP-R', 'NULLBYTE', 'SEGFAULT', 'OVERCLOCK', 'DAEMON-X', 'BITCRUSH', 'HEXHUNTER'];
+  DOC_SECTIONS = [
+    { num: '01', title: 'INIT.SYS', subtitle: 'Introducción' },
+    { num: '02', title: 'AMBIENT.DSK', subtitle: 'Ambientación' },
+    { num: '03', title: 'HARDWARE.CFG', subtitle: 'Componentes' },
+    { num: '04', title: 'SETUP.PRT', subtitle: 'Preparación' },
+    { num: '05', title: 'CORE.CYCLE', subtitle: 'Ciclo de Turno' },
+    { num: '06', title: 'BOTS.CFG', subtitle: 'Bots' },
+    { num: '07', title: 'TECH.REF', subtitle: 'Tablas' },
+    { num: '08', title: 'QUICK.REF', subtitle: 'Referencia Rápida' }
+  ];
+  CYCLE_ROWS = [
+    { fase: 'INIT()', momento: 'Inicio de Ronda (una vez)', acciones: 'Negociación de CPU Time (PPT protocol) para determinar el orden de activación.' },
+    { fase: 'BOOT()', momento: 'Inicio de Ronda (una vez)', acciones: 'Recuperación de Energía, Carga de Operaciones y Depuración de Efectos Temporales.' },
+    { fase: 'COMPILE()', momento: 'Ciclo del Bot', acciones: 'El Programador ordena las Operaciones en el Terminal. Asigna Funciones y prepara el código.' },
+    { fase: 'RUN()', momento: 'Ciclo del Bot', acciones: 'Ejecución de Operaciones y Funciones. Resolución de ataques, condiciones y costes energéticos.' },
+    { fase: 'DEBUG()', momento: 'Ciclo del Bot (Opcional)', acciones: 'Permite ejecutar Funciones de Mantenimiento.' },
+    { fase: 'END()', momento: 'Fin del Ciclo del Bot', acciones: 'Descarte de Operaciones. Conservación de Números y Energía. Transferencia del turno.' }
+  ];
+  BOOT_LINES = ['> INIT KERNEL v3.4 ............ OK', '> LOADING BATTLESCRIPT ........ OK', '> HEX GRID CALIBRATION ........ OK', '> ARENA LINK ESTABLISHED', '> WELCOME, PROGRAMMER_'];
+  PHASES = ['INIT()', 'BOOT()', 'COMPILE()', 'RUN()', 'DEBUG()', 'END()'];
+  NUMS = [2, 5, 3, 6, 1];
+  SCRIPT = ['START', '  IF (cond) THEN move()', '  IF (cond) THEN attack(pulseShot())', '  IF-ELSE (cond) THEN attack(laserBeam())', '       ELSE shield()', 'END'];
+  // Datos fieles a quick-start.data.ts (texto sin markup)
+  STEPS = [
+    { tag: 'Paso 1 · La escena', name: 'DUELO EN EL EDC', text: 'Dos Programadores, un Bot cada uno, en pleno Entorno Digitalizado de Combate. Tras la primera ronda de maniobras, KERNEL-9 (verde) ha cerrado la distancia: R3AP-R está a 4 Hexes y ya acumula 1 punto de escudo. Los Hexes negros son obstáculos: bloquean movimiento y línea de visión.', dice: [], note: 'Cada ronda arranca con INIT() y BOOT(). Después, cada Bot ejecuta su ciclo: COMPILE() → RUN() → DEBUG() → END().', phase: -1, en: 0, meShield: 0, foeLife: 20, foeShield: 1, spent: [], showNums: false, moved: false, attack: false },
+    { tag: 'Paso 2 · Inicio de ronda', name: 'INIT()', text: 'Los Programadores negocian el CPU Time con un duelo de Piedra-Papel-Tijera. Sacas papel contra piedra: ganas la Prioridad de CPU. Tu Bot actuará primero durante toda la ronda.', dice: [{ k: 'PPT Protocol', v: '✋ vs ✊', cls: 'true' }], note: 'En las rondas 3 y 5 todos los Bots ejecutan upgrade() y desbloquean nuevas Operaciones, Funciones y ataques.', phase: 0, en: 0, meShield: 0, foeLife: 20, foeShield: 1, spent: [], showNums: false, moved: false, attack: false },
+    { tag: 'Paso 3 · Arranque', name: 'BOOT()', text: 'KERNEL-9 arranca. Ejecuta getEnergy(2): 2d6 → 4+3 = 7 de energía. Con getNumbers() rellena su RAM de números para las condiciones. Y lanza 3 veces el Dado V1 para cargar sus Operaciones del turno: IF, IF, IF-ELSE.', dice: [{ k: 'getEnergy(2)', v: '4+3 = 7' }, { k: 'Dado V1 ×3', v: 'IF · IF · IF-ELSE' }], note: 'Si la energía supera MAX_ENERGY, el exceso se pierde… y el Bot gana un BUG por sobrecarga.', phase: 1, en: 7, meShield: 0, foeLife: 20, foeShield: 1, spent: [], showNums: true, moved: false, attack: false },
+    { tag: 'Paso 4 · Programación', name: 'COMPILE()', text: 'Ahora escribes el BattleScript: ordenas tus 3 Operaciones y les asignas Funciones. El plan: acercarte, disparar y, si el segundo ataque falla, levantar escudo. Una vez compilado, no se puede reordenar.', dice: [], note: 'Cada BUG activo te roba una ranura de Operación. Programa limpio o sufre.', phase: 2, script: { done: [], hot: [] }, en: 7, meShield: 0, foeLife: 20, foeShield: 1, spent: [], showNums: true, moved: false, attack: false },
+    { tag: 'Paso 5 · Ejecución · línea 1', name: 'RUN()', text: 'Cada condición se resuelve con dados. Dado de Operaciones → ≥. 1d6 → 4. Eliges tu número guardado 3. ¿4 ≥ 3? TRUE → se ejecuta move(): declaras 2 Hexes, pagas 2 de energía y avanzas.', dice: [{ k: 'Comparador', v: '≥' }, { k: '1d6', v: '4' }, { k: 'numbers', v: '3' }, { k: '4 ≥ 3', v: 'TRUE', cls: 'true' }], note: 'move(n) cuesta tanta energía como Hexes muevas, hasta MAX_MOVEMENT.', phase: 3, script: { done: [], hot: [1] }, en: 5, meShield: 0, foeLife: 20, foeShield: 1, spent: [2], num: 2, showNums: true, moved: true, attack: false, path: ['2,2', '3,2'] },
+    { tag: 'Paso 6 · Ejecución · línea 2', name: 'RUN()', text: 'Comparador → ==. 1d6 → 2. Eliges tu 2. ¿2 == 2? TRUE → attack(pulseShot()): 1 de energía, daño 2 a rango 2. El escudo rival para 1 punto y se rompe. R3AP-R pierde 1 de vida.', dice: [{ k: 'Comparador', v: '==' }, { k: '1d6', v: '2' }, { k: 'numbers', v: '2' }, { k: '2 == 2', v: 'TRUE', cls: 'true' }], note: 'Ojo: el Bot enemigo más cercano puede INTERCEPTAR una Operación por turno y sustituir tu dado por un número suyo.', phase: 3, script: { done: [1], hot: [2] }, en: 4, meShield: 0, foeLife: 19, foeShield: 0, spent: [2, 0], num: 0, showNums: true, moved: true, attack: true, hit: ['5,2'] },
+    { tag: 'Paso 7 · Ejecución · línea 3', name: 'RUN()', text: 'Comparador → <. 1d6 → 6. Tu número: 1. ¿6 < 1? FALSE → el laserBeam() no se dispara… pero es un IF-ELSE: se ejecuta la rama ELSE, shield(). Pagas 2 de energía y ganas +1 escudo.', dice: [{ k: 'Comparador', v: '<' }, { k: '1d6', v: '6' }, { k: 'numbers', v: '1' }, { k: '6 < 1', v: 'FALSE', cls: 'false' }], note: 'Programar un plan B en la rama ELSE es la diferencia entre un turno perdido y un turno sólido.', phase: 3, script: { done: [1, 2], hot: [3, 4] }, en: 2, meShield: 1, foeLife: 19, foeShield: 0, spent: [2, 0, 4], num: 4, showNums: true, moved: true, attack: false },
+    { tag: 'Paso 8 · Cierre', name: 'END()', text: 'Se descartan las Operaciones usadas, pero conservas los números que no gastaste y tus 2 de energía para el próximo turno. No tienes bugs, así que saltas DEBUG(). El turno pasa a R3AP-R… y ahora le toca sudar a su Programador.', dice: [], note: 'Victoria: el último Programador con Bots operativos gana. Sin piedad, sin rollback.', phase: 5, script: { done: [1, 2, 3, 4], hot: [5] }, en: 2, meShield: 1, foeLife: 19, foeShield: 0, spent: [2, 0, 4], showNums: true, moved: true, attack: false, end: true }
+  ];
+  OBSTACLES = ['3,1', '1,3', '5,3', '4,0'];
+  ME_START = [1, 2]; ME_MOVED = [3, 2]; FOE = [5, 2];
+  qsEl = null; pipeEl = null;
+  componentDidMount() {
+    if (this.props.saltarBoot) { this.setState({ boot: false }); return; }
+    this.bootTimer = setInterval(() => {
+      this.setState(s => {
+        if (s.bootN >= this.BOOT_LINES.length) { clearInterval(this.bootTimer); return { boot: false }; }
+        return { bootN: s.bootN + 1 };
+      });
+    }, 450);
+  }
+  componentWillUnmount() { clearInterval(this.bootTimer); }
+  builderVals(s) {
+    const mejorasUsed = Object.values(s.pointTypes).filter(t => t === 'mejora').length;
+    const desvUsed = Object.values(s.pointTypes).filter(t => t === 'desventaja').length;
+    const nibbles = s.slotFns.reduce((a, f) => a + (f ? f.cost : 0), 0);
+    const fnsMissing = s.slotFns.filter(f => !f).length;
+    const missing = [];
+    if (mejorasUsed < 2) missing.push((2 - mejorasUsed) + ' mejora' + (mejorasUsed === 0 ? 's' : ''));
+    if (desvUsed < 1) missing.push('1 desventaja');
+    if (fnsMissing > 0) missing.push(fnsMissing + ' función' + (fnsMissing > 1 ? 'es' : '') + ' V1');
+    const ok = missing.length === 0;
+    return {
+      alias: s.alias,
+      onAlias: (e) => this.setState({ alias: e.target.value.toUpperCase() }),
+      botName: s.botName,
+      onBotName: (e) => this.setState({ botName: e.target.value.toUpperCase() }),
+      randomName: () => this.setState(p => ({ botName: this.BOT_NAMES[Math.floor(Math.random() * this.BOT_NAMES.length)] })),
+      statusDot: ok ? '#4ade80' : 'rgba(234,179,8,0.8)',
+      statusColor: ok ? 'rgba(134,239,172,0.75)' : '#fbbf24',
+      statusText: ok ? 'COMPILED — listo para combate' : 'INCOMPLETE — falta: ' + missing.join(', '),
+      nibbles, nibPct: (nibbles / 120 * 100) + '%',
+      mejorasUsed, desvUsed,
+      pointsColor: mejorasUsed === 2 && desvUsed === 1 ? 'rgba(134,239,172,0.75)' : '#fbbf24',
+      points: this.POINT_DEFS.map(d => {
+        const t = s.pointTypes[d.key] || null;
+        const val = d.base + (t === 'mejora' ? d.delta : 0) - (t === 'desventaja' ? d.delta : 0);
+        const toggle = (type, max, used) => () => this.setState(p => {
+          const cur = p.pointTypes[d.key] || null;
+          const next = { ...p.pointTypes };
+          if (cur === type) { delete next[d.key]; return { pointTypes: next }; }
+          const usedNow = Object.values(p.pointTypes).filter(x => x === type).length;
+          if (usedNow >= max) return null;
+          next[d.key] = type;
+          return { pointTypes: next };
+        });
+        return {
+          name: d.key, desc: d.desc, val,
+          valColor: t === 'mejora' ? '#00ff88' : t === 'desventaja' ? '#f87171' : '#a7f3c9',
+          border: t === 'mejora' ? 'rgba(0,255,136,0.4)' : t === 'desventaja' ? 'rgba(248,113,113,0.4)' : 'rgba(0,255,136,0.15)',
+          mejora: d.mejora, desventaja: d.desventaja,
+          upBorder: t === 'mejora' ? 'rgba(0,255,136,0.6)' : 'rgba(0,255,136,0.25)',
+          upBg: t === 'mejora' ? 'rgba(0,255,136,0.15)' : 'transparent',
+          upColor: t === 'mejora' ? '#00ff88' : 'rgba(134,239,172,0.6)',
+          downBorder: t === 'desventaja' ? 'rgba(248,113,113,0.6)' : 'rgba(0,255,136,0.25)',
+          downBg: t === 'desventaja' ? 'rgba(248,113,113,0.15)' : 'transparent',
+          downColor: t === 'desventaja' ? '#f87171' : 'rgba(134,239,172,0.6)',
+          up: toggle('mejora', 2), down: toggle('desventaja', 1)
+        };
+      }),
+      slots: s.slotFns.map((f, i) => ({
+        label: f ? f.name : 'Seleccionar función · slot ' + (i + 1),
+        color: f ? '#fdba74' : 'rgba(134,239,172,0.5)',
+        cost: f ? f.cost + '◈' : '',
+        caret: s.openSlot === i ? '▲' : '▼',
+        border: f ? 'rgba(253,186,116,0.4)' : 'rgba(0,255,136,0.2)',
+        open: s.openSlot === i,
+        toggle: () => this.setState(p => ({ openSlot: p.openSlot === i ? null : i }))
+      })),
+      v1Fns: this.V1_FNS.map(f => ({
+        ...f,
+        pick: () => this.setState(p => {
+          if (p.openSlot === null) return null;
+          const sf = [...p.slotFns]; sf[p.openSlot] = f;
+          return { slotFns: sf, openSlot: null };
+        })
+      }))
+    };
+  }
+  scrollPipe(step) {
+    if (!this.pipeEl) return;
+    const idx = Math.max(0, this.STEPS[step].phase);
+    const child = this.pipeEl.children[idx];
+    if (child) this.pipeEl.scrollTo({ left: child.offsetLeft - this.pipeEl.clientWidth / 2 + child.clientWidth / 2, behavior: 'smooth' });
+  }
+  renderVals() {
+    const s = this.state;
+    const st = this.STEPS[s.step];
+    const setStep = (fn) => { this.setState(p => { const n = fn(p.step); setTimeout(() => this.scrollPipe(n), 50); return { step: n }; }); };
+    const hexPts = (cx, cy, r) => {
+      let pts = [];
+      for (let i = 0; i < 6; i++) { const a = Math.PI / 180 * (60 * i - 30); pts.push((cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1)); }
+      return pts.join(' ');
+    };
+    const center = (col, row) => {
+      const r = 34, w = Math.sqrt(3) * r;
+      return { x: 42 + col * w + (row % 2) * (w / 2), y: 44 + row * (r * 1.5) };
+    };
+    const hexes = [];
+    for (let row = 0; row < 4; row++) for (let col = 0; col < 7; col++) {
+      const key = col + ',' + row, c = center(col, row);
+      const obst = this.OBSTACLES.includes(key);
+      const onPath = st.path && st.path.includes(key);
+      const onHit = st.hit && st.hit.includes(key);
+      hexes.push({
+        points: hexPts(c.x, c.y, 32),
+        fill: obst ? '#0d1512' : onHit ? 'rgba(248,113,113,0.18)' : onPath ? 'rgba(0,255,136,0.12)' : 'rgba(0,255,136,0.02)',
+        stroke: obst ? 'rgba(0,255,136,0.1)' : onHit ? 'rgba(248,113,113,0.5)' : onPath ? 'rgba(0,255,136,0.45)' : 'rgba(0,255,136,0.2)'
+      });
+    }
+    const mePosArr = st.moved ? this.ME_MOVED : this.ME_START;
+    const meC = center(mePosArr[0], mePosArr[1]);
+    const foeC = center(this.FOE[0], this.FOE[1]);
+    const tabDef = [
+      { id: 'inicio', icon: '⌂', label: 'Inicio' },
+      { id: 'jugar', icon: '▶', label: 'Jugar' },
+      { id: 'docs', icon: '▤', label: 'Docs' },
+      { id: 'mas', icon: '⋯', label: 'Más' }
+    ];
+    return {
+      bootVisible: s.boot && !this.props.saltarBoot,
+      bootShown: this.BOOT_LINES.slice(0, s.bootN),
+      skipBoot: (e) => { e.preventDefault(); clearInterval(this.bootTimer); this.setState({ boot: false }); },
+      tabInicio: s.tab === 'inicio', tabJugar: s.tab === 'jugar',
+      tabMasMenu: s.tab === 'mas' && s.masView === null,
+      tabNoticias: s.tab === 'mas' && s.masView === 'noticias',
+      tabSoporte: s.tab === 'mas' && s.masView === 'soporte',
+      masBack: () => this.setState({ masView: null }),
+      newsItems: this.NEWS,
+      faqItems: this.FAQ.map((f, i) => ({
+        q: f.q, a: f.a, open: s.faqOpen === i, caret: s.faqOpen === i ? '−' : '+',
+        toggle: () => this.setState(p => ({ faqOpen: p.faqOpen === i ? null : i }))
+      })),
+      tabDocsIndex: s.tab === 'docs' && s.docSec === null,
+      tabDocsRead: s.tab === 'docs' && s.docSec !== null,
+      tabs: tabDef.map(t => ({
+        icon: t.icon, label: t.label,
+        color: s.tab === t.id ? '#00ff88' : 'rgba(134,239,172,0.55)',
+        go: () => this.setState({ tab: t.id, masView: null })
+      })),
+      goJugar: (e) => { e.preventDefault(); this.setState({ tab: 'jugar' }); window.scrollTo({ top: 0 }); },
+      goQuickStart: (e) => { e.preventDefault(); setTimeout(() => { if (this.qsEl) window.scrollTo({ top: this.qsEl.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' }); }, 60); },
+      qsRef: (el) => { this.qsEl = el; },
+      pipeRef: (el) => { this.pipeEl = el; },
+      chips: this.PHASES.map((p, i) => ({
+        label: p,
+        border: i === st.phase ? '#00ff88' : 'rgba(0,255,136,0.15)',
+        color: i === st.phase ? '#00ff88' : (i < st.phase ? 'rgba(134,239,172,0.75)' : 'rgba(134,239,172,0.45)'),
+        bg: i === st.phase ? 'rgba(0,255,136,0.1)' : 'transparent'
+      })),
+      hexes,
+      meTransform: 'translate(' + meC.x + 'px,' + meC.y + 'px)',
+      foeTransform: 'translate(' + foeC.x + 'px,' + foeC.y + 'px)',
+      showBeam: !!st.attack,
+      beamX1: meC.x + 18, beamY1: meC.y - 6, beamX2: foeC.x - 18, beamY2: foeC.y - 6,
+      dmgX: foeC.x, dmgY: foeC.y - 34,
+      meShieldOn: st.meShield > 0, foeShieldOn: st.foeShield > 0,
+      en: st.en, enPct: (st.en / 16 * 100) + '%', meShield: st.meShield,
+      foeLife: st.foeLife, foeLifePct: (st.foeLife / 20 * 100) + '%', foeShield: st.foeShield,
+      showNums: st.showNums,
+      ramNums: this.NUMS.map((v, i) => {
+        const spent = st.spent.includes(i), hot = st.num === i;
+        return {
+          v,
+          border: hot ? '#00ff88' : spent ? 'rgba(134,239,172,0.15)' : 'rgba(0,255,136,0.3)',
+          color: hot ? '#00ff88' : spent ? 'rgba(134,239,172,0.3)' : '#a7f3c9',
+          bg: hot ? 'rgba(0,255,136,0.12)' : 'transparent',
+          deco: spent && !hot ? 'line-through' : 'none'
+        };
+      }),
+      stepNum: s.step + 1, stepTag: st.tag, stepName: st.name, stepText: st.text, stepNote: st.note,
+      hasDice: st.dice.length > 0,
+      stepDice: st.dice.map(d => ({
+        k: d.k, v: d.v,
+        border: d.cls === 'true' ? 'rgba(0,255,136,0.5)' : d.cls === 'false' ? 'rgba(248,113,113,0.5)' : 'rgba(0,255,136,0.2)',
+        color: d.cls === 'true' ? '#00ff88' : d.cls === 'false' ? '#f87171' : '#d1fae5'
+      })),
+      hasScript: !!st.script,
+      scriptLines: this.SCRIPT.map((t, i) => {
+        const hot = st.script && st.script.hot.includes(i), done = st.script && st.script.done.includes(i);
+        return {
+          t,
+          color: hot ? '#00ff88' : done ? 'rgba(134,239,172,0.45)' : 'rgba(134,239,172,0.75)',
+          bg: hot ? 'rgba(0,255,136,0.08)' : 'transparent',
+          weight: hot ? 'bold' : 'normal'
+        };
+      }),
+      progPct: ((s.step + 1) / 8 * 100) + '%',
+      prevOpacity: s.step === 0 ? '0.35' : '1',
+      nextLabel: s.step === 7 ? 'REINICIAR ⟳' : 'SIGUIENTE →',
+      prev: () => setStep(c => Math.max(0, c - 1)),
+      next: () => setStep(c => (c === 7 ? 0 : c + 1)),
+      ...this.builderVals(s),
+      docQuery: s.docQuery,
+      onDocSearch: (e) => this.setState({ docQuery: e.target.value }),
+      docSections: this.DOC_SECTIONS
+        .map((d, i) => ({ ...d, open: () => { this.setState({ docSec: i }); window.scrollTo({ top: 0 }); } }))
+        .filter(d => !s.docQuery || (d.subtitle + ' ' + d.title).toLowerCase().includes(s.docQuery.toLowerCase())),
+      docSecTitle: s.docSec !== null ? this.DOC_SECTIONS[s.docSec].title : '',
+      docSecNum: s.docSec !== null ? this.DOC_SECTIONS[s.docSec].num : '',
+      docSecSubtitle: s.docSec !== null ? this.DOC_SECTIONS[s.docSec].subtitle : '',
+      docHasContent: s.docSec === 4,
+      docNoContent: s.docSec !== null && s.docSec !== 4,
+      closeDocSec: () => this.setState({ docSec: null }),
+      cycleRows: this.CYCLE_ROWS,
+      docPrevOp: s.docSec > 0 ? '1' : '0.35',
+      docNextOp: s.docSec !== null && s.docSec < 7 ? '1' : '0.35',
+      docPrevLabel: s.docSec > 0 ? this.DOC_SECTIONS[s.docSec - 1].subtitle : '—',
+      docNextLabel: s.docSec !== null && s.docSec < 7 ? this.DOC_SECTIONS[s.docSec + 1].subtitle : '—',
+      docPrev: () => this.setState(p => (p.docSec > 0 ? { docSec: p.docSec - 1 } : null)),
+      docNext: () => this.setState(p => (p.docSec !== null && p.docSec < 7 ? { docSec: p.docSec + 1 } : null)),
+      masItems: [
+        { label: 'Noticias', hint: 'Torneos, erratas y comunidad', go: () => { this.setState({ masView: 'noticias' }); window.scrollTo({ top: 0 }); } },
+        { label: 'Soporte', hint: 'FAQ y contacto', go: () => { this.setState({ masView: 'soporte' }); window.scrollTo({ top: 0 }); } },
+        { label: 'Cómo se juega', hint: 'El turno de ejemplo en 8 pasos', go: () => { this.setState({ tab: 'inicio' }); setTimeout(() => { if (this.qsEl) window.scrollTo({ top: this.qsEl.getBoundingClientRect().top + window.scrollY - 90 }); }, 60); } }
+      ],
+      botCards: [
+        { name: 'BRUTEBOT', type: 'ASALTO PESADO', life: 22, energy: 16, shield: 3, move: 1, nibbles: 120, accent: '#f87171', accentDim: 'rgba(248,113,113,0.65)', accentBar: 'rgba(248,113,113,0.6)', border: 'rgba(248,113,113,0.3)' },
+        { name: 'HACKBOT', type: 'INFILTRACIÓN LÓGICA', life: 18, energy: 18, shield: 3, move: 2, nibbles: 110, accent: '#a78bfa', accentDim: 'rgba(167,139,250,0.65)', accentBar: 'rgba(167,139,250,0.6)', border: 'rgba(167,139,250,0.3)' },
+        { name: 'SCOUTBOT', type: 'RECONOCIMIENTO', life: 18, energy: 18, shield: 2, move: 3, nibbles: 120, accent: '#facc15', accentDim: 'rgba(250,204,21,0.65)', accentBar: 'rgba(250,204,21,0.6)', border: 'rgba(250,204,21,0.3)' },
+        { name: 'COREBOT', type: 'PLATAFORMA ESTÁNDAR', life: 22, energy: 18, shield: 1, move: 2, nibbles: 120, accent: '#22d3ee', accentDim: 'rgba(34,211,238,0.65)', accentBar: 'rgba(34,211,238,0.6)', border: 'rgba(34,211,238,0.3)' }
+      ].map(b => ({ ...b, lifePct: (b.life / 22 * 100) + '%', enPct: (b.energy / 18 * 100) + '%' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

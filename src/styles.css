@@ -84,6 +84,46 @@ body {
   overflow-x: hidden;
 }
 
+/* ── Focus visible global ───────────────────────────────────
+   Outline verde consistente en toda la app (navegación por teclado). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-green-400);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+/* ── Hit targets ≥ 44×44 ─────────────────────────────────────
+   Amplía el área táctil sin tocar el tamaño visual del elemento. */
+.tap-44 {
+  position: relative;
+}
+.tap-44::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  min-width: 100%;
+  min-height: 100%;
+  transform: translate(-50%, -50%);
+}
+
+/* El hueco que reserva la tab bar inferior lo pone el propio
+   componente (.fw-tabbar-spacer), al final del flujo del documento. */
+
+/* Altura de la barra superior sticky — referencia para las
+   sub-barras que se pegan justo debajo (docs). */
+:root {
+  --fw-nav-h: 41px;
+}
+
 /* ── Fuente decorativa ─────────────────────────────────────── */
 .font-orbitron {
   font-family: 'Orbitron', monospace;
@@ -138,7 +178,10 @@ body {
   );
 }
 
-/* ── Tooltip custom ───────────────────────────────────────── */
+/* ── Tooltip custom ───────────────────────────────────────────
+   Solo en punteros con hover real (desktop). En táctil la información
+   nunca depende del tooltip: siempre hay texto visible equivalente. */
+@media (hover: hover) and (pointer: fine) {
 [data-tooltip] {
   position: relative;
 }
@@ -167,6 +210,7 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+}
 
 /* ── Hover de tarjeta ──────────────────────────────────────── */
 .card-hover {
@@ -184,6 +228,15 @@ body {
    ─────────────────────────────────────────────────────────── */
 .md-col-2 { column-count: 2; column-gap: 1.5rem; }
 .md-col-3 { column-count: 3; column-gap: 1rem;   }
+
+/* En móvil las columnas siempre colapsan a una sola. */
+@media (max-width: 639px) {
+  .md-col-2,
+  .md-col-3 { column-count: 1; }
+}
+
+/* Marcador de la directiva /table-cards: nunca ocupa espacio. */
+.md-cards-next { display: none; }
 
 .md-col-break  { break-after: column; height: 0; }
 .md-page-break  { height: 0; }

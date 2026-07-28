@@ -6,22 +6,22 @@
 
   <!-- Header -->
   <div class="flex items-center gap-4 mb-8 sm:mb-10">
-    <span class="text-[10px] tracking-[0.5em] text-green-400/65">// ARMY_BUILDER.CFG</span>
+    <span class="text-xs tracking-[0.2em] sm:tracking-[0.5em] text-green-400/80 whitespace-nowrap shrink-0">// ARMY_BUILDER.CFG</span>
     <div class="flex-1 h-px bg-green-500/20"></div>
   </div>
 
   <h1 class="font-orbitron text-2xl sm:text-3xl font-black text-green-300 mb-2" style="text-shadow:0 0 20px #00ff88;">
     CREADOR DE LISTA
   </h1>
-  <p class="text-green-400/65 text-xs tracking-widest mb-8 sm:mb-12">
+  <p class="text-green-400/85 text-[13px] sm:text-xs tracking-wider sm:tracking-widest leading-relaxed mb-8 sm:mb-12">
     &gt; Configura tus Bots. Elige atributos, funciones de ataque y prepárate para el combate.
   </p>
 
   <!-- ── Programmer Name ───────────────────────────────────── -->
   <div class="mb-8 sm:mb-10 bg-black/50 border border-green-500/20 rounded-sm p-4 sm:p-5">
-    <div class="text-[9px] tracking-[0.4em] text-green-400/65 mb-3">PROGRAMADOR // ALIAS</div>
+    <div class="text-xs tracking-[0.2em] sm:tracking-[0.4em] text-green-400/80 mb-3">PROGRAMADOR // ALIAS</div>
     <div class="flex items-center gap-3">
-      <span class="text-green-400/55 text-xs">&gt;</span>
+      <span class="text-green-400/80 text-xs">&gt;</span>
       @if (editingName()) {
       <input type="text" [value]="programmerName()"
         (blur)="editingName.set(false); programmerName.set($any($event.target).value.toUpperCase() || 'ANON_DEV')"
@@ -33,7 +33,7 @@
                        hover:border-green-500/30">
         {{ programmerName() }}
       </button>
-      <span class="text-green-400/45 text-[9px] tracking-widest">[CLICK PARA EDITAR]</span>
+      <span class="text-green-400/85 text-xs tracking-widest">[CLICK PARA EDITAR]</span>
       }
     </div>
   </div>
@@ -44,36 +44,54 @@
               shadow-lg shadow-green-500/5">
 
     <!-- Bot Header -->
-    <div class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4
+    <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4
                 border-b border-green-500/15 bg-black/40 cursor-pointer" (click)="toggleCollapse(botIdx)">
-      <div class="flex items-center gap-3 sm:gap-4">
-        <div class="w-2 h-2 rounded-full"
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-2.5 h-2.5 rounded-full shrink-0"
           [ngClass]="isBotValid(bot) ? 'bg-green-400 shadow-sm shadow-green-400/50' : 'bg-yellow-500/70'"></div>
-        <div>
-          <div class="font-orbitron text-base sm:text-lg font-bold text-green-300 tracking-wider">
+        <div class="min-w-0">
+          <div class="font-orbitron text-base sm:text-lg font-bold text-green-300 tracking-wider truncate">
             {{ bot.name }}
           </div>
-          <div class="text-[9px] tracking-[0.3em] text-green-400/55 mt-0.5">
-            UNIT_{{ botIdx + 1 }} //
-            <span [ngClass]="isBotValid(bot) ? 'text-green-400/55' : 'text-red-400/70'"
-              [attr.data-tooltip]="isBotValid(bot) ? 'Bot listo para combate.' : 'Faltan puntos o funciones por asignar.'">{{
-              isBotValid(bot) ? 'COMPILED' : 'INCOMPLETE' }}</span>
-            &mdash; {{ getNibblesCost(bot) }}/{{ gameConfig.maxNibbles }}◈
+          <!-- Wrap controlado: cada token entero o en la línea siguiente -->
+          <div class="flex flex-wrap items-baseline gap-x-2 text-xs tracking-[0.15em] sm:tracking-[0.3em]
+                      text-green-400/80 mt-0.5">
+            <span class="whitespace-nowrap">
+              UNIT_{{ botIdx + 1 }} //
+              <span class="font-bold" [ngClass]="isBotValid(bot) ? 'text-green-400' : 'text-yellow-400'">{{
+                isBotValid(bot) ? 'COMPILED' : 'INCOMPLETE' }}</span>
+            </span>
+            <span class="whitespace-nowrap">{{ getNibblesCost(bot) }}/{{ gameConfig.maxNibbles }}◈</span>
           </div>
         </div>
       </div>
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1 sm:gap-3 shrink-0">
         @if (bots().length > 1) {
-        <button (click)="removeBot(botIdx); $event.stopPropagation()"
-          class="text-red-400/60 hover:text-red-400 text-xs tracking-widest transition-colors cursor-pointer px-2 py-1"
-          [attr.data-tooltip]="'Eliminar este Bot de la lista.'">
+        <!-- Acción destructiva anidada en una fila que ya es clicable:
+             el borde delimita dónde acaba «eliminar» y empieza «plegar». -->
+        <button (click)="removeBot(botIdx); $event.stopPropagation()" aria-label="Eliminar este Bot de la lista"
+          class="flex items-center justify-center min-w-11 min-h-11 px-2
+                 border border-red-500/30 hover:border-red-400/60 hover:bg-red-500/10
+                 text-red-400/80 hover:text-red-400 text-xs tracking-widest transition-colors cursor-pointer">
           [DEL]
         </button>
         }
-        <span class="text-green-400/55 text-xs transition-transform duration-200"
-          [ngClass]="bot.collapsed ? 'rotate-0' : 'rotate-90'">&#9654;</span>
+        <!-- El caret es indicador, no botón: toda la fila pliega/despliega. -->
+        <span class="flex items-center justify-center min-w-11 min-h-11 text-green-400/80 text-sm"
+          [attr.aria-expanded]="!bot.collapsed">
+          <span class="transition-transform duration-200 inline-block"
+            [ngClass]="bot.collapsed ? 'rotate-0' : 'rotate-90'">&#9654;</span>
+        </span>
       </div>
     </div>
+
+    <!-- Qué falta para compilar — siempre visible, sin depender del hover -->
+    @if (!isBotValid(bot)) {
+    <div class="px-4 sm:px-6 py-2.5 border-b border-green-500/10 bg-yellow-500/5
+                text-xs leading-relaxed text-yellow-200/90">
+      &gt; {{ getMissingText(bot) }}
+    </div>
+    }
 
     <!-- Bot Body (collapsible) -->
     @if (!bot.collapsed) {
@@ -81,16 +99,16 @@
 
       <!-- ── Bot Name Input ──────────────────────────────── -->
       <div>
-        <label class="text-[9px] tracking-[0.4em] text-green-400/65 block mb-2">DESIGNACIÓN DEL BOT</label>
+        <label class="text-xs tracking-[0.2em] sm:tracking-[0.4em] text-green-400/80 block mb-2">DESIGNACIÓN DEL BOT</label>
         <div class="flex items-center gap-2">
-          <span class="text-green-400/55 text-xs">$</span>
+          <span class="text-green-400/80 text-xs">$</span>
           <input type="text" [value]="bot.name" (input)="updateBotName(botIdx, $any($event.target).value)" class="bg-black/50 border border-green-500/20 rounded-sm px-3 py-2
                         text-green-300 font-orbitron text-sm font-bold tracking-wider
                         outline-none focus:border-green-500/50 transition-colors
                         w-full max-w-xs uppercase" maxlength="16" placeholder="BOT_NAME" />
           <button (click)="randomizeName(botIdx)" class="px-2.5 py-2 bg-black/50 border border-green-500/20 rounded-sm
-                         text-green-400/60 hover:text-green-300 hover:border-green-500/40
-                         transition-colors cursor-pointer shrink-0" [attr.data-tooltip]="'Nombre aleatorio'">
+                         text-green-400/85 hover:text-green-300 hover:border-green-500/40
+                         transition-colors cursor-pointer shrink-0" aria-label="Nombre aleatorio" [attr.data-tooltip]="'Nombre aleatorio'">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 3h5v5" />
@@ -105,46 +123,60 @@
 
       <!-- ── Points Allocation ───────────────────────────── -->
       <div>
-        <div class="flex items-center gap-3 mb-4">
-          <span class="text-[10px] tracking-[0.4em] text-green-400/65">// ATRIBUTOS</span>
-          <div class="flex-1 h-px bg-green-500/20"></div>
-          <span class="text-[9px] tracking-widest"
-            [ngClass]="getMejorasUsed(bot) === gameConfig.improvementPoints && getDesventajasUsed(bot) === gameConfig.disadvantagePoints ? 'text-green-400/60' : 'text-yellow-500/70'"
-            [attr.data-tooltip]="'Asigna ' + gameConfig.improvementPoints + ' mejoras y ' + gameConfig.disadvantagePoints + ' desventaja.'">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-4">
+          <span class="text-xs tracking-[0.2em] sm:tracking-[0.4em] text-green-400/80 whitespace-nowrap shrink-0">// ATRIBUTOS</span>
+          <div class="hidden sm:block flex-1 h-px bg-green-500/20"></div>
+          <span class="text-xs tracking-[0.05em] sm:tracking-widest text-right"
+            [ngClass]="getMejorasUsed(bot) === gameConfig.improvementPoints && getDesventajasUsed(bot) === gameConfig.disadvantagePoints ? 'text-green-400/85' : 'text-yellow-400/90'">
             MEJORAS: {{ getMejorasUsed(bot) }}/{{ gameConfig.improvementPoints }} &mdash; DESVENTAJA: {{
             getDesventajasUsed(bot) }}/{{ gameConfig.disadvantagePoints }}
           </span>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!-- Mobile: 1 columna en filas horizontales · Desktop: rejilla de tarjetas -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-3">
           @for (point of bot.points; track point.constant) {
-          <div class="bg-black/40 border rounded-sm p-3 sm:p-4 text-center transition-all duration-200" [ngClass]="{
+          <div class="attr-row bg-black/40 border rounded-sm p-3 sm:p-4 transition-all duration-200
+                      flex items-center gap-3 sm:block sm:text-center" [ngClass]="{
                  'border-green-500/30': point.type === 'mejora',
                  'border-red-500/30': point.type === 'desventaja',
                  'border-green-500/10': !point.type
                }" [attr.data-tooltip]="variableDescriptions[point.constant] || null">
-            <div class="text-[9px] tracking-[0.3em] text-green-400/65 mb-2">{{ point.constant }}</div>
-            <div class="font-orbitron text-xl sm:text-2xl font-black mb-3" [ngClass]="{
+
+            <!-- Nombre + descripción (la descripción sustituye al tooltip en táctil) -->
+            <div class="flex-1 min-w-0 sm:flex-none">
+              <div class="text-xs tracking-[0.1em] sm:tracking-[0.3em] text-green-300 sm:text-green-400/80 sm:mb-2">
+                {{ point.constant }}
+              </div>
+              <div class="sm:hidden text-xs leading-snug text-green-400/75 mt-1">
+                {{ variableDescriptions[point.constant] }}
+              </div>
+            </div>
+
+            <div class="font-orbitron text-2xl font-black shrink-0 sm:mb-3 tabular-nums" [ngClass]="{
                    'text-green-300': point.type === 'mejora',
                    'text-red-400': point.type === 'desventaja',
                    'text-green-300/80': !point.type
                  }">
               {{ getStatValue(bot, point.constant) }}
             </div>
-            <div class="flex gap-1.5 justify-center">
+
+            <div class="flex gap-1.5 shrink-0 sm:justify-center">
               <button (click)="togglePoint(botIdx, point.constant, 'mejora')"
-                class="px-2 py-1 text-[9px] tracking-wider rounded-sm border transition-all cursor-pointer"
+                [attr.aria-label]="'Mejora en ' + point.constant"
+                class="attr-btn rounded-sm border transition-all cursor-pointer"
                 [ngClass]="point.type === 'mejora'
                         ? 'bg-green-500/20 border-green-500/40 text-green-300'
-                        : 'bg-transparent border-green-500/20 text-green-400/55 hover:border-green-500/40 hover:text-green-300/80'"
+                        : 'bg-transparent border-green-500/20 text-green-400/80 hover:border-green-500/40 hover:text-green-300'"
                 [disabled]="point.type !== 'mejora' && getMejorasUsed(bot) >= gameConfig.improvementPoints">
                 {{ getPointDef(point.constant)?.mejora }}
               </button>
               <button (click)="togglePoint(botIdx, point.constant, 'desventaja')"
-                class="px-2 py-1 text-[9px] tracking-wider rounded-sm border transition-all cursor-pointer"
+                [attr.aria-label]="'Desventaja en ' + point.constant"
+                class="attr-btn rounded-sm border transition-all cursor-pointer"
                 [ngClass]="point.type === 'desventaja'
                         ? 'bg-red-500/20 border-red-500/40 text-red-300'
-                        : 'bg-transparent border-green-500/20 text-green-400/55 hover:border-red-500/40 hover:text-red-300/80'"
+                        : 'bg-transparent border-green-500/20 text-green-400/80 hover:border-red-500/40 hover:text-red-300'"
                 [disabled]="point.type !== 'desventaja' && getDesventajasUsed(bot) >= gameConfig.disadvantagePoints">
                 {{ getPointDef(point.constant)?.desventaja }}
               </button>
@@ -153,61 +185,65 @@
           }
         </div>
 
-        <div class="mt-3 text-[9px] tracking-widest text-green-400/45">
+        <div class="mt-3 text-xs tracking-[0.05em] sm:tracking-widest text-green-400/85">
           &gt; 2 Puntos de Mejora y 1 Punto de Desventaja. Cada punto en una Constante diferente.
         </div>
       </div>
 
       <!-- ── Attack Functions ────────────────────────────── -->
       <div>
-        <div class="flex items-center gap-3 mb-4">
-          <span class="text-[10px] tracking-[0.4em] text-green-400/65">// FUNCIONES DE ATAQUE</span>
-          <div class="flex-1 h-px bg-green-500/20"></div>
-          <span class="text-[9px] tracking-widest"
-            [ngClass]="getNibblesRemaining(bot) >= 0 ? 'text-green-400/60' : 'text-red-400/70'"
-            [attr.data-tooltip]="'Nibbles: coste de memoria. Máx ' + gameConfig.maxNibbles + '◈'">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-4">
+          <span class="text-xs tracking-[0.2em] sm:tracking-[0.4em] text-green-400/80 whitespace-nowrap shrink-0">// FUNCIONES DE ATAQUE</span>
+          <div class="hidden sm:block flex-1 h-px bg-green-500/20"></div>
+          <span class="text-xs tracking-widest whitespace-nowrap"
+            [ngClass]="getNibblesRemaining(bot) >= 0 ? 'text-green-400/85' : 'text-red-400/90'">
             {{ getNibblesCost(bot) }}/{{ gameConfig.maxNibbles }}◈
           </span>
         </div>
 
         <!-- Nibbles progress bar -->
-        <div class="mb-5"
-          [attr.data-tooltip]="'Memoria: ' + getNibblesCost(bot) + '/' + gameConfig.maxNibbles + '◈ (' + getNibblesRemaining(bot) + '◈ libres)'">
+        <div class="mb-5">
           <div class="h-1.5 bg-black/60 border border-green-500/20 rounded-full overflow-hidden">
             <div class="h-full transition-all duration-300 rounded-full"
               [ngClass]="getNibblesRemaining(bot) >= 0 ? 'bg-green-500/50' : 'bg-red-500/50'"
               [style.width.%]="(getNibblesCost(bot) / gameConfig.maxNibbles) * 100"></div>
           </div>
-          <div class="flex justify-between mt-1 text-[8px] tracking-widest text-green-400/45">
-            <span>0◈</span>
-            <span>{{ gameConfig.maxNibbles }}◈</span>
+          <div class="flex justify-between gap-3 mt-1.5 text-xs tracking-wider text-green-400/85">
+            <span class="whitespace-nowrap">0◈</span>
+            <span class="whitespace-nowrap">{{ gameConfig.maxNibbles }}◈</span>
+          </div>
+          <!-- El detalle vivía solo en el tooltip: ahora es texto visible -->
+          <div class="mt-1 text-xs tracking-wider text-green-400/85">
+            Memoria: {{ getNibblesCost(bot) }}/{{ gameConfig.maxNibbles }}◈ ({{ getNibblesRemaining(bot) }}◈ libres)
           </div>
         </div>
 
         <!-- V1 Functions (2 slots) -->
         <div class="mb-4">
-          <div class="text-[9px] tracking-[0.3em] text-orange-400/80 mb-2"
-            [attr.data-tooltip]="'Ataques básicos de bajo coste.'">VERSION 1: 2 FUNCIONES</div>
+          <div class="mb-2">
+            <div class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-orange-400/90">VERSION 1: 2 FUNCIONES</div>
+            <div class="text-xs text-green-400/85 mt-0.5">Ataques básicos de bajo coste.</div>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             @for (slot of [0, 1]; track slot) {
             <div class="relative">
-              <button data-dropdown-trigger (click)="toggleDropdown('v1-' + botIdx + '-' + slot)" class="w-full bg-black/40 border border-green-500/15 rounded-sm p-3
+              <button data-dropdown-trigger (click)="toggleDropdown('v1-' + botIdx + '-' + slot)" class="w-full min-h-[52px] bg-black/40 border border-green-500/15 rounded-sm p-3
                                text-left transition-all cursor-pointer
                                hover:border-orange-400/30 hover:bg-black/60">
                 @if (bot.attackFunctions.v1[slot]; as fn) {
                 <div class="flex items-center justify-between">
                   <div>
                     <span class="text-orange-300 text-sm font-bold">{{ fn.name }}</span>
-                    <div class="text-[9px] text-green-400/60 mt-1 tracking-wider">
+                    <div class="text-xs text-green-400/80 mt-1 tracking-wider">
                       R:{{ fn.range }} | D:{{ fn.damage }} | E:{{ fn.energy }} | {{ fn.cost }}◈
                     </div>
                   </div>
-                  <span class="text-green-400/50 text-[9px]">&#9660;</span>
+                  <span class="text-green-400/80 text-xs">&#9660;</span>
                 </div>
                 } @else {
                 <div class="flex items-center justify-between">
-                  <span class="text-green-400/50 text-xs tracking-widest">SELECCIONAR V1...</span>
-                  <span class="text-green-400/50 text-[9px]">&#9660;</span>
+                  <span class="text-green-400/80 text-xs tracking-widest">SELECCIONAR V1...</span>
+                  <span class="text-green-400/80 text-xs">&#9660;</span>
                 </div>
                 }
               </button>
@@ -217,17 +253,17 @@
                               bg-[#060e12] border border-green-500/20 rounded-sm shadow-xl
                               max-h-60 overflow-y-auto" (mouseleave)="hoveredFunction.set(null)">
                 <button (click)="selectFunction(botIdx, 'v1', slot, null); activeDropdown.set(null)"
-                  (mouseenter)="hoveredFunction.set(null)" class="w-full text-left px-3 py-2 text-[10px] tracking-widest
-                                   text-green-400/50 hover:bg-green-500/10 transition-colors cursor-pointer
+                  (mouseenter)="hoveredFunction.set(null)" class="w-full text-left px-3 py-3 min-h-11 text-xs tracking-widest
+                                   text-green-400/80 hover:bg-green-500/10 transition-colors cursor-pointer
                                    border-b border-green-500/10">
                   — VACÍO —
                 </button>
                 @for (fn of getAvailableFunctions(bot, 'v1', slot); track fn.name) {
                 <button (click)="selectFunction(botIdx, 'v1', slot, fn); activeDropdown.set(null)"
-                  (mouseenter)="hoveredFunction.set(fn)" class="w-full text-left px-3 py-2 hover:bg-orange-500/10 transition-colors cursor-pointer
+                  (mouseenter)="hoveredFunction.set(fn)" class="w-full text-left px-3 py-3 min-h-11 hover:bg-orange-500/10 transition-colors cursor-pointer
                                      border-b border-green-500/5 last:border-0">
                   <div class="text-orange-300 text-xs font-bold">{{ fn.name }}</div>
-                  <div class="text-[9px] text-green-400/60 tracking-wider mt-0.5">
+                  <div class="text-xs text-green-400/80 tracking-wider mt-0.5">
                     R:{{ fn.range }} | D:{{ fn.damage }} | E:{{ fn.energy }} | {{ fn.cost }}◈
                   </div>
                 </button>
@@ -285,28 +321,30 @@
 
         <!-- V2 Functions (2 slots) -->
         <div class="mb-4">
-          <div class="text-[9px] tracking-[0.3em] text-violet-400/80 mb-2" [attr.data-tooltip]="'Funciones avanzadas'">
-            VERSION 2: 2 FUNCIONES</div>
+          <div class="mb-2">
+            <div class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-violet-400/90">VERSION 2: 2 FUNCIONES</div>
+            <div class="text-xs text-green-400/85 mt-0.5">Funciones avanzadas</div>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             @for (slot of [0, 1]; track slot) {
             <div class="relative">
-              <button data-dropdown-trigger (click)="toggleDropdown('v2-' + botIdx + '-' + slot)" class="w-full bg-black/40 border border-green-500/15 rounded-sm p-3
+              <button data-dropdown-trigger (click)="toggleDropdown('v2-' + botIdx + '-' + slot)" class="w-full min-h-[52px] bg-black/40 border border-green-500/15 rounded-sm p-3
                                text-left transition-all cursor-pointer
                                hover:border-violet-400/30 hover:bg-black/60">
                 @if (bot.attackFunctions.v2[slot]; as fn) {
                 <div class="flex items-center justify-between">
                   <div>
                     <span class="text-violet-300 text-sm font-bold">{{ fn.name }}</span>
-                    <div class="text-[9px] text-green-400/60 mt-1 tracking-wider">
+                    <div class="text-xs text-green-400/80 mt-1 tracking-wider">
                       R:{{ fn.range }} | D:{{ fn.damage }} | E:{{ fn.energy }} | {{ fn.cost }}◈
                     </div>
                   </div>
-                  <span class="text-green-400/50 text-[9px]">&#9660;</span>
+                  <span class="text-green-400/80 text-xs">&#9660;</span>
                 </div>
                 } @else {
                 <div class="flex items-center justify-between">
-                  <span class="text-green-400/50 text-xs tracking-widest">SELECCIONAR V2...</span>
-                  <span class="text-green-400/50 text-[9px]">&#9660;</span>
+                  <span class="text-green-400/80 text-xs tracking-widest">SELECCIONAR V2...</span>
+                  <span class="text-green-400/80 text-xs">&#9660;</span>
                 </div>
                 }
               </button>
@@ -316,17 +354,17 @@
                               bg-[#060e12] border border-violet-500/20 rounded-sm shadow-xl
                               max-h-60 overflow-y-auto" (mouseleave)="hoveredFunction.set(null)">
                 <button (click)="selectFunction(botIdx, 'v2', slot, null); activeDropdown.set(null)"
-                  (mouseenter)="hoveredFunction.set(null)" class="w-full text-left px-3 py-2 text-[10px] tracking-widest
-                                   text-green-400/50 hover:bg-green-500/10 transition-colors cursor-pointer
+                  (mouseenter)="hoveredFunction.set(null)" class="w-full text-left px-3 py-3 min-h-11 text-xs tracking-widest
+                                   text-green-400/80 hover:bg-green-500/10 transition-colors cursor-pointer
                                    border-b border-green-500/10">
                   — VACÍO —
                 </button>
                 @for (fn of getAvailableFunctions(bot, 'v2', slot); track fn.name) {
                 <button (click)="selectFunction(botIdx, 'v2', slot, fn); activeDropdown.set(null)"
-                  (mouseenter)="hoveredFunction.set(fn)" class="w-full text-left px-3 py-2 hover:bg-violet-500/10 transition-colors cursor-pointer
+                  (mouseenter)="hoveredFunction.set(fn)" class="w-full text-left px-3 py-3 min-h-11 hover:bg-violet-500/10 transition-colors cursor-pointer
                                      border-b border-green-500/5 last:border-0">
                   <div class="text-violet-300 text-xs font-bold">{{ fn.name }}</div>
-                  <div class="text-[9px] text-green-400/60 tracking-wider mt-0.5">
+                  <div class="text-xs text-green-400/80 tracking-wider mt-0.5">
                     R:{{ fn.range }} | D:{{ fn.damage }} | E:{{ fn.energy }} | {{ fn.cost }}◈
                   </div>
                 </button>
@@ -384,27 +422,29 @@
 
         <!-- V3 Function (1 slot) -->
         <div>
-          <div class="text-[9px] tracking-[0.3em] text-cyan-400/80 mb-2"
-            [attr.data-tooltip]="'Función devastadora de alto coste.'">VERSION 3: 1 FUNCIÓN</div>
+          <div class="mb-2">
+            <div class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-cyan-400/90">VERSION 3: 1 FUNCIÓN</div>
+            <div class="text-xs text-green-400/85 mt-0.5">Función devastadora de alto coste.</div>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="relative">
-              <button data-dropdown-trigger (click)="toggleDropdown('v3-' + botIdx)" class="w-full bg-black/40 border border-green-500/15 rounded-sm p-3
+              <button data-dropdown-trigger (click)="toggleDropdown('v3-' + botIdx)" class="w-full min-h-[52px] bg-black/40 border border-green-500/15 rounded-sm p-3
                            text-left transition-all cursor-pointer
                            hover:border-cyan-400/30 hover:bg-black/60">
                 @if (bot.attackFunctions.v3; as fn) {
                 <div class="flex items-center justify-between">
                   <div>
                     <span class="text-cyan-300 text-sm font-bold">{{ fn.name }}</span>
-                    <div class="text-[9px] text-green-400/60 mt-1 tracking-wider">
+                    <div class="text-xs text-green-400/80 mt-1 tracking-wider">
                       R:{{ fn.range }} | D:{{ fn.damage }} | E:{{ fn.energy }} | {{ fn.cost }}◈
                     </div>
                   </div>
-                  <span class="text-green-400/50 text-[9px]">&#9660;</span>
+                  <span class="text-green-400/80 text-xs">&#9660;</span>
                 </div>
                 } @else {
                 <div class="flex items-center justify-between">
-                  <span class="text-green-400/50 text-xs tracking-widest">SELECCIONAR V3...</span>
-                  <span class="text-green-400/50 text-[9px]">&#9660;</span>
+                  <span class="text-green-400/80 text-xs tracking-widest">SELECCIONAR V3...</span>
+                  <span class="text-green-400/80 text-xs">&#9660;</span>
                 </div>
                 }
               </button>
@@ -414,17 +454,17 @@
                           bg-[#060e12] border border-cyan-500/20 rounded-sm shadow-xl
                           max-h-60 overflow-y-auto" (mouseleave)="hoveredFunction.set(null)">
                 <button (click)="selectFunction(botIdx, 'v3', 0, null); activeDropdown.set(null)"
-                  (mouseenter)="hoveredFunction.set(null)" class="w-full text-left px-3 py-2 text-[10px] tracking-widest
-                               text-green-500/30 hover:bg-green-500/5 transition-colors cursor-pointer
+                  (mouseenter)="hoveredFunction.set(null)" class="w-full text-left px-3 py-3 min-h-11 text-xs tracking-widest
+                               text-green-400/80 hover:bg-green-500/5 transition-colors cursor-pointer
                                border-b border-green-500/10">
                   — VACÍO —
                 </button>
                 @for (fn of getAvailableFunctions(bot, 'v3', 0); track fn.name) {
                 <button (click)="selectFunction(botIdx, 'v3', 0, fn); activeDropdown.set(null)"
-                  (mouseenter)="hoveredFunction.set(fn)" class="w-full text-left px-3 py-2 hover:bg-cyan-500/10 transition-colors cursor-pointer
+                  (mouseenter)="hoveredFunction.set(fn)" class="w-full text-left px-3 py-3 min-h-11 hover:bg-cyan-500/10 transition-colors cursor-pointer
                                  border-b border-green-500/5 last:border-0">
                   <div class="text-cyan-300 text-xs font-bold">{{ fn.name }}</div>
-                  <div class="text-[9px] text-green-400/60 tracking-wider mt-0.5">
+                  <div class="text-xs text-green-400/80 tracking-wider mt-0.5">
                     R:{{ fn.range }} | D:{{ fn.damage }} | E:{{ fn.energy }} | {{ fn.cost }}◈
                   </div>
                 </button>
@@ -491,7 +531,7 @@
           class="compile-terminal bg-black/70 border border-green-500/25 rounded-sm p-4 shadow-lg shadow-green-500/5">
           <div class="flex items-center gap-2 mb-3 pb-2 border-b border-green-500/15">
             <span class="w-2 h-2 rounded-full bg-green-500/70 animate-pulse"></span>
-            <span class="text-[9px] tracking-[0.3em] text-green-400/55">
+            <span class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-green-400/80">
               COMPILER.SYS &mdash; BUILDING {{ bot.name }}
             </span>
           </div>
@@ -507,54 +547,54 @@
       } @else {
       <!-- Summary (after compile done) -->
       <div class="border-t border-green-500/15 pt-5 fade-in">
-        <div class="text-[9px] tracking-[0.4em] text-green-400/65 mb-3">// RESUMEN DE COMPILACIÓN</div>
+        <div class="text-xs tracking-[0.2em] sm:tracking-[0.4em] text-green-400/80 mb-3">// RESUMEN DE COMPILACIÓN</div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
           <div class="bg-black/40 border border-green-500/10 rounded-sm p-2">
-            <div class="text-green-400/65 text-[9px] tracking-widest">LIFE</div>
+            <div class="text-xs text-green-400/80 tracking-[0.1em] sm:tracking-widest">LIFE</div>
             <div class="font-orbitron text-lg font-bold text-green-300">{{ getStatValue(bot, 'MAX_LIFE') }}</div>
           </div>
           <div class="bg-black/40 border border-green-500/10 rounded-sm p-2">
-            <div class="text-green-400/65 text-[9px] tracking-widest">ENERGY</div>
+            <div class="text-xs text-green-400/80 tracking-[0.1em] sm:tracking-widest">ENERGY</div>
             <div class="font-orbitron text-lg font-bold text-green-300">{{ getStatValue(bot, 'MAX_ENERGY') }}</div>
           </div>
           <div class="bg-black/40 border border-green-500/10 rounded-sm p-2">
-            <div class="text-green-400/65 text-[9px] tracking-widest">SHIELD</div>
+            <div class="text-xs text-green-400/80 tracking-[0.1em] sm:tracking-widest">SHIELD</div>
             <div class="font-orbitron text-lg font-bold text-green-300">{{ getStatValue(bot, 'MAX_SHIELD') }}</div>
           </div>
           <div class="bg-black/40 border border-green-500/10 rounded-sm p-2">
-            <div class="text-green-400/65 text-[9px] tracking-widest">MOVEMENT</div>
+            <div class="text-xs text-green-400/80 tracking-[0.1em] sm:tracking-widest">MOVEMENT</div>
             <div class="font-orbitron text-lg font-bold text-green-300">{{ getStatValue(bot, 'MAX_MOVEMENT') }}</div>
           </div>
         </div>
 
         <!-- Attack functions summary -->
         <div class="mt-4">
-          <div class="text-[9px] tracking-[0.3em] text-green-400/55 mb-3">FUNCIONES CARGADAS ({{ getNibblesCost(bot)
+          <div class="text-xs tracking-[0.15em] sm:tracking-[0.3em] text-green-400/80 mb-3">FUNCIONES CARGADAS ({{ getNibblesCost(bot)
             }}◈)</div>
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
             @for (fn of bot.attackFunctions.v1; track $index) {
             @if (fn) {
             <div class="bg-black/40 border border-orange-500/15 rounded-sm p-2">
-              <div class="text-[8px] tracking-wider text-orange-400/70 mb-0.5">V1</div>
+              <div class="text-xs tracking-wider text-orange-400/90 mb-0.5">V1</div>
               <div class="text-orange-300 text-xs font-bold truncate">{{ fn.name }}</div>
-              <div class="text-[9px] text-green-400/50 tracking-wider mt-1">{{ fn.cost }}◈ | E:{{ fn.energy }}</div>
+              <div class="text-xs text-green-400/80 tracking-wider mt-1">{{ fn.cost }}◈ | E:{{ fn.energy }}</div>
             </div>
             }
             }
             @for (fn of bot.attackFunctions.v2; track $index) {
             @if (fn) {
             <div class="bg-black/40 border border-violet-500/15 rounded-sm p-2">
-              <div class="text-[8px] tracking-wider text-violet-400/70 mb-0.5">V2</div>
+              <div class="text-xs tracking-wider text-violet-400/90 mb-0.5">V2</div>
               <div class="text-violet-300 text-xs font-bold truncate">{{ fn.name }}</div>
-              <div class="text-[9px] text-green-400/50 tracking-wider mt-1">{{ fn.cost }}◈ | E:{{ fn.energy }}</div>
+              <div class="text-xs text-green-400/80 tracking-wider mt-1">{{ fn.cost }}◈ | E:{{ fn.energy }}</div>
             </div>
             }
             }
             @if (bot.attackFunctions.v3; as fn) {
             <div class="bg-black/40 border border-cyan-500/15 rounded-sm p-2">
-              <div class="text-[8px] tracking-wider text-cyan-400/70 mb-0.5">V3</div>
+              <div class="text-xs tracking-wider text-cyan-400/90 mb-0.5">V3</div>
               <div class="text-cyan-300 text-xs font-bold truncate">{{ fn.name }}</div>
-              <div class="text-[9px] text-green-400/50 tracking-wider mt-1">{{ fn.cost }}◈ | E:{{ fn.energy }}</div>
+              <div class="text-xs text-green-400/80 tracking-wider mt-1">{{ fn.cost }}◈ | E:{{ fn.energy }}</div>
             </div>
             }
           </div>
@@ -571,8 +611,8 @@
 
   <!-- ── Add Bot Button ──────────────────────────────────── -->
   @if (bots().length < gameConfig.maxBots) { <button (click)="addBot()" class="w-full border border-dashed border-green-500/20 rounded-sm py-4
-                 text-green-400/55 text-xs tracking-[0.3em] hover:border-green-500/40
-                 hover:text-green-400/70 hover:bg-green-500/5 transition-all cursor-pointer mb-8">
+                 text-green-400/85 text-xs tracking-[0.15em] sm:tracking-[0.3em] hover:border-green-500/40
+                 hover:text-green-300 hover:bg-green-500/5 transition-all cursor-pointer mb-8">
     + AÑADIR BOT ({{ bots().length }}/{{ gameConfig.maxBots }})
     </button>
     }
@@ -598,7 +638,7 @@
         }
       </button>
     </div>
-    <div class="text-[9px] tracking-widest text-green-400/45 mt-3 text-center">
+    <div class="text-xs tracking-wider text-green-400/85 mt-3 text-center">
       &gt; Guarda tu lista para compartirla o imprime las fichas de Bot.
     </div>
     }
@@ -611,13 +651,13 @@
         (click)="$event.stopPropagation()">
 
         <div class="flex items-center justify-between mb-5">
-          <div class="text-[10px] tracking-[0.4em] text-green-400/65">// LISTA GUARDADA</div>
+          <div class="text-xs tracking-[0.2em] sm:tracking-[0.4em] text-green-400/80">// LISTA GUARDADA</div>
           <button (click)="showShareModal.set(false)"
             class="text-green-400/40 hover:text-green-400 transition-colors cursor-pointer text-lg">&times;</button>
         </div>
 
         <div class="mb-5">
-          <div class="text-[8px] tracking-widest text-green-400/45 mb-1.5">ENLACE</div>
+          <div class="text-xs tracking-widest text-green-400/85 mb-1.5">ENLACE</div>
           <div
             class="flex items-center gap-2 bg-black/50 border border-green-500/15 rounded-sm p-2.5 font-mono text-xs text-green-300 break-all">
             <span class="flex-1 select-all">{{ getListUrl() }}</span>
@@ -654,7 +694,7 @@
 
         </div>
 
-        <div class="text-[8px] tracking-widest text-green-400/35 mt-4 text-center">
+        <div class="text-xs tracking-wider text-green-400/85 mt-4 text-center">
           &gt; Cada guardado genera un enlace único e inmutable.
         </div>
       </div>

@@ -41,9 +41,9 @@ const NODE_COLORS: Record<string, string> = {
   encapsulation: ViewEncapsulation.None,
   template: `
     @if (loading()) {
-      <p class="text-green-500/40 text-[10px] tracking-widest animate-pulse">> LOADING...</p>
+      <p class="text-green-400/80 text-xs tracking-wider animate-pulse">> LOADING...</p>
     } @else if (error()) {
-      <p class="text-red-400/60 text-[10px] tracking-widest">> {{ error() }}</p>
+      <p class="text-red-400/90 text-xs tracking-wider">> {{ error() }}</p>
     } @else if (data()) {
 
       <!-- Title -->

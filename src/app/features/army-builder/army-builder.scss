@@ -38,6 +38,36 @@ button:disabled {
   cursor: not-allowed !important;
 }
 
+/* ── Atributos: botones de mejora / desventaja ─────────────
+   En móvil son el control principal de la pantalla: 44×44 mínimo.
+   En escritorio recuperan el tamaño compacto de la tarjeta.       */
+.attr-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+
+  @media (min-width: 640px) {
+    min-width: 0;
+    min-height: 0;
+    padding: 0.25rem 0.5rem;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* La descripción del atributo solo se muestra en táctil;
+   en escritorio sigue viviendo en el tooltip de hover. */
+.attr-row {
+  @media (min-width: 640px) {
+    text-align: center;
+  }
+}
+
 /* ── Bot Sheet (hidden on screen, visible on print) ──── */
 .bot-sheet {
   display: none;
