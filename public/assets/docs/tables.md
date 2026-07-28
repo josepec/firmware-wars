@@ -63,6 +63,6 @@
 /json tables/status-effects.json
 
 ---
-/img-center /assets/img/404.png print-only h:250px
+/img-center /assets/img/404.png print-only h:200px
 
 /blank-page

@@ -7,6 +7,18 @@ import { AppConfig } from './app-config';
 const SITE_URL = 'https://firmwarewars.josepec.eu';
 const SITE_NAME = 'Firmware Wars';
 
+/**
+ * Título por ruta de impresión. Reutiliza el mismo nombre que los scripts de
+ * publicación pasan como `subtitle` a la portada, para que el PDF descargado
+ * se llame igual que lo que se lee en su cubierta.
+ */
+const PRINT_TITLES: Record<string, string> = {
+  'docs/print': 'Manual del Juego',
+  'docs/campaign-print': 'Campaña',
+  'docs/scenarios-print': 'Escenarios y Amenazas',
+  'docs/cover-print': 'Portada',
+};
+
 const HOME_TITLE = 'Firmware Wars — Wargame de robots y programación · Print & Play';
 const HOME_DESC =
   'Wargame de mesa de ciencia ficción donde programas robots de combate: escribe tu BattleScript, ' +
@@ -77,8 +89,11 @@ export class Seo {
       this.set({ title: SITE_NAME, desc: HOME_DESC, index: false, path });
       return;
     }
-    if (/^\/docs\/(print|campaign-print|scenarios-print|cover-print)/.test(path)) {
-      this.set({ title: `Impresión · ${SITE_NAME}`, desc: '', index: false, path });
+    // Chrome copia document.title a los metadatos del PDF que genera, así que
+    // este título es el que acaba viendo quien abre el manual descargado.
+    const printTitle = PRINT_TITLES[path.replace(/^\//, '')];
+    if (printTitle !== undefined) {
+      this.set({ title: `${SITE_NAME} — ${printTitle}`, desc: '', index: false, path });
       return;
     }
     if (path.startsWith('/docs')) {

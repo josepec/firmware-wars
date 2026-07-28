@@ -69,7 +69,7 @@ Cada Bot ejecuta su rutina de arranque y comprobación de integridad del sistema
 
 ### 6. Mantenimiento Manual (opcional)
 
-Si el Bot se encuentra **gravemente dañado o desestabilizado**, el programador puede omitir las fases operativas normales y dirigirlo directamente a la Fase `DEBUG()`. Esto representa una intervención manual para estabilizar el núcleo, reparar circuitos o purgar fallos críticos antes de volver al combate.
+Si el Bot se encuentra **gravemente dañado o desestabilizado**, el programador puede omitir las fases operativas normales y dirigirlo directamente a la Fase `DEBUG()`. Esto representa una intervención manual para estabilizar el núcleo, reparar circuitos o fallos críticos antes de volver al combate.
 
 Al pasar a Mantenimiento, el Bot **no ejecuta acciones ofensivas**, pero puede **eliminar BUGS, reiniciarse, etc.**.
 
