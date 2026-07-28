@@ -4,6 +4,7 @@ import { classifyCode } from '../../shared/markdown/marked-extensions';
 import { HexMap } from '../../shared/components/hex-map/hex-map';
 import { HexMapData, HexTypeDefinition } from '../../shared/components/hex-map/hex-map.types';
 import { CoverPage } from './cover-page';
+import { signalPdfReady } from './pdf-ready';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 const PDF_WORKER_URL = `${API_URL}/scenarios-pdf`;
@@ -409,7 +410,7 @@ export class ScenariosPrint implements OnDestroy {
       // Signal ready for Puppeteer after a tick
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          document.body.setAttribute('data-pdf-ready', 'true');
+          signalPdfReady();
           if (!this.isWorkerRequest) {
             // Don't auto-print for now, let user use the button
           }
@@ -417,7 +418,7 @@ export class ScenariosPrint implements OnDestroy {
       });
     } catch (e) {
       console.error('[scenarios-print] Error loading data:', e);
-      document.body.setAttribute('data-pdf-ready', 'true');
+      signalPdfReady();
     }
   }
 }

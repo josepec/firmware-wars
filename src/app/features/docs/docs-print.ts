@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { CoverPage } from './cover-page';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
+import { signalPdfReady } from './pdf-ready';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/pdf';
@@ -66,7 +67,7 @@ export class DocsPrint implements OnDestroy {
     } catch (e) {
       console.error('[docs-print] Error loading config:', e);
       /* Signal ready so Puppeteer doesn't hang if config is missing */
-      document.body.setAttribute('data-pdf-ready', 'true');
+      signalPdfReady();
     }
   }
 
@@ -101,7 +102,9 @@ export class DocsPrint implements OnDestroy {
     await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body)]);
     /* Re-apply column heights after tables have been injected */
     this.applyColumnHeights();
-    document.body.setAttribute('data-pdf-ready', 'true');
+    /* Y otra vez con las tipografías ya cargadas: las alturas de columna
+       dependen de las métricas reales de la fuente. */
+    await signalPdfReady(() => this.applyColumnHeights());
     if (!this.isWorkerRequest) {
       window.print();
     }

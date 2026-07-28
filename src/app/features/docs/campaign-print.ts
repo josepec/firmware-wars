@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { CoverPage } from './cover-page';
 import { hydrateJsonTables } from '../../shared/markdown/json-table-hydrator';
+import { signalPdfReady } from './pdf-ready';
 import { hydrateConfigVars } from '../../shared/markdown/config-hydrator';
 
 const PDF_WORKER_URL = 'https://firmware-wars-api.josepec.eu/campaign-pdf';
@@ -62,7 +63,7 @@ export class CampaignPrint implements OnDestroy {
       this.cdr.markForCheck();
     } catch (e) {
       console.error('[campaign-print] Error loading config:', e);
-      document.body.setAttribute('data-pdf-ready', 'true');
+      signalPdfReady();
     }
   }
 
@@ -91,7 +92,9 @@ export class CampaignPrint implements OnDestroy {
   private async hydrateAndFinalize(): Promise<void> {
     await Promise.all([hydrateJsonTables(document.body), hydrateConfigVars(document.body)]);
     this.applyColumnHeights();
-    document.body.setAttribute('data-pdf-ready', 'true');
+    /* Con las tipografías ya cargadas: las alturas de columna dependen
+       de las métricas reales de la fuente. */
+    await signalPdfReady(() => this.applyColumnHeights());
     if (!this.isWorkerRequest) {
       window.print();
     }

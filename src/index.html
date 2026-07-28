@@ -70,9 +70,15 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="Firmware Wars">
   <link rel="manifest" href="/assets/favicon/site.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ── Tipografías auto-alojadas ──────────────────────────────
+       Antes venían de fonts.googleapis.com con display=swap, que pinta
+       con una fuente de reserva mientras carga la buena. Al generar los
+       PDF eso provocaba capturas con métricas equivocadas (maquetación
+       más o menos densa según cómo cayera la carrera de red). Ahora
+       viajan con el despliegue y usan font-display: block. -->
+  <link rel="preload" href="/assets/fonts/share-tech-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/orbitron-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/fonts/fonts.css">
 </head>
 <body>
   <app-root></app-root>

@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CoverPage } from './cover-page';
+import { signalPdfReady } from './pdf-ready';
 
 /**
  * Ruta aislada que renderiza SOLO la portada.
@@ -80,14 +81,6 @@ export class CoverPrint implements OnInit {
   }
 
   ngOnInit(): void {
-    // Esperar a que las fuentes estén listas antes de señalizar
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(() => {
-        document.body.setAttribute('data-pdf-ready', 'true');
-      });
-    } else {
-      // Fallback: señalizar tras un breve delay
-      setTimeout(() => document.body.setAttribute('data-pdf-ready', 'true'), 500);
-    }
+    signalPdfReady();
   }
 }
