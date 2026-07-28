@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220" role="img" aria-label="Firmware Wars">
+  <title>Firmware Wars</title>
+  <!-- Logo oficial. Misma geometría que public/assets/favicon/favicon.svg
+       y que el componente src/app/shared/components/logo/logo.ts.
+       Verde de marca #8fd98a. Para recolorear dentro de la app, usa el
+       componente <app-logo />, cuyo trazo es currentColor. -->
+  <g transform="translate(110 110) scale(0.86) translate(-100 -110)">
+    <polygon points="100,10 186.6,60 186.6,160 100,210 13.4,160 13.4,60"
+      fill="none" stroke="#8fd98a" stroke-width="13" stroke-linejoin="round"/>
+    <g fill="none" stroke="#8fd98a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M100,138 L100,174 L155.4,142 L155.4,114"/>
+      <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(120 100 110)"/>
+      <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(240 100 110)"/>
+    </g>
+    <polygon points="100,82 124.2,96 124.2,124 100,138 75.8,124 75.8,96"
+      fill="none" stroke="#8fd98a" stroke-width="10" stroke-linejoin="round"/>
+    <g fill="none" stroke="#8fd98a" stroke-width="8">
+      <circle cx="155.4" cy="104" r="10"/>
+      <circle cx="155.4" cy="104" r="10" transform="rotate(120 100 110)"/>
+      <circle cx="155.4" cy="104" r="10" transform="rotate(240 100 110)"/>
+    </g>
+  </g>
+</svg>

@@ -1,7 +1,9 @@
 import { Component, ViewEncapsulation, input } from '@angular/core';
+import { Logo } from '../../shared/components/logo/logo';
 
 @Component({
   selector: 'app-cover-page',
+  imports: [Logo],
   encapsulation: ViewEncapsulation.None,
   template: `
     <!-- Top bar -->
@@ -22,32 +24,9 @@ import { Component, ViewEncapsulation, input } from '@angular/core';
       <div class="cover-title-firmware">FIRMWARE</div>
       <div class="cover-title-wars">WARS</div>
 
-      <!-- Hex circuit icon -->
+      <!-- Logo oficial (mismo que el favicon), tintado con el verde de portada -->
       <div class="cover-hex-icon">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="none" stroke="#1a6b4a" stroke-width="2.5" />
-          <polygon points="50,22 73,35 73,65 50,78 27,65 27,35" fill="none" stroke="#1a6b4a" stroke-width="1.5" />
-          <line x1="50" y1="22" x2="50" y2="5" stroke="#1a6b4a" stroke-width="1" />
-          <line x1="73" y1="35" x2="90" y2="27.5" stroke="#1a6b4a" stroke-width="1" />
-          <line x1="73" y1="65" x2="90" y2="72.5" stroke="#1a6b4a" stroke-width="1" />
-          <line x1="50" y1="78" x2="50" y2="95" stroke="#1a6b4a" stroke-width="1" />
-          <line x1="27" y1="65" x2="10" y2="72.5" stroke="#1a6b4a" stroke-width="1" />
-          <line x1="27" y1="35" x2="10" y2="27.5" stroke="#1a6b4a" stroke-width="1" />
-          <circle cx="50" cy="50" r="8" fill="none" stroke="#1a6b4a" stroke-width="1.5" />
-          <circle cx="50" cy="50" r="3" fill="#1a6b4a" />
-          <circle cx="50" cy="22" r="2.5" fill="#1a6b4a" />
-          <circle cx="73" cy="35" r="2.5" fill="#1a6b4a" />
-          <circle cx="73" cy="65" r="2.5" fill="#1a6b4a" />
-          <circle cx="50" cy="78" r="2.5" fill="#1a6b4a" />
-          <circle cx="27" cy="65" r="2.5" fill="#1a6b4a" />
-          <circle cx="27" cy="35" r="2.5" fill="#1a6b4a" />
-          <line x1="50" y1="42" x2="50" y2="22" stroke="#1a6b4a" stroke-width="0.7" />
-          <line x1="57" y1="46" x2="73" y2="35" stroke="#1a6b4a" stroke-width="0.7" />
-          <line x1="57" y1="54" x2="73" y2="65" stroke="#1a6b4a" stroke-width="0.7" />
-          <line x1="50" y1="58" x2="50" y2="78" stroke="#1a6b4a" stroke-width="0.7" />
-          <line x1="43" y1="54" x2="27" y2="65" stroke="#1a6b4a" stroke-width="0.7" />
-          <line x1="43" y1="46" x2="27" y2="35" stroke="#1a6b4a" stroke-width="0.7" />
-        </svg>
+        <app-logo />
       </div>
 
       <!-- Bot silhouettes strip -->
@@ -115,11 +94,13 @@ import { Component, ViewEncapsulation, input } from '@angular/core';
       margin-bottom: 0.05cm;
     }
 
-    /* ── Hex circuit icon ── */
+    /* ── Logo ── */
     .cover-hex-icon {
       margin-bottom: 0;
+      /* El logo hereda este color vía currentColor */
+      color: #1a6b4a;
 
-      svg {
+      app-logo {
         width: 2.2cm;
         height: 2.2cm;
       }
