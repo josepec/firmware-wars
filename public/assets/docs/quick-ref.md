@@ -60,21 +60,23 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 
 - **`OVERLOAD`.** Sin `energy` → 1 `life` por punto faltante. Función **no se ejecuta**.
 
-/json tables/code-errors.json
 
+/col
 ### Combate
 
 - **Daño.** Daño ataque − `shield` defensor. Cada punto parado consume 1 `shield`.
 - **Movimiento.** Hexes adyacentes. No atravesar obstáculos ni Bots.
 - **Rango.** Hexes contiguos entre atacante y objetivo sin atravesar obstáculos/Bots.
 
-/col
-
 ## DEBUG()
 
 Sin Operación, pagando Energía.
 
 /json-sm tables/debug-functions.json
+
+/end-col
+
+/json tables/code-errors.json
 
 ## END()
 
@@ -85,4 +87,3 @@ Sin Operación, pagando Energía.
 
 /img-center /assets/img/t-rex-robot.png print-only
 
-/end-col
