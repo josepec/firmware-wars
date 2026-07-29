@@ -131,22 +131,21 @@ summary:focus-visible,
      Se aplica en @media print a las páginas de contenido de los
      tres manuales; la portada queda fuera (calibrada aparte).
 
-     1.157 es el inverso del 0.864 que se venía inyectando a mano en
-     publish-scenarios-pdf.mjs: aquel factor compensaba exactamente
-     este desajuste, así que deshacerlo devuelve la medida original.
-     Con él, el renglón queda en 75 caracteres — los mismos 74 que
-     tenía el manual antes de que las fuentes empezaran a fallar.
+     1.28 reproduce el manual v0.1.4, que es la referencia buena:
+     cuerpo 7,68pt y 72 caracteres por renglón. Medido descargando
+     ese PDF de R2 (/pdf/v0.1.4), no estimado.
 
      OJO: el efecto NO es proporcional (Chrome reescala la hoja para
      encajarla en el área imprimible). Medir siempre sobre el PDF
      generado, nunca sobre la vista previa en pantalla, que da
      falsos desbordamientos. Medido en el PDF real:
-       1.000 → 6,97pt · 79 car/renglón · 44 págs
-       1.157 → 7,36pt · 75 car/renglón · 46 págs   ← actual
+       1.000 → 6,97pt · 79 car/renglón · 44 págs  (v0.1.5 y v0.1.6)
+       1.157 → 7,36pt · 75 car/renglón · 46 págs
+       1.250 → 7,56pt · 72 car/renglón · 46 págs
+       1.280 → 7,68pt · 72 car/renglón · 49 págs  ← v0.1.4 = objetivo
        1.320 → 7,92pt · 70 car/renglón · 54 págs
-       1.450 → 8,70pt · 60 car/renglón · 64 págs
      Ninguna de ellas desborda el área imprimible. */
-  --pdf-scale: 1.157;
+  --pdf-scale: 1.28;
 }
 
 /* ── Fuente decorativa ─────────────────────────────────────── */
