@@ -17,13 +17,13 @@
 4. **Operaciones.** Dado de Versión × ranura (`MAX_OPERATIONS` − `bugs`). Solo 1 bucle/turno.
 5. Puede saltar directo a `DEBUG()`.
 
+/col
+
 ## COMPILE()
 
 - Ordenar Operaciones en Terminal. No es necesario usar todas.
 - Asigna Función a cada Operación.
 - Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
-
-/col
 
 ### Operaciones
 
@@ -39,10 +39,11 @@
 
 ### COMMON.INTERFACE
 
-/json-sm tables/common-functions.json
 
 /img-center /assets/img/t-rex-robot.png print-only
 /end-col
+
+/json-sm tables/common-functions.json
 
 /page
 /two-col
@@ -66,12 +67,11 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 - **Movimiento.** Hexes adyacentes. No atravesar obstáculos ni Bots.
 - **Rango.** Hexes contiguos entre atacante y objetivo sin atravesar obstáculos/Bots.
 
+/col
+
 ### Costes y Errores
 
 - **`OVERLOAD`.** Sin `energy` → 1 `life` por punto faltante. Función **no se ejecuta**.
-
-
-/col
 
 ## DEBUG()
 
