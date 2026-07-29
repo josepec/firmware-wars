@@ -683,3 +683,21 @@
     break-inside: avoid;
   }
 }
+
+/* ── Escala de lectura del manual ─────────────────────────────
+   El factor vive en styles.css (--pdf-scale) para que los tres
+   manuales compartan exactamente la misma escala.
+   Va dentro de @media print porque ahí la página es width:auto:
+   `zoom` reparte el aumento en el contenido sin agrandar la caja
+   A5. En la vista previa de pantalla la página es un rectángulo
+   fijo de 148mm, así que no se escala.
+   La portada se excluye: tiene su propia calibración. */
+@media print {
+  /* El zoom va en los HIJOS, no en la pagina: si se escala la caja
+     de pagina, esta se hace mas ancha que el area imprimible y Chrome
+     reduce la hoja entera para encajarla, anulando parte del aumento.
+     Escalando el contenido, la pagina sigue midiendo lo que debe. */
+  .fw-page:not(.cover-page) > * {
+    zoom: var(--pdf-scale, 1);
+  }
+}
