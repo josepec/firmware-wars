@@ -5,6 +5,9 @@ import { MarkdownComponent } from 'ngx-markdown';
 
 const API_URL = 'https://firmware-wars-api.josepec.eu';
 
+/** Mismo criterio que valida el worker en /api/contact. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface Faq {
   id: string;
   question: string;
@@ -198,14 +201,33 @@ export class Support implements OnInit {
 
   async send(): Promise<void> {
     this.validationError.set(null);
+    // Limpia el resultado del intento anterior: si no, un error de
+    // transmisión viejo se quedaría en pantalla junto al aviso nuevo.
+    if (this.sendState() !== 'sending') this.sendState.set('idle');
     const name = this.name.trim();
+    const email = this.email.trim();
     const message = this.message.trim();
     if (!name) {
       this.validationError.set('Indica tu alias / ID de nodo.');
       return;
     }
+    if (name.length > 80) {
+      this.validationError.set('El alias no puede pasar de 80 caracteres.');
+      return;
+    }
+    // El canal de respuesta es opcional, pero si se rellena tiene que ser
+    // válido: mismo criterio que aplica el backend, para que el usuario vea
+    // qué falla aquí en vez de un error de transmisión genérico.
+    if (email && !EMAIL_RE.test(email)) {
+      this.validationError.set('El canal de respuesta no es un email válido. Revísalo o déjalo vacío.');
+      return;
+    }
     if (message.length < 10) {
       this.validationError.set('La consulta debe tener al menos 10 caracteres.');
+      return;
+    }
+    if (message.length > 2000) {
+      this.validationError.set('La consulta no puede pasar de 2000 caracteres.');
       return;
     }
     this.sendState.set('sending');
@@ -215,13 +237,20 @@ export class Support implements OnInit {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          email: this.email.trim() || undefined,
+          email: email || undefined,
           message,
           website: this.website || undefined,
         }),
       });
       if (r.status === 429) {
         this.sendState.set('ratelimited');
+        return;
+      }
+      // 400 = el backend rechazó los datos. No es un fallo de red, así que
+      // se muestra como aviso de validación y no como error de transmisión.
+      if (r.status === 400) {
+        this.sendState.set('idle');
+        this.validationError.set('Revisa los datos: alias (1-80), email válido o vacío, y consulta de 10 a 2000 caracteres.');
         return;
       }
       this.sendState.set(r.ok ? 'sent' : 'error');

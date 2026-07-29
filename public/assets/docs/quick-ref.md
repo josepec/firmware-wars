@@ -17,12 +17,13 @@
 4. **Operaciones.** Dado de Versión × ranura (`MAX_OPERATIONS` − `bugs`). Solo 1 bucle/turno.
 5. Puede saltar directo a `DEBUG()`.
 
-/col
 ## COMPILE()
 
 - Ordenar Operaciones en Terminal. No es necesario usar todas.
 - Asigna Función a cada Operación.
 - Duales (`IF-ELSE`, `TRY-CATCH`): Primaria obligatoria, secundaria opcional. No repetir Función.
+
+/col
 
 ### Operaciones
 
