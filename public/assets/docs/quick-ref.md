@@ -37,11 +37,12 @@
 | `WHILE` | Repite mientras TRUE (nueva condición por iteración).<br> Si 0 ejecuciones → `BUG`. |
 | `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. <br> Si ninguna se ejecuta → `BUG`. |
 
-/end-col
-
 ### COMMON.INTERFACE
 
 /json-sm tables/common-functions.json
+
+/img-center /assets/img/t-rex-robot.png print-only
+/end-col
 
 /page
 /two-col
@@ -59,17 +60,18 @@ Ejecuta línea por línea (Top-Down). No se reordenan.
 
 **Interceptar.** Bot enemigo más cercano, 1 vez/turno. Sustituye el 1d6 por un `numbers` propio.
 
+### Combate
+
+- **Daño.** Daño ataque − `shield` defensor. Cada punto parado consume 1 `shield`.
+- **Movimiento.** Hexes adyacentes. No atravesar obstáculos ni Bots.
+- **Rango.** Hexes contiguos entre atacante y objetivo sin atravesar obstáculos/Bots.
+
 ### Costes y Errores
 
 - **`OVERLOAD`.** Sin `energy` → 1 `life` por punto faltante. Función **no se ejecuta**.
 
 
 /col
-### Combate
-
-- **Daño.** Daño ataque − `shield` defensor. Cada punto parado consume 1 `shield`.
-- **Movimiento.** Hexes adyacentes. No atravesar obstáculos ni Bots.
-- **Rango.** Hexes contiguos entre atacante y objetivo sin atravesar obstáculos/Bots.
 
 ## DEBUG()
 
@@ -77,16 +79,14 @@ Sin Operación, pagando Energía.
 
 /json-sm tables/debug-functions.json
 
-/end-col
-
-/json-sm tables/code-errors.json
-
 ## END()
 
 1. Descartar Operaciones. Conservar `numbers` y `energy`.
 2. Turno al siguiente Programador → `COMPILE()`.
 3. Todos activados → Nueva ronda → `INIT()`.
 4. **Victoria.** Último con Bots operativos, o condición del escenario.
+/end-col
 
-/img-center /assets/img/t-rex-robot.png print-only
+/json-sm tables/code-errors.json
+
 
