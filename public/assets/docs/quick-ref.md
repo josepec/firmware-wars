@@ -37,13 +37,11 @@
 | `WHILE` | Repite mientras TRUE (nueva condición por iteración).<br> Si 0 ejecuciones → `BUG`. |
 | `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. <br> Si ninguna se ejecuta → `BUG`. |
 
-### COMMON.INTERFACE
-
-
-/img-center /assets/img/t-rex-robot.png print-only
 /end-col
 
-/json-sm tables/common-functions.json
+### COMMON.INTERFACE
+
+/json tables/common-functions.json
 
 /page
 /two-col
@@ -87,6 +85,6 @@ Sin Operación, pagando Energía.
 4. **Victoria.** Último con Bots operativos, o condición del escenario.
 /end-col
 
-/json-sm tables/code-errors.json
+/json tables/code-errors.json
 
 

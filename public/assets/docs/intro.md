@@ -42,3 +42,5 @@ https://firmware-wars.josepec.eu<br>
 https://firmwarewars.josepec.eu
 
 ---
+
+/img-center /assets/img/t-rex-robot.png print-only
