@@ -104,6 +104,10 @@ const columnDirectiveExt = {
       case 'table-cards':
         // Marca la tabla siguiente: en móvil se pinta como tarjetas apiladas.
         return '<div class="md-cards-next"></div>';
+      case 'table-sm':
+        // Marca la tabla siguiente como compacta — el equivalente de
+        // /json-sm para las tablas escritas directamente en markdown.
+        return '<div class="md-sm-next"></div>';
       case 'page':
         return '<div class="md-page-break"></div>';
       case 'space':

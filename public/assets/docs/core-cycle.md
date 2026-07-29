@@ -394,4 +394,4 @@ Esta fase ocurre cuando se completa el ciclo operativo del Bot activo. Aquí se 
 
 ---
 
-/img-center /assets/img/spider-robot.png print-only h:150px
+/img-center /assets/img/spider-robot.png print-only h:100px

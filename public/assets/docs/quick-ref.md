@@ -26,6 +26,8 @@
 
 ### Operaciones
 
+/table-sm
+
 | Op. | Resolución |
 |---|---|
 | `IF` | TRUE → Ejecuta Función. FALSE → Nada. |
@@ -38,7 +40,7 @@
 
 ### COMMON.INTERFACE
 
-/json tables/common-functions.json
+/json-sm tables/common-functions.json
 
 /page
 /two-col
@@ -76,7 +78,7 @@ Sin Operación, pagando Energía.
 
 /end-col
 
-/json tables/code-errors.json
+/json-sm tables/code-errors.json
 
 ## END()
 

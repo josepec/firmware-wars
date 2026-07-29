@@ -8,6 +8,27 @@
   margin: 1.5cm 1.8cm 1.2cm;
 }
 
+/* Estilos de tabla compacta, compartidos por /json-sm y /table-sm. */
+@mixin tabla-compacta {
+  font-size: 6.5pt;
+  margin: 0 0 0.5rem;
+
+  thead th {
+    font-size: 5.5pt;
+    padding: 0.2rem 0.3rem 0.2rem 0.3rem;
+    letter-spacing: 0.1em;
+
+    &:last-child { padding-right: 0.6rem; }
+  }
+
+  tbody td {
+    padding: 0.2rem 0.3rem;
+    line-height: 1.35;
+
+    &:last-child { padding-right: 0.6rem; }
+  }
+}
+
 /* ── Visibilidad print/screen ────────────────────────────────── */
 .print-only { display: none; }
 
@@ -592,25 +613,19 @@
       }
     }
 
+    /* Tabla compacta. La aplican dos vías:
+         /json-sm  → el hidratador pone la clase .table-sm
+         /table-sm → marcador .md-sm-next delante de la tabla (regla de abajo) */
     &.table-sm {
-      font-size: 6.5pt;
-      margin: 0 0 0.5rem;
-
-      thead th {
-        font-size: 5.5pt;
-        padding: 0.2rem 0.3rem 0.2rem 0.3rem;
-        letter-spacing: 0.1em;
-
-        &:last-child { padding-right: 0.6rem; }
-      }
-
-      tbody td {
-        padding: 0.2rem 0.3rem;
-        line-height: 1.35;
-
-        &:last-child { padding-right: 0.6rem; }
-      }
+      @include tabla-compacta;
     }
+  }
+
+  /* Directiva /table-sm sobre tablas escritas en markdown: el marcador
+     es hermano previo de la tabla, así que basta el selector `+`.
+     Sin JS, funciona igual en la vista web y en el PDF. */
+  .md-sm-next + table {
+    @include tabla-compacta;
   }
 
   blockquote {

@@ -262,8 +262,10 @@ summary:focus-visible,
   .md-col-3 { column-count: 1; }
 }
 
-/* Marcador de la directiva /table-cards: nunca ocupa espacio. */
-.md-cards-next { display: none; }
+/* Marcadores de directiva (/table-cards y /table-sm): nunca ocupan espacio.
+   Actúan sobre la tabla siguiente mediante el selector hermano `+`. */
+.md-cards-next,
+.md-sm-next { display: none; }
 
 .md-col-break  { break-after: column; height: 0; }
 .md-page-break  { height: 0; }
