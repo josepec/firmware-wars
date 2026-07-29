@@ -85,6 +85,6 @@ Sin Operación, pagando Energía.
 4. **Victoria.** Último con Bots operativos, o condición del escenario.
 /end-col
 
-/json tables/code-errors.json
+/json-sm tables/code-errors.json
 
 
