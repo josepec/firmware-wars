@@ -80,6 +80,9 @@ export const QS_STEPS: QsStep[] = [
     text: 'KERNEL-9 arranca. Ejecuta <b>getEnergy(2)</b>: 2d6 → 4+3 = <b>7 de energía</b>. Con <b>getNumbers()</b> rellena su RAM de números para las condiciones. Y lanza 3 veces el <b>Dado V1</b> para cargar sus Operaciones del turno: <b>IF, IF, IF-ELSE</b>.',
     dice: [
       { k: 'getEnergy(2)', v: '4+3 = 7' },
+      // El texto menciona getNumbers(): el resultado se muestra aquí igual
+      // que el de los otros dos lanzamientos. Los valores son QS_NUMS.
+      { k: 'getNumbers()', v: '2 5 3 6 1' },
       { k: 'Dado V1 ×3', v: 'IF · IF · IF-ELSE' },
     ],
     note: 'Si la energía supera MAX_ENERGY, el exceso se pierde… Y el Bot gana un BUG por sobrecarga.',

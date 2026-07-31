@@ -269,6 +269,16 @@
     font-size: 14px;
     color: #d4ffe8;
     white-space: nowrap;
+
+    /* En móvil los chips se reparten ~94px: un valor largo como
+       «IF · IF · IF-ELSE» no cabe en una línea y con nowrap quedaba
+       cortado. Se deja envolver — el chip crece a lo alto, pero la
+       fila sigue siendo una sola, que es lo que pedía el diseño. */
+    @media (max-width: 639px) {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
   }
 
   &.true b {
