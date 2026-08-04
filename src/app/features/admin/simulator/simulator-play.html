@@ -129,9 +129,11 @@
            [class.border-green-500\/15]="!turnBanner()">
         <app-hex-map [mapData]="displayMap()" [size]="28" [interactive]="canPickHex() || debugMode()" [selectable]="selectableHexes()"
           [highlightedHexes]="highlightedHexes()" [highlightColor]="highlightColor()" [dotOpacity]="dotOpacity()"
+          [splashPreviewHexes]="splashPreviewHexes()"
           [rangeHexes]="attackRangeHexes()" [mapEntities]="displayEntities()" [pierceHexes]="railgunPiercePreview() ?? flashSpinTargetPreview()"
           [dragMode]="debugMode() ? 'move' : 'expand'"
-          (hexClicked)="onMapHexClick($event)" (hexMoved)="onDebugBotMoved($event)" />
+          (hexClicked)="onMapHexClick($event)" (hexHovered)="onTargetHexHover($event)"
+          (hexMoved)="onDebugBotMoved($event)" />
       </div>
     </div>
 

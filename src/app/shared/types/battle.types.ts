@@ -152,6 +152,10 @@ export type BattleEventKind =
   | 'intercept'
   | 'move'
   | 'attack_hit'
+  /** Impacto de un ataque de área sobre un Hex vacío: no hay Bot en el
+   *  punto de impacto, así que solo registra el gasto de energía y el
+   *  punto elegido. Los daños los emiten los `attack_hit` del área. */
+  | 'attack_hex'
   | 'attack_miss'
   | 'shield_up'
   | 'overload'

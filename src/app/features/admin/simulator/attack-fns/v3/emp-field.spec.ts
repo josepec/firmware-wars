@@ -17,6 +17,10 @@ function ctx(bots: BattleBot[], attacker: BattleBot, target: BattleBot, rolls: n
   let i = 0;
   return {
     attacker, target, bots,
+    // El área se mide desde el punto de impacto, que con Bot objetivo es su
+    // propio hex. El `as AttackResolveContext` de abajo se salta el chequeo
+    // de tipos, así que hay que ponerlo a mano.
+    impactQ: target.q, impactR: target.r,
     map: { hexTypes: [], hexes: [], deployments: [] },
     rangeMin: 2, rangeMax: 5, damage: 0, energyCost: 6,
     turn: 1, activation: 0, timestamp: 'ts',

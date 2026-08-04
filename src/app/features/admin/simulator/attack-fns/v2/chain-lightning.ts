@@ -8,6 +8,9 @@ export const chainLightning: AttackFnDef = {
   splashRadius: 2,
   rollDamage: ({ rollD }) => rollD(4),
   onHit: ({ attacker, target, bots, map, turn, activation, timestamp, damage, entities }): BattleEvent[] => {
+    // Esta función siempre impacta sobre un Bot: solo gravityWell y
+    // empField pueden apuntar a un Hex vacío.
+    if (!target) return [];
     const events: BattleEvent[] = [];
     for (const bot of bots) {
       if (bot.id === target.id || bot.id === attacker.id || bot.destroyed) continue;

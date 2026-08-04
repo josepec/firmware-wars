@@ -8,7 +8,7 @@ import {
   type StatusEffectKind,
 } from '../../../shared/types/battle.types';
 import type { HexMapData } from '../../../shared/components/hex-map/hex-map.types';
-import { attackableHexes, hexDistance, lineOfSight } from './engine/pathfinding';
+import { attackableHexes, buildHexIndex, hexDistance, isTraversable, lineOfSight } from './engine/pathfinding';
 import type { OperationFace } from './engine/dice';
 import { getAttackFn, lrHexes, sldvHexes } from './attack-fns/index';
 import type { FunctionEntry } from './simulator-bot-card';
@@ -157,6 +157,22 @@ export function computeAttackTargets(
         if (hexDistance(bot.q, bot.r, h[0], h[1]) < rangeMin) reachable.delete(k);
       }
     }
+  }
+
+  /* Ataques de área que pueden impactar en Hex vacío (gravityWell, empField):
+     vale cualquier Hex del rango, ocupado o no. `reachable` ya viene filtrado
+     por línea de visión, que se sigue exigiendo hasta el punto de impacto —
+     el área sí puede luego alcanzar Bots sin visión directa.
+     Los Hexes de obstáculo quedan fuera: no se puede detonar dentro de un
+     muro. `attackableHexes` no los descarta porque hasta ahora el filtro por
+     Hex ocupado los dejaba fuera de todos modos. */
+  if (attackFnDef?.canTargetEmptyHex) {
+    const idx = buildHexIndex(map);
+    const libres = new Set<string>();
+    for (const k of reachable) {
+      if (isTraversable(idx.get(k), map)) libres.add(k);
+    }
+    return libres;
   }
 
   const out = new Set<string>();

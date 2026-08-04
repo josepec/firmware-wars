@@ -6,6 +6,9 @@ export const ghostProtocol: AttackFnDef = {
   rangeKind: 'normal',
   rollDamage: () => 0,
   onHit: ({ target, turn, activation, timestamp }): BattleEvent[] => {
+    // Esta función siempre impacta sobre un Bot: solo gravityWell y
+    // empField pueden apuntar a un Hex vacío.
+    if (!target) return [];
     if (target.numbers.length === 0) return [];
     const idx = Math.floor(Math.random() * target.numbers.length);
     const removedValue = target.numbers[idx];

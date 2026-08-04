@@ -277,7 +277,102 @@ export function chooseMoveHex(ctx: RunHeuristicCtx, options: string[]): string {
 
 /** Objetivo de ataque (clave de hex entre los resaltados).
  *  N1: aleatorio. N2: menor vida efectiva. N3: valor (kill > daño − sobrematar > amenaza). */
+/**
+ * Elección de punto de impacto para los ataques de área que pueden apuntar a
+ * un Hex vacío (gravityWell, empField).
+ *
+ * Aquí `options` trae TODOS los hexes en rango, no solo los ocupados, así que
+ * la heurística normal no sirve: hay que evaluar a cuántos Bots alcanza cada
+ * punto. Un hex vacío entre dos enemigos suele valer más que impactar sobre
+ * uno de ellos.
+ */
+function chooseSplashHex(ctx: RunHeuristicCtx, options: string[], radius: number): string {
+  const { state, bot, fmap } = ctx;
+  const fnId = ctx.runState.pendingFn?.attackFunctionId;
+  const entry = fnId ? fmap.get(fnId) : undefined;
+  const dmg = expectedDamage(entry?.damage);
+  const focus = chooseFocusTarget(state, bot.playerId, fmap);
+
+  /** Bots vivos dentro del área de un punto de impacto, sin contar al atacante. */
+  const alcanzados = (q: number, r: number) =>
+    state.bots.filter(b =>
+      !b.destroyed && b.id !== bot.id && hexDistance(q, r, b.q, b.r) <= radius);
+
+  let best = options[0];
+  let bestScore = -Infinity;
+
+  for (const k of options) {
+    const { q, r } = parseHex(k);
+    const dentro = alcanzados(q, r);
+    if (dentro.length === 0) continue;
+
+    const enemigos = dentro.filter(b => b.playerId !== bot.playerId);
+    const aliados = dentro.filter(b => b.playerId === bot.playerId);
+
+    // Nivel 1: le basta con acertar a alguien, sin cálculo fino.
+    if (ctx.level === 1) {
+      if (enemigos.length > 0) return k;
+      continue;
+    }
+
+    let score = 0;
+    for (const e of enemigos) {
+      const eff = effectiveLife(e);
+      score += Math.min(dmg, eff);              // daño aprovechable
+      if (dmg >= eff) score += 100;             // remate
+      if (ctx.level >= 3) {
+        score += bestExpectedDamage(e, fmap) * 0.5;  // priorizar amenazas
+        if (focus?.id === e.id) score += 3;          // foco de fuego del equipo
+        score += objectiveBias(ctx.objectives, { kind: 'target', botId: bot.id, targetId: e.id });
+      }
+    }
+
+    // El fuego amigo pesa, pero no es prohibitivo: a veces compensa.
+    for (const a of aliados) {
+      const eff = effectiveLife(a);
+      score -= Math.min(dmg, eff) * 1.5;
+      if (dmg >= eff) score -= 200;             // jamás rematar a un aliado
+    }
+
+    if (ctx.level >= 3) {
+      // Valor propio de cada función más allá del daño bruto.
+      if (fnId === 'empField') {
+        // El DMZ escala con el número de afectados: cada enemigo tiene ~50%
+        // de comerse el estado.
+        score += enemigos.length * 2.5;
+      } else if (fnId === 'gravityWell') {
+        // Atraer agrupa al rival y lo acerca: interesa si con ello queda
+        // pegado a nuestro Bot (más opciones de cuerpo a cuerpo).
+        for (const e of enemigos) {
+          const antes = hexDistance(bot.q, bot.r, e.q, e.r);
+          const despues = Math.max(1, antes - 1);
+          if (despues < antes) score += 1.5;
+        }
+        score += Math.max(0, enemigos.length - 1) * 2; // premia agrupar
+      }
+    }
+
+    if (score > bestScore) { bestScore = score; best = k; }
+  }
+
+  // Ningún punto alcanza a nadie: no malgastar, pero hay que devolver algo.
+  if (bestScore === -Infinity) {
+    const conEnemigo = options.filter(k => {
+      const { q, r } = parseHex(k);
+      return alcanzados(q, r).some(b => b.playerId !== bot.playerId);
+    });
+    return conEnemigo.length > 0 ? pickRandom(conEnemigo, ctx.rand) : pickRandom(options, ctx.rand);
+  }
+  return best;
+}
+
 export function chooseTargetHex(ctx: RunHeuristicCtx, options: string[]): string {
+  const pendingId = ctx.runState.pendingFn?.attackFunctionId;
+  const pendingDef = pendingId ? getAttackFn(pendingId) : undefined;
+  if (pendingDef?.canTargetEmptyHex && pendingDef.splashRadius) {
+    return chooseSplashHex(ctx, options, pendingDef.splashRadius);
+  }
+
   if (ctx.level === 1) return pickRandom(options, ctx.rand);
   const { state, bot, fmap } = ctx;
   const botAt = (k: string) => {

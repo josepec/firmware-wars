@@ -149,7 +149,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
       impact(ctx.g, next.x, next.y, '#fbbf24', ctx.size * 0.75);
       prev = next;
     }
-    floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    if (ctx.damage > 0) floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
     for (const sec of ctx.secondaryPx) {
       if ((sec.damage ?? 0) > 0) {
         floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
@@ -163,7 +163,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
   gravityWell: async ctx => {
     if (!ctx.targetPx) return;
     await aoeRing(ctx.g, ctx.targetPx.x, ctx.targetPx.y, '#7c3aed', ctx.size * 1.8, true);
-    floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    if (ctx.damage > 0) floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
     for (const sec of ctx.secondaryPx) {
       if ((sec.damage ?? 0) > 0) {
         floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
@@ -253,7 +253,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
     for (const h of (ctx.statusHits ?? []).filter(h => h.applied)) {
       statusGlitch(ctx.g, h.x, h.y, 'DMZ', ctx.size);
     }
-    floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    if (ctx.damage > 0) floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
     for (const sec of ctx.secondaryPx) {
       if ((sec.damage ?? 0) > 0) {
         floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);
@@ -279,7 +279,7 @@ const RECIPES: Partial<Record<string, Recipe>> = {
     for (const p of allHits) {
       impact(ctx.g, p.x, p.y, '#f8fafc', ctx.size * 0.85);
     }
-    floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
+    if (ctx.damage > 0) floatingText(ctx.g, ctx.targetPx.x, ctx.targetPx.y, `-${ctx.damage}♥`, RED, ctx.size);
     for (const sec of ctx.secondaryPx) {
       if ((sec.damage ?? 0) > 0) {
         floatingText(ctx.g, sec.x, sec.y, `-${sec.damage}♥`, RED, ctx.size);

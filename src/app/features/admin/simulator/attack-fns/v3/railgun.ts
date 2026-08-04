@@ -8,6 +8,9 @@ export const railgun: AttackFnDef = {
   rangeKind: 'LR',
   rollDamage: ({ rollD }) => rollD(8),
   onHit: ({ attacker, target, bots, map, damage, turn, activation, timestamp, entities }): BattleEvent[] => {
+    // Esta función siempre impacta sobre un Bot: solo gravityWell y
+    // empField pueden apuntar a un Hex vacío.
+    if (!target) return [];
     const events: BattleEvent[] = [];
     const idx = buildHexIndex(map);
     const [dq, dr] = hexPushDir(attacker.q, attacker.r, target.q, target.r);

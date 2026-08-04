@@ -135,6 +135,13 @@ function applyEvent(state: BattleState, ev: BattleEvent): void {
       }
       break;
     }
+    case 'attack_hex': {
+      // Impacto en Hex vacío: sin Bot al que dañar, solo cuesta energía.
+      // El daño del área llega en los `attack_hit` que emite el onHit.
+      const cost = (p['energyCost'] as number) ?? 0;
+      if (bot) bot.energy = Math.max(0, bot.energy - cost);
+      break;
+    }
     case 'attack_miss': {
       if (bot) {
         const cost = (p['energyCost'] as number) ?? 0;

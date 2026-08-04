@@ -44,6 +44,8 @@ interface RenderedDeployment {
                    class="hex-face" [class.interactive]="interactive()"
                    [class.dragging]="dragHex()?.key === h.key"
                    (mousedown)="onDragStart($event, h.q, h.r)"
+                   (mouseenter)="hexHovered.emit({ q: h.q, r: h.r })"
+                   (mouseleave)="hexHovered.emit(null)"
                    (click)="onHexClick(h.q, h.r)" />
         }
       }
@@ -55,6 +57,8 @@ interface RenderedDeployment {
                    class="hex-face" [class.interactive]="interactive()"
                    [class.dragging]="dragHex()?.key === h.key"
                    (mousedown)="onDragStart($event, h.q, h.r)"
+                   (mouseenter)="hexHovered.emit({ q: h.q, r: h.r })"
+                   (mouseleave)="hexHovered.emit(null)"
                    (click)="onHexClick(h.q, h.r)" />
         }
       }
@@ -182,6 +186,13 @@ interface RenderedDeployment {
                  stroke="none" class="pointer-events-none" />
       }
 
+      <!-- Área de efecto previsualizada (splash R(n) al apuntar) -->
+      @for (h of splashOverlays(); track h.key) {
+        <polygon [attr.points]="h.points" fill="#f97316" fill-opacity="0.28"
+                 stroke="#f97316" stroke-width="1.5" stroke-opacity="0.7"
+                 class="pointer-events-none" />
+      }
+
       <!-- Pierce trajectory overlay (railgun) -->
       @for (h of pierceOverlays(); track h.key) {
         <polygon [attr.points]="h.points" fill="#ef4444" [attr.fill-opacity]="h.opacity"
@@ -267,7 +278,11 @@ export class HexMap {
    * - 'move': drop on ANY existing hex (used by simulator debug to move bots)
    */
   readonly dragMode = input<'expand' | 'move'>('expand');
+  /** Hexes que quedarían dentro del área de efecto del ataque apuntado. */
+  readonly splashPreviewHexes = input<Set<string> | null>(null);
   readonly hexClicked = output<{ q: number; r: number }>();
+  /** Hex bajo el cursor, o null al salir. Alimenta la previsualización de área. */
+  readonly hexHovered = output<{ q: number; r: number } | null>();
   readonly ghostClicked = output<{ q: number; r: number }>();
   readonly hexMoved = output<{ fromQ: number; fromR: number; toQ: number; toR: number }>();
 
@@ -456,6 +471,14 @@ export class HexMap {
       out.push({ key: `pc-bot-${key}`, points: hexPoints(x, y, s * 0.84), opacity: 0.60 });
     }
     return out;
+  });
+
+  splashOverlays = computed(() => {
+    const set = this.splashPreviewHexes();
+    if (!set || set.size === 0) return [];
+    return this.renderedHexes()
+      .filter(h => set.has(h.key))
+      .map(h => ({ key: h.key, points: h.points }));
   });
 
   highlightOverlays = computed(() => {

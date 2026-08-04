@@ -5,5 +5,5 @@ export const pulseShot: AttackFnDef = {
   id: 'pulseShot',
   rangeKind: 'normal',
   rollDamage: ({ attacker, target }) =>
-    2 + (hexDistance(attacker.q, attacker.r, target.q, target.r) === 1 ? 1 : 0),
+    2 + (target && hexDistance(attacker.q, attacker.r, target.q, target.r) === 1 ? 1 : 0),
 };

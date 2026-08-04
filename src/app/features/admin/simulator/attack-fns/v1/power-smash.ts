@@ -7,6 +7,9 @@ export const powerSmash: AttackFnDef = {
   id: 'powerSmash',
   rangeKind: 'normal',
   onHit: ({ attacker, target, bots, map, turn, activation, timestamp }): BattleEvent[] => {
+    // Esta función siempre impacta sobre un Bot: solo gravityWell y
+    // empField pueden apuntar a un Hex vacío.
+    if (!target) return [];
     const [dq, dr] = hexPushDir(attacker.q, attacker.r, target.q, target.r);
     const pushQ = target.q + dq;
     const pushR = target.r + dr;

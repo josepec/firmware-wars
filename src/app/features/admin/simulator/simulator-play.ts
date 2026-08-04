@@ -37,7 +37,7 @@ import {
   parseRangeMin,
   type RunState,
 } from './simulator-run.utils';
-import { getAttackFn, lrHexes, sldvHexes, type AttackResolveContext } from './attack-fns/index';
+import { getAttackFn, lrHexes, sldvHexes, splashHexes, type AttackResolveContext } from './attack-fns/index';
 import {
   RELAY_NODE_LIFE,
   RELAY_NODE_MAX,
@@ -337,6 +337,41 @@ export class SimulatorPlay implements OnInit {
     const deployer = this.activeDeployer();
     if (!deployer) return new Set();
     return computeValidDeployHexes(this.currentState(), color, deployer);
+  });
+
+  /** Hex bajo el cursor mientras se apunta un ataque de área. */
+  readonly hoveredTargetHex = signal<{ q: number; r: number } | null>(null);
+
+  onTargetHexHover(coord: { q: number; r: number } | null): void {
+    this.hoveredTargetHex.set(coord);
+  }
+
+  /**
+   * Área que cubriría el ataque si se impactase en el hex apuntado.
+   * Solo se calcula mientras se elige objetivo de una función con área.
+   */
+  readonly splashPreviewHexes = computed<Set<string> | null>(() => {
+    const hovered = this.hoveredTargetHex();
+    const rs = this.runState();
+    if (!hovered || rs.step !== 'picking-target' || rs.pendingFn?.type !== 'attack') return null;
+    if (!this.selectableHexes()?.has(hexKey(hovered.q, hovered.r))) return null;
+    const def = getAttackFn(rs.pendingFn.attackFunctionId);
+    if (def?.rangeKind !== 'splash' || !def.splashRadius) return null;
+    return splashHexes(hovered.q, hovered.r, def.splashRadius, this.currentState().hexMap);
+  });
+
+  /** Bots que caerían dentro del área, para avisar antes de confirmar. */
+  readonly splashPreviewBots = computed<{ aliados: number; enemigos: number }>(() => {
+    const area = this.splashPreviewHexes();
+    const bot = this.currentRunBot();
+    if (!area || !bot) return { aliados: 0, enemigos: 0 };
+    let aliados = 0, enemigos = 0;
+    for (const b of this.currentState().bots) {
+      if (b.destroyed || b.id === bot.id) continue;
+      if (!area.has(hexKey(b.q, b.r))) continue;
+      if (b.playerId === bot.playerId) aliados++; else enemigos++;
+    }
+    return { aliados, enemigos };
   });
 
   readonly highlightedHexes = computed<Set<string> | null>(() => this.selectableHexes());
@@ -930,7 +965,7 @@ export class SimulatorPlay implements OnInit {
   private async playAnimForAttack(
     attackId: string | undefined,
     attacker: BattleBot,
-    target: BattleBot,
+    target: BattleBot | null,
     damage: number,
     shieldConsumed: number,
     energyCost: number,
@@ -938,6 +973,9 @@ export class SimulatorPlay implements OnInit {
     rollDResult?: { sides: number; value: number } | null,
   ): Promise<void> {
     if (!this.animationEnabled()) return;
+    /* Sin Bot objetivo (impacto en Hex vacío) no hay golpe que animar: los
+       efectos del área se ven por los eventos que emite el propio onHit. */
+    if (!target) return;
     const g = this.hexMapComp()?.getAnimLayer();
     if (!g) return;
     const s = this.MAP_SIZE;
@@ -1046,6 +1084,93 @@ export class SimulatorPlay implements OnInit {
     await new Promise(r => setTimeout(r, 2200));
     this.selfEffectAnim.set(null);
     this.animatingPlayers.update(s => { const n = new Set(s); n.delete(pid); return n; });
+  }
+
+  /**
+   * Animación de un ataque de área que impacta en un Hex vacío.
+   *
+   * `playAnimForAttack` está construida alrededor de un Bot objetivo y no
+   * sirve aquí. Se replica lo esencial: la tirada de daño (imprescindible
+   * para entender de dónde sale el número), el punto de impacto, el daño
+   * flotante sobre cada Bot alcanzado y las tiradas de estado del área.
+   */
+  private async playAnimForHexImpact(
+    attackId: string | undefined,
+    attacker: BattleBot,
+    q: number,
+    r: number,
+    energyCost: number,
+    extraEvents: BattleEvent[],
+    rollDResult?: { sides: number; value: number } | null,
+  ): Promise<void> {
+    if (!this.animationEnabled()) return;
+    const g = this.hexMapComp()?.getAnimLayer();
+    if (!g) return;
+    const s = this.MAP_SIZE;
+
+    // Todos los Bots alcanzados por el área, con su daño y escudo gastado.
+    const secondaryPx = extraEvents
+      .filter(e => e.kind === 'attack_hit')
+      .flatMap(e => {
+        const victima = this.currentState().bots.find(b => b.id === (e.payload['targetId'] as string));
+        if (!victima) return [];
+        return [{
+          ...hexToPixel(victima.q, victima.r, s),
+          damage: (e.payload['damage'] as number) ?? 0,
+          shieldConsumed: (e.payload['shieldConsumed'] as number) ?? 0,
+        }];
+      });
+
+    // Tiradas de estado del área (el DMZ de empField).
+    const checks = extraEvents
+      .filter(e => (e.kind === 'status_applied' || e.kind === 'status_resisted') && e.payload['roll'] !== undefined)
+      .flatMap(e => {
+        const bot = this.currentState().bots.find(b => b.id === e.botId);
+        if (!bot) return [];
+        return [{
+          bot,
+          roll: e.payload['roll'] as number,
+          resisted: e.kind === 'status_resisted',
+          statusKind: (e.payload['kind'] as string) ?? 'STATUS',
+        }];
+      });
+    const statusHits = checks.map(c => ({
+      ...hexToPixel(c.bot.q, c.bot.r, s),
+      applied: !c.resisted,
+      kind: c.statusKind,
+    }));
+
+    const panelPromise = checks.length > 0 ? this.playStatusChecksAnim(checks) : null;
+    const dicePromise = rollDResult
+      ? this.playRollDiceAnim(attacker, rollDResult.sides, rollDResult.value)
+      : null;
+
+    /* Todo a la vez, igual que en un ataque con Bot objetivo. Encadenarlo
+       (esperar la tirada y dibujar después) no vale: durante esa espera la
+       capa de animación se vuelve a renderizar y el `g` capturado antes queda
+       huérfano, así que lo dibujado después no se ve.
+
+       Se reutiliza la receta de la propia función (anillo de área, destello,
+       glitch de DMZ…): solo necesita `targetPx` como centro del impacto, que
+       aquí es el Hex elegido. `damage: 0` porque no hay objetivo principal —
+       todo el daño va en secondaryPx. */
+    await Promise.all([
+      playAttackAnim({
+        g,
+        attackId: attackId ?? '',
+        attackerPx: hexToPixel(attacker.q, attacker.r, s),
+        targetPx: hexToPixel(q, r, s),
+        secondaryPx,
+        damage: 0,
+        size: s,
+        statusHits,
+        energyCost,
+      }),
+      panelPromise,
+      dicePromise,
+    ]);
+
+    await this.animateDelay();
   }
 
   private async playRollDiceAnim(bot: BattleBot, sides: number, result: number): Promise<void> {
@@ -2066,7 +2191,7 @@ export class SimulatorPlay implements OnInit {
       if (!rollDResult) rollDResult = { sides, value: v };
       return v;
     };
-    let damage = attackFnDef?.rollDamage?.({ attacker: bot, target: bot, bots: s.bots, map: s.hexMap, rollD: trackRollD, damage: 0, energyCost: cost, turn: s.turn, activation: s.currentActivationIdx, timestamp: ts, entities: s.entities, rangeMin: 0, rangeMax }) ?? rollDamageString(entry?.damage);
+    let damage = attackFnDef?.rollDamage?.({ attacker: bot, target: bot, impactQ: bot.q, impactR: bot.r, bots: s.bots, map: s.hexMap, rollD: trackRollD, damage: 0, energyCost: cost, turn: s.turn, activation: s.currentActivationIdx, timestamp: ts, entities: s.entities, rangeMin: 0, rangeMax }) ?? rollDamageString(entry?.damage);
     if (hasStatus(bot, 'OVERCLOCK')) damage += 1;
     if (hasStatus(bot, 'BERSERK')) damage *= 2;
     const dealt = Math.min(damage, entity.life);
@@ -2096,6 +2221,74 @@ export class SimulatorPlay implements OnInit {
         ]);
       }
     }
+    await this.afterFnExecuted();
+  }
+
+  /**
+   * Impacto de un ataque de área sobre un Hex vacío (gravityWell, empField).
+   *
+   * A diferencia de `pickRunTarget`, aquí no hay daño primario: no hay Bot en
+   * el punto de impacto, así que TODOS los impactos los emite el `onHit` de la
+   * función a partir de `impactQ/impactR`.
+   */
+  async pickRunTargetHex(q: number, r: number): Promise<void> {
+    const rs = this.runState();
+    const bot = this.currentRunBot();
+    const fn = rs.pendingFn;
+    if (!bot || !fn || fn.type !== 'attack') return;
+
+    const attackFnDef = getAttackFn(fn.attackFunctionId);
+    if (!attackFnDef?.canTargetEmptyHex) return;
+
+    const s = this.currentState();
+    const entry = fn.attackFunctionId ? this.functionsMap().get(fn.attackFunctionId) : undefined;
+    const cost = attackFnDef.computeEnergyCost?.(bot) ?? fnEnergyCost(fn, this.functionsMap());
+    const ts = new Date().toISOString();
+
+    if (bot.energy < cost) {
+      await this.applyOverload(bot, cost, 'attack');
+      await this.afterFnExecuted();
+      return;
+    }
+
+    let rollDResult: { sides: number; value: number } | null = null;
+    const trackRollD = (sides: number): number => {
+      const v = rollDN(sides);
+      if (!rollDResult) rollDResult = { sides, value: v };
+      return v;
+    };
+
+    const ctx: AttackResolveContext = {
+      attacker: bot, target: null, impactQ: q, impactR: r,
+      bots: s.bots, map: s.hexMap,
+      rangeMin: parseRangeMin(entry?.range),
+      rangeMax: parseRangeMax(entry?.range),
+      energyCost: cost, turn: s.turn, activation: s.currentActivationIdx,
+      timestamp: ts, rollD: trackRollD, splashRadius: attackFnDef.splashRadius,
+      entities: s.entities, damage: 0,
+    };
+    ctx.damage = attackFnDef.rollDamage?.(ctx) ?? rollDamageString(entry?.damage);
+    ctx.rollD = rollDN;
+
+    if (hasStatus(bot, 'OVERCLOCK')) ctx.damage += 1;
+    if (hasStatus(bot, 'BERSERK')) ctx.damage *= 2;
+
+    /* El gasto de energía se registra aparte: sin Bot objetivo no hay un
+       `attack_hit` primario donde colgarlo. */
+    await this.appendEvents([{
+      turn: s.turn, activation: s.currentActivationIdx, phase: 'run',
+      timestamp: ts, botId: bot.id,
+      kind: 'attack_hex',
+      payload: {
+        q, r, energyCost: cost, functionId: fn.attackFunctionId,
+        baseDamage: ctx.damage,
+      },
+    }]);
+
+    const extraEvents = attackFnDef.onHit?.(ctx) ?? [];
+    for (const ev of extraEvents) await this.appendEvents([ev]);
+
+    await this.playAnimForHexImpact(fn.attackFunctionId, bot, q, r, cost, extraEvents, rollDResult);
     await this.afterFnExecuted();
   }
 
@@ -2143,7 +2336,8 @@ export class SimulatorPlay implements OnInit {
       return v;
     };
     const ctx: AttackResolveContext = {
-      attacker: bot, target, bots: s.bots, map: s.hexMap,
+      attacker: bot, target, impactQ: target.q, impactR: target.r,
+      bots: s.bots, map: s.hexMap,
       rangeMin: parseRangeMin(entry?.range),
       rangeMax: parseRangeMax(entry?.range),
       energyCost: cost, turn: s.turn, activation: s.currentActivationIdx,
@@ -2834,6 +3028,11 @@ export class SimulatorPlay implements OnInit {
       if (target) { await this.pickRunTarget(target.id); return; }
       const entity = (this.currentState().entities ?? []).find(e => e.q === coord.q && e.r === coord.r);
       if (entity) { await this.pickEntityTarget(entity.id); return; }
+      // Hex vacío: solo lo aceptan los ataques de área que pueden impactar
+      // en casilla libre (gravityWell, empField).
+      if (getAttackFn(rs.pendingFn?.attackFunctionId)?.canTargetEmptyHex) {
+        await this.pickRunTargetHex(coord.q, coord.r);
+      }
       return;
     }
 

@@ -344,6 +344,8 @@ El ataque se ejecutará siempre que tenga Energía suficiente y cumpla cualquier
 
 El Programador elige un Bot dentro **del rango del ataque** especificado por su Función de ataque. Si no hay ningún Bot en el rango de ataque, se genera un `BUG` y la Energía se consume igualmente.
 
+Algunas Funciones de área permiten además **elegir un Hex vacío como punto de impacto**, en lugar de un Bot. Se indica en sus Efectos. En ese caso el Hex ha de estar dentro del rango y cumplir la línea de visión igual que si fuera un Bot; el área de efecto sí puede alcanzar Bots sin línea de visión directa. Al impactar sobre un Hex vacío no hay objetivo principal: todos los Bots afectados lo son por el área, en igualdad de condiciones.
+
 #### Rango de los ataques
 Excepto si el ataque indica lo contrario, todos los ataques requieren **línea de visión del objetivo**. La distancia, o rango, será el número mínimo de casillas hexagonales contiguas entre el Bot atacante y el Bot defensor, **sin atravesar obstáculos u otros Bots no destruidos**. Esta distancia debe estar dentro del rango del ataque.
 
@@ -354,6 +356,8 @@ Algunos ataques calculan su rango de otras maneras:
 - **{{rangeTypes.Rn.name}} (R(n)):** {{rangeTypes.Rn.description}}
 
 > Ejemplo ataque de rango: `empField()` 5 R(1) -> El ataque se produce a 5 casillas del Bot atacante, respecto a ese punto, el ataque tiene un efecto de rango 1. Por lo tanto, todos los Bots a rango 1 desde ese punto, se ven afectados por el ataque.
+>
+> Ese punto puede ser un Bot o un Hex vacío. Apuntar a un Hex vacío entre dos enemigos permite alcanzarlos a los dos con un solo ataque, o llegar a uno que quedaba fuera de rango por poco.
 
 #### 2. Resolución del Daño
 

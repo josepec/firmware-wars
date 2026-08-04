@@ -18,7 +18,19 @@ export interface AttackTargetingContext {
 }
 
 export interface AttackResolveContext extends AttackTargetingContext {
-  target: BattleBot;
+  /**
+   * Bot en el punto de impacto, o `null` si se apuntó a un Hex vacío.
+   * Solo las funciones con `canTargetEmptyHex` reciben `null`; el resto
+   * puede asumir que hay Bot, pero conviene un guard defensivo.
+   */
+  target: BattleBot | null;
+  /**
+   * Punto de impacto. Coincide con el hex del `target` cuando lo hay, y es
+   * el hex elegido cuando se apuntó a casilla vacía. Las funciones de área
+   * deben medir SIEMPRE desde aquí, no desde `target`.
+   */
+  impactQ: number;
+  impactR: number;
   damage: number;
   energyCost: number;
   turn: number;
@@ -65,4 +77,11 @@ export interface AttackFnDef {
   canTargetAllies?: boolean;
   /** If true, map entities (barriers) are not valid targets for this function. */
   noEntityTarget?: boolean;
+  /**
+   * Si es true, el punto de impacto puede ser CUALQUIER Hex en rango, esté
+   * ocupado o no (gravityWell, empField). Se sigue exigiendo línea de visión
+   * hasta el Hex; el área sí puede alcanzar Bots sin visión directa.
+   * Con un Hex vacío no hay daño primario: todos los impactos los emite `onHit`.
+   */
+  canTargetEmptyHex?: boolean;
 }

@@ -6,7 +6,11 @@ export const swapProtocol: AttackFnDef = {
   rangeKind: 'normal',
   canTargetAllies: true,
   rollDamage: () => 0,
-  onHit: ({ attacker, target, turn, activation, timestamp }): BattleEvent[] => [
+  onHit: ({ attacker, target, turn, activation, timestamp }): BattleEvent[] => {
+    // Esta función siempre impacta sobre un Bot: solo gravityWell y
+    // empField pueden apuntar a un Hex vacío.
+    if (!target) return [];
+    return [
     {
       turn, activation, phase: 'run', timestamp,
       botId: attacker.id,
@@ -19,5 +23,6 @@ export const swapProtocol: AttackFnDef = {
       kind: 'moved',
       payload: { fromQ: target.q, fromR: target.r, toQ: attacker.q, toR: attacker.r, sourceFn: 'swapProtocol' },
     },
-  ],
+  ];
+  },
 };
