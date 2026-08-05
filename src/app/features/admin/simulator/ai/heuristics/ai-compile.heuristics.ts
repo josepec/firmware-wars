@@ -8,7 +8,7 @@ import type {
   OperationKind,
 } from '../../../../../shared/types/battle.types';
 import type { FunctionEntry } from '../../simulator-bot-card';
-import { computeAttackTargets, parseEnergy, parseRangeMax } from '../../simulator-run.utils';
+import { computeAttackTargets, fnEnergyCost, parseEnergy, parseRangeMax } from '../../simulator-run.utils';
 import { hexDistance } from '../../engine/pathfinding';
 import type { AiObjective } from '../ai-objectives';
 import { pickRandom, type RandomFn } from '../ai.types';
@@ -153,12 +153,21 @@ function opPreference(wish: Wish): (k: OperationKind) => number {
 
 /** Secundaria (rama FALSE / CATCH) coherente con la primaria:
  *  ataque → repliegue (move si hay que acercarse, shield si no);
- *  move/shield → ataque oportunista si existe, si no la otra defensa. */
+ *  move/shield → ataque oportunista SOLO si ahora mismo tiene objetivos.
+ *
+ *  Ese `attackUsable` no es cosmético. La rama secundaria puede dispararse
+ *  ANTES de que el bot se haya movido — es la rama FALSE de la primera
+ *  operación — así que hay que juzgarla desde la posición actual. Y forzar la
+ *  rama que uno quiere no siempre se puede: con cara `==` solo se fuerza TRUE
+ *  teniendo exactamente el valor del d6, y con `!=` solo FALSE igual, de modo
+ *  que si el número no está en RAM la IA cae en la rama que no quería. Un
+ *  ataque ahí = MISS + 1 bug garantizado. */
 function pickSecondary(
   wish: Wish,
   fns: FunctionCall[],
   attack: FunctionCall | null,
   approaching: boolean,
+  attackUsable: boolean,
 ): FunctionCall | undefined {
   const alt = fns.filter(f => funcSig(f) !== funcSig(wish.fn));
   if (alt.length === 0) return undefined;
@@ -167,8 +176,79 @@ function pickSecondary(
     const shield = alt.find(f => f.type === 'shield');
     return (approaching ? move : shield) ?? alt[0];
   }
-  if (attack && alt.some(f => f.type === 'attack')) return attack;
-  return alt.find(f => f.type !== wish.fn.type) ?? alt[0];
+  if (attack && attackUsable && alt.some(f => f.type === 'attack')) return attack;
+  return alt.find(f => f.type !== wish.fn.type && f.type !== 'attack')
+    ?? alt.find(f => f.type !== 'attack');
+}
+
+/** Energía mínima que hay que reservar para que un deseo NO acabe en overload.
+ *
+ *  Un `move` cuesta 1 aquí, no el movimiento máximo: el motor cobra por hex
+ *  realmente recorrido y `chooseMoveHex` ya limita la distancia a la energía
+ *  disponible, así que un move con 1⚡ se ejecuta corto pero se ejecuta. Los
+ *  ataques y el escudo sí son un compromiso cerrado — o se paga el coste
+ *  entero o hay overload — y por eso se cuentan a precio completo.
+ *  (Cuánta energía se comen los moves de aproximación antes de los ataques ya
+ *  se descuenta aparte, en el `budget` del plan de turno.)
+ *
+ *  Un deseo `repeat` aspira a ir en un bucle: se cobran `loopIters` vueltas. */
+function wishCost(
+  wish: Wish,
+  bot: BattleBot,
+  fmap: Map<string, FunctionEntry>,
+  loopIters: number,
+): number {
+  const unit = wish.fn.type === 'move' ? 1 : fnEnergyCost(wish.fn, fmap, bot);
+  return wish.repeat ? unit * loopIters : unit;
+}
+
+/** Vueltas que hay que presupuestar para un deseo marcado `repeat`.
+ *
+ *  El `repeat` es una PREFERENCIA por el bucle, no una garantía: si en el pool
+ *  no ha salido ningún FOR/WHILE, el deseo acaba en un IF y se ejecuta una sola
+ *  vez. Cobrarle vueltas de más en ese caso dejaba al bot compilando una
+ *  operación cuando podía pagar tres.
+ *
+ *  Y cuando sí hay bucle, el número tiene que coincidir con el que va a pedir
+ *  `choosePickNumber` en RUN — 3 iteraciones en N3, 2 en N2 — o el presupuesto
+ *  se queda corto y la operación siguiente entra en overload. */
+function loopIterations(bot: BattleBot, level: CpuLevel): number {
+  const hasLoop = bot.pendingOperations.some(k => k === 'FOR' || k === 'WHILE');
+  if (!hasLoop) return 1;
+  return level === 3 ? 3 : 2;
+}
+
+/** Recorta el plan a lo que el bot puede PAGAR.
+ *
+ *  Ejecutar una función sin energía suficiente no es un no-op: el motor cobra
+ *  OVERLOAD y el bot pierde vida = coste − energía. Un programa de tres ataques
+ *  de 5⚡ con 10⚡ en el depósito no hace tres ataques, hace dos y se
+ *  autolesiona. Compilar de menos no cuesta nada a cambio: las operaciones se
+ *  vuelven a tirar enteras en el BOOT del turno siguiente, no se acumulan. */
+function trimToEnergy(
+  wishes: Wish[],
+  bot: BattleBot,
+  fmap: Map<string, FunctionEntry>,
+  loopIters: number,
+): Wish[] {
+  let left = bot.energy;
+  const out: Wish[] = [];
+  for (const wish of wishes) {
+    let w = wish;
+    let cost = wishCost(w, bot, fmap, loopIters);
+    /* No llega para todas las vueltas del bucle: antes de descartar el deseo,
+       degradarlo a ejecución simple. El bucle no es un compromiso rígido — en
+       RUN, `choosePickNumber` ya limita las iteraciones a lo pagable. Sin este
+       paso, un primer deseo caro tumbaba el programa entero. */
+    if (cost > left && w.repeat) {
+      w = { ...w, repeat: false };
+      cost = wishCost(w, bot, fmap, loopIters);
+    }
+    if (cost > left) break;
+    left -= cost;
+    out.push(w);
+  }
+  return out;
 }
 
 /** Empareja la lista de deseos con las operaciones del pool respetando slots,
@@ -179,6 +259,7 @@ function assembleProgram(
   fns: FunctionCall[],
   attack: FunctionCall | null,
   approaching: boolean,
+  attackUsable: boolean,
 ): CompiledProgram {
   const slots = Math.max(0, bot.maxOperations - bot.bugs);
   const pool = [...bot.pendingOperations];
@@ -192,12 +273,22 @@ function assembleProgram(
     if (usable.length === 0) break;
     usable.sort((a, b) => pref(a) - pref(b));
     const kind = usable[0];
+
+    /* Cuando en el pool solo quedan bucles, `opPreference` no sirve de nada: el
+       deseo se lleva el FOR aunque lo puntúe con un 9. Y un bucle con un ataque
+       que HOY no tiene objetivos es un bug seguro — o falla la condición y es
+       "bucle fallido", o entra y falla una vez por vuelta. Mejor dejar el slot
+       sin compilar: las operaciones se vuelven a tirar en el BOOT siguiente. */
+    if ((kind === 'FOR' || kind === 'WHILE') && wish.fn.type === 'attack' && !attackUsable) {
+      continue;
+    }
+
     pool.splice(pool.indexOf(kind), 1);
     if (kind === 'FOR' || kind === 'WHILE') loopUsed = true;
 
     const op: CompiledOperation = { kind, primary: wish.fn };
     if (hasSecondarySlot(kind)) {
-      op.secondary = pickSecondary(wish, fns, attack, approaching);
+      op.secondary = pickSecondary(wish, fns, attack, approaching, attackUsable);
     }
     operations.push(op);
   }
@@ -274,7 +365,9 @@ export function buildProgram(
   if (attack && enemy && inRangeNow) {
     // Ya a alcance: ráfaga
     if (lowLife && threatened) wishes.push(shieldWish());
-    const nAtk = level === 3 && attack.cost > 0
+    // El presupuesto de energía vale para N2 y N3 por igual: programar más
+    // ataques de los pagables no da más ataques, da OVERLOAD (vida perdida).
+    const nAtk = attack.cost > 0
       ? Math.max(1, Math.min(slots, Math.floor(bot.energy / attack.cost)))
       : slots;
     for (let i = 0; i < nAtk; i++) wishes.push({ fn: attack.fn, repeat: i === 0 && nAtk >= 2 });
@@ -284,7 +377,7 @@ export function buildProgram(
     for (let i = 0; i < movesNeeded; i++) wishes.push(moveWish(i === 0 && movesNeeded >= 2));
     const remaining = slots - wishes.length;
     let nAtk = remaining;
-    if (level === 3 && attack.cost > 0) {
+    if (attack.cost > 0) {
       const budget = Math.max(0, bot.energy - movesNeeded * stride);
       nAtk = Math.min(remaining, Math.max(1, Math.floor(budget / attack.cost)));
     }
@@ -294,11 +387,31 @@ export function buildProgram(
     wishes.push(moveWish(true));
     while (wishes.length < slots) wishes.push(lowLife ? shieldWish() : moveWish());
   }
-  while (wishes.length < slots) wishes.push(moveWish());
+
+  /* Relleno de los slots que sobren. Antes se rellenaba SIEMPRE con `move`, y
+     eso manda a pasear a un bot que ya está bien colocado: `move` puntúa
+     positivo en RUN aunque el enemigo esté a tiro, así que se ejecuta y puede
+     sacarlo del alcance que acababa de ganar. Solo se rellena con algo que
+     aporte; si no hay nada, el programa se queda CORTO a propósito. */
+  const canShield = bot.shield < bot.maxShield;
+  while (wishes.length < slots) {
+    if (movesNeeded > 0) { wishes.push(moveWish()); continue; }
+    if (canShield && !wishes.some(w => w.fn.type === 'shield')) { wishes.push(shieldWish()); continue; }
+    break;
+  }
 
   const approaching = movesNeeded > 0;
-  const program = sanitizeProgram(bot, assembleProgram(wishes, bot, fns, attack?.fn ?? null, approaching));
+  const payable = trimToEnergy(wishes, bot, fmap, loopIterations(bot, level));
+  const program = sanitizeProgram(
+    bot,
+    assembleProgram(payable, bot, fns, attack?.fn ?? null, approaching, inRangeNow),
+  );
   if (program.operations.length > 0) return program;
-  // Red de seguridad: si la plantilla no pudo emparejar nada, programa aleatorio
+  /* Red de seguridad: si la plantilla no pudo emparejar nada, programa
+     aleatorio. Ojo — solo cuando HABÍA algo pagable que emparejar. Si el plan
+     quedó vacío porque el bot no puede permitirse nada, caer aquí sería
+     justo lo contrario de lo que se busca: un programa al azar sin energía es
+     overload garantizado. En ese caso, no compilar nada. */
+  if (payable.length === 0) return { operations: [] };
   return buildProgram(bot, state, fmap, 1, objectives, rand);
 }

@@ -98,6 +98,12 @@ describe('detectPendingDecision — deploy', () => {
     expect(detectPendingDecision(snap({ ...base, rollingColor: true }))).toBeNull();
     expect(detectPendingDecision(snap({ ...base, pendingRoll: 'green', selectableHexes: ['0,0', '1,0'] })))
       .toEqual({ kind: 'deploy-hex', owner: 2, options: ['0,0', '1,0'] });
+    // Colisión lógica: color tirado sin ningún hex válido. Sigue siendo una
+    // decisión de despliegue, con options vacío — el controlador la resuelve
+    // re-tirando el dado, igual que el botón del humano. Si aquí devolviera
+    // null, la partida se quedaría colgada sin decisión pendiente.
+    expect(detectPendingDecision(snap({ ...base, pendingRoll: 'orange', selectableHexes: [] })))
+      .toEqual({ kind: 'deploy-hex', owner: 2, options: [] });
   });
 });
 

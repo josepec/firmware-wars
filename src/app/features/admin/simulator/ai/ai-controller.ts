@@ -51,6 +51,11 @@ export class AiController {
    *  Es la única vía por la que la IA conoce la RAM del rival (juego limpio). */
   private peekedThisRound = new Set<string>();
   private peekedTurn = -1;
+  /** Re-tiradas seguidas del dado de color por colisión lógica. Con 6 colores,
+   *  pasar de este tope significa que no queda hex válido de NINGÚN color, no
+   *  mala suerte: ahí hay que parar y avisar en vez de girar en redondo. */
+  private deployRerolls = 0;
+  private static readonly MAX_DEPLOY_REROLLS = 12;
 
   constructor(
     private readonly sim: AiView & AiActions,
@@ -203,10 +208,26 @@ export class AiController {
         await (d.context === 'deploy' ? this.sim.confirmDeployResult() : this.sim.confirmInitResult());
         return;
       case 'color-roll':
-        this.sim.rollColorDice();
+        await this.sim.rollColorDice();
         return;
       case 'deploy-hex': {
-        if (d.options.length === 0) return;
+        /* Colisión lógica: el dado sacó un color sin ningún hex válido — todos
+           ocupados, no transitables o dentro del perímetro de despliegue del
+           rival. El humano tiene ahí el botón «RE-TIRAR (POR COLISIÓN)»; la IA
+           tiene que hacer lo mismo. Antes se quedaba quieta y solo saltaba el
+           watchdog, que pausaba la partida a mitad del despliegue. */
+        if (d.options.length === 0) {
+          if (this.deployRerolls >= AiController.MAX_DEPLOY_REROLLS) {
+            this.pauseWithError(
+              'Sin hexes válidos para desplegar con ningún color — pausada. Resuelve a mano y reanuda.',
+            );
+            return;
+          }
+          this.deployRerolls++;
+          await this.sim.rollColorDice();
+          return;
+        }
+        this.deployRerolls = 0;
         const hex = chooseDeployHex(snap.state, d.owner, d.options, level, this.getObjectives(snap), this.rand);
         await this.sim.onHexClick(parseHexKey(hex));
         return;
@@ -216,7 +237,7 @@ export class AiController {
         return;
       case 'boot': {
         const bot = snap.nextBootBot!;
-        await this.sim.bootRollFor(d.botId, chooseBootDice(bot, level, this.rand));
+        await this.sim.bootRollFor(d.botId, chooseBootDice(bot, level, this.rand, this.sim.functionsMap()));
         return;
       }
       case 'compile': {

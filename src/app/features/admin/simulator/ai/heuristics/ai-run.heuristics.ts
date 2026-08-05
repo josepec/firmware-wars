@@ -7,7 +7,7 @@ import type {
 } from '../../../../../shared/types/battle.types';
 import type { FunctionEntry } from '../../simulator-bot-card';
 import type { RunState } from '../../simulator-run.utils';
-import { computeAttackTargets, fnEnergyCost } from '../../simulator-run.utils';
+import { computeAttackTargets, fnEnergyCost, parseRangeMax, parseRangeMin } from '../../simulator-run.utils';
 import { evaluate } from '../../engine/dice';
 import { hexDistance, reachableHexes } from '../../engine/pathfinding';
 import { getAttackFn } from '../../attack-fns/index';
@@ -136,7 +136,28 @@ export function fnUsefulness(ctx: RunHeuristicCtx, fn: FunctionCall | undefined)
   if (!enemy) return 0;
   const d = hexDistance(bot.q, bot.r, enemy.q, enemy.r);
   const range = Math.max(1, bestAttackRange(bot, fmap));
-  if (bot.life < bot.maxLife * 0.35) return 2.5; // huir
+  const huyendo = bot.life < bot.maxLife * 0.35;
+
+  /* Un move que se ejecuta OBLIGA a cambiar de hex: `reachableHexes` no incluye
+     el de origen, así que no existe "quedarse quieto". Si ningún hex al alcance
+     mejora nada — ni acerca, ni abre un tiro que ahora no hay, ni aleja cuando
+     toca huir — moverse solo descoloca al bot y gasta energía. Se ha visto a un
+     bot acorralado ir y volver entre dos casillas dentro del mismo turno. */
+  const acerca = (dk: number) => (huyendo ? dk > d : dk < d);
+  let mejora = false;
+  for (const k of reachable) {
+    const { q, r } = parseHex(k);
+    if (acerca(hexDistance(q, r, enemy.q, enemy.r))) { mejora = true; break; }
+  }
+  if (!mejora && !huyendo && !canShootFrom(ctx, bot.q, bot.r)) {
+    for (const k of reachable) {
+      const { q, r } = parseHex(k);
+      if (canShootFrom(ctx, q, r)) { mejora = true; break; }
+    }
+  }
+  if (!mejora) return 0; // nada que ganar: mejor que la op se resuelva por otra vía
+
+  if (huyendo) return 2.5;
   return d > range ? 2 : 0.5;
 }
 
@@ -197,7 +218,19 @@ export function choosePickNumber(ctx: RunHeuristicCtx, options: number[]): numbe
     // Repetir solo si aporta y puede pagar la siguiente iteración.
     // Ojo: el primer FALSE de un WHILE = 1 bug ("bucle fallido") — inevitable si la
     // primaria no sirve; forzar TRUE inútil costaría 1 bug por MISS en cada vuelta.
-    wantTrue = primaryValue > 0 && ctx.bot.energy >= fnEnergyCost(op.primary, ctx.fmap, ctx.bot);
+    //
+    // Y hay que reservar RAM: cada vuelta gasta un número, y un WHILE(move) con
+    // el enemigo lejos quiere seguir SIEMPRE. En partidas reales se ha comido los
+    // 8 números del turno dando vueltas, dejando el ataque de después en
+    // "skipped: no-numbers" turno tras turno. Se guarda un número por cada
+    // operación que queda por ejecutar.
+    const opsPendientes = Math.max(
+      0,
+      (ctx.bot.compiledProgram?.operations.length ?? 0) - ctx.runState.opIdx - 1,
+    );
+    wantTrue = primaryValue > 0
+      && ctx.bot.energy >= fnEnergyCost(op.primary, ctx.fmap, ctx.bot)
+      && ctx.bot.numbers.length > opsPendientes;
   } else if (op.kind === 'IF_ELSE' && op.secondary) {
     // FALSE ejecuta la secundaria: comparar utilidades y quedarse con la mejor rama
     const secondaryValue = fnUsefulness(ctx, op.secondary);
@@ -218,18 +251,75 @@ function referenceEnemy(ctx: RunHeuristicCtx): ReturnType<typeof nearestEnemy> {
   return chooseFocusTarget(ctx.state, ctx.bot.playerId, ctx.fmap) ?? nearestEnemy(ctx.state, ctx.bot);
 }
 
-/** Puntuación de un hex como posición del bot (N3). */
-function scoreHexPosition(ctx: RunHeuristicCtx, q: number, r: number): number {
+/** ¿Tendría objetivos REALES desde este hex, con algún ataque que pueda pagar?
+ *
+ *  La distancia no basta y por eso hace falta esto: un arma LR solo dispara por
+ *  los 6 ejes, un SLDV tiene sus propias reglas y la línea de visión puede estar
+ *  cortada por un obstáculo o por otro bot. Un hex "a distancia de tiro" del que
+ *  no sale ningún disparo no vale nada. */
+function canShootFrom(ctx: RunHeuristicCtx, q: number, r: number): boolean {
+  const { state, bot, fmap } = ctx;
+  const moved = { ...bot, q, r };
+  const bots = state.bots.map(b => (b.id === bot.id ? moved : b));
+  for (const { fn } of attackEntries(bot, fmap)) {
+    if (fnEnergyCost(fn, fmap, moved) > bot.energy) continue;
+    if (computeAttackTargets(moved, fn, bots, state.hexMap, fmap, state.entities).size > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Banda de distancias en la que el bot puede disparar ALGO: del mínimo más
+ *  corto al máximo más largo de sus ataques.
+ *
+ *  El mínimo importa tanto como el máximo y es el que se olvida: `laserBeam` es
+ *  2-8 y `railgun` tampoco dispara a bocajarro, así que un bot pegado al enemigo
+ *  no tiene tiro. Acercarse "a secas" cuando no hay puesto de tiro lo mete justo
+ *  ahí, y una vez pegado ya no hay hex que mejore nada — dos bots así se quedan
+ *  cara a cara sin poder hacerse nada. */
+function rangeBand(bot: BattleBot, fmap: Map<string, FunctionEntry>): { min: number; max: number } {
+  let min = Infinity;
+  let max = 0;
+  for (const { entry } of attackEntries(bot, fmap)) {
+    min = Math.min(min, Math.max(1, parseRangeMin(entry.range)));
+    max = Math.max(max, parseRangeMax(entry.range));
+  }
+  return max === 0 ? { min: 1, max: 1 } : { min: Number.isFinite(min) ? min : 1, max };
+}
+
+/** Cuánto se sale una distancia de la banda de alcance (0 = dentro). */
+function outOfBand(d: number, band: { min: number; max: number }): number {
+  if (d < band.min) return band.min - d;
+  if (d > band.max) return d - band.max;
+  return 0;
+}
+
+/** Puntuación de un hex como posición del bot (N3).
+ *
+ *  `anyShot` dice si ALGUNO de los hexes alcanzables da tiro. Si ninguno lo da,
+ *  el término de distancia deja de buscar el "puesto de tiro ideal" y pasa a
+ *  meterse en la banda de alcance y, dentro de ella, acercarse: quedarse a
+ *  distancia igual al alcance máximo sin poder disparar es como se queda un bot
+ *  aparcado en una esquina toda la partida. */
+function scoreHexPosition(ctx: RunHeuristicCtx, q: number, r: number, anyShot: boolean): number {
   const { state, bot, fmap } = ctx;
   const enemy = referenceEnemy(ctx);
   const range = Math.max(1, bestAttackRange(bot, fmap));
   const lifeRatio = bot.life / bot.maxLife;
   const threatWeight = lifeRatio < 0.35 ? 3 : 1;
   let score = 0;
+  if (canShootFrom(ctx, q, r)) score += 4;
   if (enemy) {
     const d = hexDistance(q, r, enemy.q, enemy.r);
     // Acercarse hasta el alcance de ataque; con vida baja, alejarse
-    score -= (lifeRatio < 0.35 ? -d : Math.abs(d - range)) * 1.5;
+    const band = rangeBand(bot, fmap);
+    const posPenalty = lifeRatio < 0.35
+      ? -d                                              // huir: más lejos, mejor
+      : anyShot
+        ? Math.abs(d - range)                           // hay puesto de tiro: colocarse
+        : outOfBand(d, band) * 2 + d * 0.2;             // sin tiro: entrar en banda, luego acercarse
+    score -= posPenalty * 1.5;
     if (d <= range) score += bestExpectedDamage(bot, fmap);
     // Armas LR disparan solo en los 6 ejes: bonus por alinearse con el enemigo
     const hasLR = attackEntries(bot, fmap)
@@ -253,26 +343,44 @@ function scoreHexPosition(ctx: RunHeuristicCtx, q: number, r: number): number {
 
 /** Hex de destino para move().
  *  N1: aleatorio.
- *  N2: colocarse A ALCANCE del enemigo más próximo (|dist − alcance| mínima),
- *      no pegarse sin motivo — con desempate hacia acercarse.
- *  N3: scoring posicional (amenaza, retirada, corona de nodos, objetivo). */
+ *  N2: primero los hexes desde los que SÍ se puede disparar (el más lejano de
+ *      ellos, que expone menos); si ninguno da tiro, acercarse de verdad.
+ *  N3: scoring posicional (tiro, amenaza, retirada, corona de nodos, objetivo).
+ *
+ *  Los empates se rompen SIEMPRE por clave de hex. Sin ese desempate, dos hexes
+ *  igual de buenos se alternaban según el orden de iteración del Set de
+ *  opciones, que cambia al moverse el bot: el resultado era un ping-pong entre
+ *  dos casillas, turno tras turno, sin acercarse jamás. */
 export function chooseMoveHex(ctx: RunHeuristicCtx, options: string[]): string {
   if (ctx.level === 1) return pickRandom(options, ctx.rand);
+  const enemy = referenceEnemy(ctx);
+  if (!enemy) return pickRandom(options, ctx.rand);
+
+  const scored = options.map(k => {
+    const { q, r } = parseHex(k);
+    return { k, q, r, shoots: canShootFrom(ctx, q, r), d: hexDistance(q, r, enemy.q, enemy.r) };
+  });
+  const anyShot = scored.some(s => s.shoots);
+
   if (ctx.level === 2) {
-    const enemy = referenceEnemy(ctx);
-    if (!enemy) return pickRandom(options, ctx.rand);
-    const range = Math.max(1, bestAttackRange(ctx.bot, ctx.fmap));
-    return [...options].sort((a, b) => {
-      const pa = parseHex(a); const pb = parseHex(b);
-      const da = hexDistance(pa.q, pa.r, enemy.q, enemy.r);
-      const db = hexDistance(pb.q, pb.r, enemy.q, enemy.r);
-      return (Math.abs(da - range) - Math.abs(db - range)) || (da - db);
-    })[0];
+    const tiro = scored.filter(s => s.shoots);
+    if (tiro.length > 0) {
+      // Puede disparar: el puesto más lejano que conserve el tiro
+      return [...tiro].sort((a, b) => b.d - a.d || a.k.localeCompare(b.k))[0].k;
+    }
+    // Ningún puesto de tiro a mano: meterse en la banda de alcance y, dentro de
+    // ella, acercarse. Antes se minimizaba |dist − alcance máximo|, y con un
+    // arma de alcance 8 eso dejaba al bot plantado a 7-8 hexes sin llegar nunca
+    // a alinearse. Minimizar la distancia a secas es el error contrario: lo
+    // pega al enemigo, por debajo del alcance mínimo, donde tampoco dispara.
+    const band = rangeBand(ctx.bot, ctx.fmap);
+    return [...scored].sort((a, b) =>
+      outOfBand(a.d, band) - outOfBand(b.d, band) || a.d - b.d || a.k.localeCompare(b.k))[0].k;
   }
-  return [...options].sort((a, b) => {
-    const pa = parseHex(a); const pb = parseHex(b);
-    return scoreHexPosition(ctx, pb.q, pb.r) - scoreHexPosition(ctx, pa.q, pa.r);
-  })[0];
+
+  const score = new Map(scored.map(s => [s.k, scoreHexPosition(ctx, s.q, s.r, anyShot)]));
+  return [...scored]
+    .sort((a, b) => score.get(b.k)! - score.get(a.k)! || a.k.localeCompare(b.k))[0].k;
 }
 
 /** Objetivo de ataque (clave de hex entre los resaltados).

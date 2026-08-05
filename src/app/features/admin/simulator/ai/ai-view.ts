@@ -53,7 +53,7 @@ export interface AiActions {
   repeatInitPpt(): void;
   confirmInitResult(): Promise<void>;
   startNewRound(): void;
-  rollColorDice(): void;
+  rollColorDice(): Promise<void>;
   onHexClick(coord: { q: number; r: number }): Promise<void>;
   bootRollFor(botId: string, chosen: 0 | 1 | 2 | 3): Promise<void>;
   onCompileCommit(botId: string, program: CompiledProgram): Promise<void>;

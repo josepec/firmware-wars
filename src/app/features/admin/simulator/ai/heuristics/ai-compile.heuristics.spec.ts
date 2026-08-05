@@ -224,6 +224,124 @@ describe('buildProgram N2/N3 — plan de turno', () => {
     }
   });
 
+  it('N2 limita los ataques al presupuesto de energía, igual que N3', () => {
+    // energía 3, coste 2 → 1 ataque pagable aunque haya 4 slots
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 3 });
+    const ops = kinds(b, state({ bots: [b, enemy] }), 2);
+    expect(ops.filter(o => o.primary.type === 'attack').length).toBe(1);
+  });
+
+  it('no compromete más energía de la que tiene (caso real: 10⚡ y ataque de 5⚡)', () => {
+    // Partida dhwbh2m5, turno 4: N2 compiló FOR(traceShot) + 2 ataques más con
+    // 10⚡ y traceShot a 5⚡ → 3 overloads seguidos y 9 de vida perdidos solo.
+    const fmapCostly: Map<string, FunctionEntry> = new Map([
+      ['powerSmash', { id: 'powerSmash', func_name: 'powerSmash()', func_type: 'attack', version: '1', range: '1', damage: '2', energy: '5', cost: '—', effects: '' }],
+    ]);
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 10 });
+    for (const level of [2, 3] as const) {
+      const ops = buildProgram(b, state({ bots: [b, enemy] }), fmapCostly, level, [], seeded(5)).operations;
+      const committed = ops.reduce((sum, o) => {
+        const unit = o.primary.type === 'attack' ? 5 : o.primary.type === 'shield' ? 2 : b.maxMovement;
+        return sum + (o.kind === 'FOR' || o.kind === 'WHILE' ? unit * 2 : unit);
+      }, 0);
+      expect(committed).toBeLessThanOrEqual(b.energy);
+    }
+  });
+
+  it('sin bucle en el pool no reserva vueltas de bucle que no van a existir', () => {
+    // Partida N3 real, turno 4: p2-0 con 11⚡ y plasmaBolt a 4⚡ compiló UNA
+    // sola operación teniendo 3 slots. El deseo iba marcado `repeat`, se le
+    // cobraron 2 vueltas (8⚡) y ya no cabía nada más — pero en el pool solo
+    // había IF/IF_ELSE, así que jamás hubo bucle y el ataque se ejecutó una vez.
+    const fmapCostly: Map<string, FunctionEntry> = new Map([
+      ['powerSmash', { id: 'powerSmash', func_name: 'powerSmash()', func_type: 'attack', version: '1', range: '1', damage: '2', energy: '4', cost: '—', effects: '' }],
+    ]);
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 11, pendingOperations: ['IF_ELSE', 'IF', 'IF'], maxOperations: 3 });
+    const ops = buildProgram(b, state({ bots: [b, enemy] }), fmapCostly, 3, [], seeded(5)).operations;
+    expect(ops.filter(o => o.primary.type === 'attack').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('N3 presupuesta las 3 vueltas del bucle que va a pedir en RUN', () => {
+    // Mismo bot con 15⚡ y un FOR en el pool: N3 apunta a 3 iteraciones
+    // (choosePickNumber), o sea 12⚡. Presupuestar solo 2 dejaba hueco para
+    // otra operación que luego no se podía pagar → overload.
+    const fmapCostly: Map<string, FunctionEntry> = new Map([
+      ['powerSmash', { id: 'powerSmash', func_name: 'powerSmash()', func_type: 'attack', version: '1', range: '1', damage: '2', energy: '4', cost: '—', effects: '' }],
+    ]);
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 15, pendingOperations: ['FOR', 'IF', 'IF_ELSE'], maxOperations: 3 });
+    const ops = buildProgram(b, state({ bots: [b, enemy] }), fmapCostly, 3, [], seeded(5)).operations;
+    const committed = ops.reduce((sum, o) => {
+      const unit = o.primary.type === 'attack' ? 4 : o.primary.type === 'shield' ? 2 : b.maxMovement;
+      return sum + (o.kind === 'FOR' || o.kind === 'WHILE' ? unit * 3 : unit);
+    }, 0);
+    expect(committed).toBeLessThanOrEqual(b.energy);
+  });
+
+  it('un primer deseo caro se degrada a ejecución simple, no tumba el programa', () => {
+    // Si el bucle no cabe entero, hay que bajarlo a una ejecución antes de
+    // descartarlo: si no, el bot se queda sin compilar nada con energía de sobra.
+    const fmapCostly: Map<string, FunctionEntry> = new Map([
+      ['powerSmash', { id: 'powerSmash', func_name: 'powerSmash()', func_type: 'attack', version: '1', range: '1', damage: '2', energy: '5', cost: '—', effects: '' }],
+    ]);
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 10, pendingOperations: ['FOR', 'IF', 'IF_ELSE'], maxOperations: 3 });
+    const ops = buildProgram(b, state({ bots: [b, enemy] }), fmapCostly, 3, [], seeded(5)).operations;
+    expect(ops.length).toBeGreaterThan(0);
+    expect(ops.filter(o => o.primary.type === 'attack').length).toBe(2);
+  });
+
+  it('enemigo inalcanzable: ningún ataque, tampoco en la rama secundaria', () => {
+    // Partida dhwbh2m5, turno 1: el plan era "solo aproximación", pero la rama
+    // FALSE del primer IF_ELSE llevaba pulseShot() y la IA no pudo forzar TRUE
+    // (cara `==`, d6 6, RAM sin ningún 6) → disparó al vacío → +1 bug.
+    const enemy = bot({ id: 'e1', playerId: 2, q: 9, r: 0 });
+    const b = bot({});
+    for (const level of [2, 3] as const) {
+      const ops = buildProgram(b, state({ bots: [b, enemy] }), fmap, level, [], seeded(5)).operations;
+      for (const op of ops) {
+        expect(op.primary.type).not.toBe('attack');
+        expect(op.secondary?.type ?? 'none').not.toBe('attack');
+      }
+    }
+  });
+
+  it('con el pool lleno de bucles, deja el slot vacío antes que meter un ataque sin objetivos', () => {
+    // Partida N3 real, turno 3: pool ["FOR","IF","IF"] y plan de aproximación.
+    // El move y el primer ataque cogieron los dos IF, y al segundo ataque solo
+    // le quedaba el FOR — que `opPreference` puntúa con un 9 pero acaba cogiendo
+    // igual por ser lo único. FOR(laserBeam) sin objetivos = +1 🐛 seguro.
+    // Distancia 3 con alcance 1: plan de aproximación → [move, ataque, ataque].
+    // El move y el primer ataque cogen los IF y al segundo solo le queda el FOR.
+    const enemy = bot({ id: 'e1', playerId: 2, q: 3, r: 0 });
+    const b = bot({ pendingOperations: ['FOR', 'IF', 'IF'], maxOperations: 3 });
+    for (const level of [2, 3] as const) {
+      const ops = buildProgram(b, state({ bots: [b, enemy] }), fmap, level, [], seeded(5)).operations;
+      const bucle = ops.find(o => o.kind === 'FOR' || o.kind === 'WHILE');
+      expect(bucle?.primary.type ?? 'none').not.toBe('attack');
+    }
+  });
+
+  it('ya a tiro: no rellena slots con `move`, que lo sacaría del alcance', () => {
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 6 });
+    const ops = kinds(b, state({ bots: [b, enemy] }), 2);
+    expect(ops.length).toBeGreaterThan(0);
+    expect(ops.some(o => o.primary.type === 'move')).toBe(false);
+  });
+
+  it('sin energía no compila nada, en vez de caer en el programa aleatorio', () => {
+    const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
+    const b = bot({ energy: 0 });
+    for (const level of [2, 3] as const) {
+      const ops = buildProgram(b, state({ bots: [b, enemy] }), fmap, level, [], seeded(3)).operations;
+      expect(ops).toEqual([]);
+    }
+  });
+
   it('con vida baja y amenaza cerca antepone shield', () => {
     const enemy = bot({ id: 'e1', playerId: 2, q: 1, r: 0 });
     const b = bot({ life: 3, maxLife: 10 });
