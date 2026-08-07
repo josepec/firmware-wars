@@ -246,8 +246,6 @@ IF (condición)
 
 > El valor de `shield` se descuenta del daño causado por un ataque y se pierde.
 
----
-
 ## Listado de Funciones del Sistema
 
 Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no pueden usarlas en sus Operaciones**. Estas Funciones se llaman automáticamente en diferentes Fases del Sistema y no tienen Coste Energético.
@@ -275,7 +273,7 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 - **Detalles:** La versión máxima es 3 (`MAX_VERSION`). Subir versión da acceso a más Operaciones, Funciones y Ataques.
 
 ---
-
+\page
 ## RUN()
 
 Una vez compilado el programa, comienza la fase de ejecución: el momento en que las órdenes escritas cobran vida y los Bots despliegan su comportamiento sobre el campo de batalla.
