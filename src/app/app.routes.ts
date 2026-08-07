@@ -14,6 +14,7 @@ export const routes: Routes = [
       { path: 'campaign-print', loadComponent: () => import('./features/docs/campaign-print').then(m => m.CampaignPrint) },
       { path: 'scenarios-print', loadComponent: () => import('./features/docs/scenarios-print').then(m => m.ScenariosPrint) },
       { path: 'cover-print', loadComponent: () => import('./features/docs/cover-print').then(m => m.CoverPrint) },
+      { path: 'cards-print', loadComponent: () => import('./features/docs/cards/cards-print').then(m => m.CardsPrint) },
       { path: '**', loadComponent: () => import('./features/docs/docs').then(m => m.Docs) },
     ],
   },

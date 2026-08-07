@@ -1,0 +1,26 @@
+CARTAS FIRMWARE WARS v7
+=======================
+
+Contenido
+---------
+  Cartas Firmware Wars v7.dc.html   diseno (2 hojas A4: caras + dorsos)
+  support.js                        runtime necesario
+  doc-page.js                       componente de pagina imprimible
+
+Uso
+---
+Manten los tres archivos en la MISMA carpeta y abre el .html en el
+navegador. Para imprimir: Ctrl/Cmd+P, escala 100%, sin "ajustar a pagina".
+Doble cara por el borde largo (los dorsos ya van reflejados por filas).
+
+Cartas: Mini USA, 41 x 63 mm. Corte a hueso, marcas en los margenes.
+
+Donde tocar el contenido
+------------------------
+Dentro del .html, en el bloque <script data-dc-script>, el metodo
+designs() contiene la lista de cartas: version, nombre, coste, stats
+y texto. Anadir o cambiar cartas se hace ahi. La hoja muestra las 16
+primeras de la lista.
+
+Colores: V1 #f2a93b · V2 #b79cff · V3 #6fd8e6 · COMMON #8fd98a
+Fondo de carta #0b0f0a · pines #c9a04a

@@ -628,6 +628,10 @@
                    hover:shadow-green-400/50 cursor-pointer">
         IMPRIMIR FICHAS
       </button>
+      <button (click)="openCards()" class="font-orbitron px-10 py-3 border border-green-500/40 text-green-400 font-bold tracking-widest text-xs
+                   hover:bg-green-500/10 hover:border-green-400/60 transition-all cursor-pointer">
+        CARTAS
+      </button>
       <button (click)="saveList()" [disabled]="saving()" class="font-orbitron px-10 py-3 border border-green-500/40 text-green-400 font-bold tracking-widest text-xs
                    hover:bg-green-500/10 hover:border-green-400/60 transition-all cursor-pointer
                    disabled:opacity-50 disabled:cursor-not-allowed">
@@ -639,7 +643,7 @@
       </button>
     </div>
     <div class="text-xs tracking-wider text-green-400/85 mt-3 text-center">
-      &gt; Guarda tu lista para compartirla o imprime las fichas de Bot.
+      &gt; Guarda tu lista para compartirla, imprime las fichas de Bot o la hoja de cartas (3 de cada función).
     </div>
     }
 

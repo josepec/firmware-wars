@@ -379,6 +379,25 @@ export class ArmyBuilder implements OnInit, OnDestroy {
     window.print();
   }
 
+  /**
+   * Hoja de cartas de la lista: las funciones de ataque elegidas más las
+   * comunes, 3 copias de cada una — las que caben en las 3 Operaciones de un
+   * turno. Las cartas son por Bot: si dos Bots comparten función, cada uno
+   * tiene sus 3, porque los dos pueden programarla el mismo turno.
+   */
+  openCards(): void {
+    /* Un grupo por Bot, separados por `;`: la hoja los imprime en páginas
+       distintas para que no haya que separar cartas de dos Bots al recortar. */
+    const groups = this.bots().map(bot =>
+      [...bot.attackFunctions.v1, ...bot.attackFunctions.v2, bot.attackFunctions.v3]
+        .filter(fn => !!fn)
+        .map(fn => fn.name.replace(/\(\)$/, ''))
+        .join(','),
+    );
+    const params = new URLSearchParams({ copies: '3', fns: groups.join(';') });
+    window.open(`/docs/cards-print?${params}`, '_blank');
+  }
+
   /* ── Save & Share ──────────────────────────────────────── */
 
   private readonly API_URL = 'https://firmware-wars-api.josepec.eu';

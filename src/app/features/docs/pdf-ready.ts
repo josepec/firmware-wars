@@ -13,7 +13,7 @@
  */
 
 /** Familias que usan las vistas de impresión. */
-const PRINT_FAMILIES = ['Share Tech Mono', 'Orbitron', 'Rajdhani'];
+const PRINT_FAMILIES = ['Share Tech Mono', 'Orbitron', 'Rajdhani', 'JetBrains Mono'];
 
 /** Tope de espera. Muy por debajo del timeout de los scripts (60–120 s). */
 const FONT_TIMEOUT_MS = 10_000;

@@ -1,0 +1,171 @@
+<!-- Solo pantalla: el PDF de una lista sale de aquí, con el diálogo de
+     impresión del navegador. No hay generación en servidor. -->
+<div class="ctrl-bar">
+  <div class="ctrl-info">
+    {{ totalCards() }} CARTAS · {{ sheets().length * 2 }} PÁGINAS A4 · A DOBLE CARA POR EL BORDE LARGO
+  </div>
+  <button class="ctrl-btn" (click)="print()">IMPRIMIR / GUARDAR PDF</button>
+</div>
+
+@for (sheet of sheets(); track sheet.index) {
+
+<!-- ── CARA A: frentes ──────────────────────────────────────── -->
+<section class="page">
+  <div class="sheet-head">
+    <div>FIRMWARE WARS · HOJA DE CARTAS · MINI USA 41 × 63 MM</div>
+    <div>CARA A · HOJA {{ sheet.index + 1 }}/{{ sheets().length }}</div>
+  </div>
+  <div class="sheet-note">
+    IMPRIMIR AL 100 % — SIN «AJUSTAR A PÁGINA». CORTAR SIGUIENDO LAS MARCAS DE LOS MÁRGENES.
+  </div>
+
+  @if (showMarks) {
+  @for (t of ticks; track $index) {
+  <div class="tick" [style.left]="t.left" [style.top]="t.top" [style.width]="t.w" [style.height]="t.h"></div>
+  }
+  }
+
+  <div class="card-grid">
+    @for (c of sheet.fronts; track $index) {
+    @if (c) {
+    <div class="card" [style.--accent]="c.accent">
+      <div class="card-bg"></div>
+      <div class="card-frame"></div>
+      @if (showSafeArea) { <div class="card-safe"></div> }
+
+      <div class="card-top">
+        <div class="card-id">
+          @if (c.version !== 'COMMON') {
+          <div class="badge">{{ c.version }}</div>
+          <div class="badge-sep"></div>
+          }
+          <div class="type">{{ c.type }}</div>
+        </div>
+        <div class="energy"><span class="bolt">⚡</span><span class="amount">{{ c.cost }}</span></div>
+      </div>
+
+      <div class="card-name">{{ c.name }}</div>
+
+      <div class="art">
+        <span class="art-ph">ARTE</span>
+        <img class="art-img" [src]="artUrl(c)" alt="" (error)="hideArt($event)" />
+      </div>
+
+      <div class="stats">
+        @for (s of c.stats; track s.label) {
+        <div class="stat" [class.stat--split]="$index > 0" [class.stat--wide]="c.stats.length === 2 && $index === 0 && !!s.tag">
+          <div class="stat-label">{{ s.label }}</div>
+          <div class="stat-value">{{ statText(s) }}</div>
+        </div>
+        }
+      </div>
+
+      <div class="text">
+        @if (c.text) { <div class="effects" [innerHTML]="renderText(c.text)"></div> }
+        @if (c.glossary.length) {
+        <div class="gloss" [class.gloss--solo]="!c.text">
+          @for (g of c.glossary; track g.term) {
+          <div class="gloss-line">
+            <span class="gloss-term" [class.gloss-term--status]="g.kind === 'status'">{{ g.term }}</span>
+            <span class="gloss-text">{{ g.text }}</span>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      @if (c.value) {
+      <div class="nibbles">{{ c.value }}<span class="rune">◈</span></div>
+      }
+
+      <div class="pin-mask"></div>
+      <div class="pins">
+        @for (p of pins; track $index) { <div class="pin"></div> }
+      </div>
+    </div>
+    } @else {
+    <div class="card card--empty"></div>
+    }
+    }
+  </div>
+
+  <div class="sheet-foot">
+    <div>CARTAS DE FUNCIÓN · {{ totalCards() }} EN TOTAL</div>
+    <div>A4 · {{ sheet.index * 2 + 1 }}/{{ sheets().length * 2 }}</div>
+  </div>
+</section>
+
+<!-- ── CARA B: dorsos ───────────────────────────────────────── -->
+<section class="page">
+  <div class="sheet-head">
+    <div>FIRMWARE WARS · HOJA DE CARTAS · MINI USA 41 × 63 MM</div>
+    <div>CARA B · DORSOS CON DATOS VISIBLES</div>
+  </div>
+  <div class="sheet-note">
+    IMPRIMIR A DOBLE CARA POR EL BORDE LARGO. LA CUADRÍCULA YA ESTÁ REFLEJADA PARA QUE CADA DORSO CAIGA SOBRE SU CARTA.
+  </div>
+
+  @if (showMarks) {
+  @for (t of ticks; track $index) {
+  <div class="tick" [style.left]="t.left" [style.top]="t.top" [style.width]="t.w" [style.height]="t.h"></div>
+  }
+  }
+
+  <div class="card-grid">
+    @for (c of sheet.backs; track $index) {
+    @if (c) {
+    <div class="card card-back" [style.--accent]="c.accent">
+      <div class="card-bg"></div>
+      <div class="card-frame card-frame--common"></div>
+
+      <div class="back-head">
+        <div class="card-id">
+          @if (c.version !== 'COMMON') {
+          <div class="badge">{{ c.version }}</div>
+          <div class="badge-sep"></div>
+          }
+          <div class="type">{{ c.type }}</div>
+        </div>
+        <div class="back-name">{{ c.name }}</div>
+      </div>
+
+      <svg class="back-logo" viewBox="0 0 200 220">
+        <polygon points="100,10 186.6,60 186.6,160 100,210 13.4,160 13.4,60" fill="none" stroke="#8fd98a"
+          stroke-width="12" stroke-linejoin="round" />
+        <g fill="none" stroke="#8fd98a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M100,138 L100,174 L155.4,142 L155.4,114" />
+          <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(120 100 110)" />
+          <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(240 100 110)" />
+        </g>
+        <polygon points="100,82 124.2,96 124.2,124 100,138 75.8,124 75.8,96" fill="none" stroke="#8fd98a"
+          stroke-width="10" stroke-linejoin="round" />
+        <g fill="#0b0f0a" stroke="#8fd98a" stroke-width="8">
+          <circle cx="155.4" cy="104" r="10" />
+          <circle cx="155.4" cy="104" r="10" transform="rotate(120 100 110)" />
+          <circle cx="155.4" cy="104" r="10" transform="rotate(240 100 110)" />
+        </g>
+      </svg>
+
+      <div class="back-title">
+        <div class="back-title-1">FIRMWARE</div>
+        <div class="back-title-2">WARS</div>
+      </div>
+
+      <div class="pin-mask"></div>
+      <div class="pins">
+        @for (p of pins; track $index) { <div class="pin"></div> }
+      </div>
+    </div>
+    } @else {
+    <div class="card card--empty"></div>
+    }
+    }
+  </div>
+
+  <div class="sheet-foot">
+    <div>DORSO CON VERSIÓN · TIPO · NOMBRE EN LA FRANJA SUPERIOR, VISIBLE PARA EL RIVAL</div>
+    <div>A4 · {{ sheet.index * 2 + 2 }}/{{ sheets().length * 2 }}</div>
+  </div>
+</section>
+
+}

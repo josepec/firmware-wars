@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, shareReplay, map } from 'rxjs';
+import type { CardsMeta } from '../../features/docs/cards/card-model';
 
 @Injectable({
   providedIn: 'root',
@@ -61,6 +62,11 @@ export class DataService {
     return this.get<StatusEffectRaw[]>('assets/data/tables/status-effects.json').pipe(
       map(rows => rows.map(parseStatusEffect))
     );
+  }
+
+  /** Metadatos de las cartas imprimibles — ver `docs/cards/card-model.ts`. */
+  getCardsMeta(): Observable<CardsMeta> {
+    return this.get<CardsMeta>('assets/data/cards.json');
   }
 }
 

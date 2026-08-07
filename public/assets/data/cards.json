@@ -1,0 +1,108 @@
+{
+  "_doc": [
+    "Metadatos de las cartas imprimibles (/docs/cards-print).",
+    "Rango, daño, energía y coste salen de tables/attack-functions.json — aquí NO se duplican.",
+    "'functions' solo lleva el texto corto de cada carta: la versión del efecto que cabe en",
+    "la caja. Un texto vacío deja la caja limpia; el estado que aplica la función se cuenta",
+    "aquí ('El Bot recibe `OVERCLOCK`.'), no en la banda de datos.",
+    "'art' es el id del PNG en assets/img/cards/<art>.png; si falta, se deduce del nombre."
+  ],
+
+  "glossary": {
+    "LR": "Línea recta: el objetivo debe estar alineado con una de las 6 caras del Hex. Un obstáculo o un Bot en la trayectoria corta la línea.",
+    "SLDV": "Sin línea de visión: ignora obstáculos y Bots en la trayectoria, pero el objetivo debe seguir dentro del rango.",
+    "R(n)": "Área n: alcanza a todo Bot a n Hexes o menos del impacto.",
+    "BUG": "Cada BUG activo quita una Operación del turno. Máximo 3.",
+    "OVERLOAD": "Sin energía para pagar, la Función no se ejecuta y se pierde 1 de life por cada punto que falte.",
+    "LAG": "Pierde 1 punto de MAX_MOVEMENT este turno.",
+    "SAFE_MODE": "Inmune a recibir nuevos bugs este turno.",
+    "DMZ": "No puede ejecutar funciones de ataque este turno.",
+    "OVERCLOCK": "Añade +1 al daño de ataque este turno.",
+    "BERSERK": "Duplica el daño de ataque este turno.",
+    "REBOOTING": "Se está reiniciando y pierde el próximo turno."
+  },
+
+  "common": [
+    {
+      "art": "move",
+      "name": "move(n)",
+      "cost": "n",
+      "value": "",
+      "stats": [{ "label": "MOVIMIENTO", "value": "n" }],
+      "text": "Mueve el Bot n Hexes, sin pasar de MAX_MOVEMENT. Cuesta 1 punto de energy por Hex."
+    },
+    {
+      "art": "shield",
+      "name": "shield()",
+      "cost": "2",
+      "value": "",
+      "stats": [{ "label": "ESCUDO", "value": "+1" }],
+      "text": "Suma 1 punto de shield, sin pasar de MAX_SHIELD. Cada punto evita 1 daño y se gasta."
+    }
+  ],
+
+  "functions": {
+    "powerSmash()": { "text": "Empuja al objetivo 1 Hex." },
+    "rocketPunch()": { "text": "" },
+    "laserBeam()": { "text": "" },
+    "dashStrike()": { "text": "Puede mover 1 Hex después de atacar." },
+    "pinpointBurst()": { "text": "" },
+    "pulseShot()": { "text": "Si el objetivo está a 1 Hex → +1 daño." },
+    "stabilizerHit()": { "text": "El objetivo supera 1d6 (≥4) o recibe `LAG`." },
+
+    "nanoRepair()": {
+      "text": "El Bot recupera 1d4 puntos de Vida."
+    },
+    "traceShot()": { "text": "" },
+    "ghostProtocol()": {
+      "text": "El objetivo pierde un `numbers` al azar."
+    },
+    "peekMemory()": {
+      "text": "Mira los `numbers` del objetivo."
+    },
+    "shadowStep()": {
+      "text": "El Bot se teleporta 3 Hexes ignorando obstáculos."
+    },
+    "overclockStrike()": {
+      "text": "El Bot recibe `OVERCLOCK`."
+    },
+    "plasmaBolt()": {
+      "text": "Si saca 6, el atacante pierde 2 de `energy`."
+    },
+    "chainLightning()": { "text": "" },
+    "berserkProtocol()": {
+      "text": "El Bot recibe `BERSERK` y 1d4 de daño propio."
+    },
+    "firewall()": {
+      "text": "El Bot recibe `SAFE_MODE`."
+    },
+    "gravityWell()": {
+      "text": "Los Bots afectados se acercan 1 Hex al impacto. Objetivo: un Bot o un Hex vacío."
+    },
+    "swapProtocol()": {
+      "text": "Intercambia la posición con otro Bot, aliado o enemigo."
+    },
+    "ionCannon()": { "text": "" },
+    "deployBarrier()": {
+      "text": "Crea una Barrera (Obstáculo, `life`=3). Sin dueño."
+    },
+
+    "overdriveStrike()": {
+      "text": "Gasta toda la `energy` (mín. 2). 1 daño por cada 2 de `energy` gastada."
+    },
+    "railgun()": { "text": "Atraviesa Objetivos. −2 de daño por cada Bot atravesado." },
+    "chargedStrike()": {
+      "text": "Tira 1d4 y acumula; paras cuando quieras. Con un 1, recibes lo acumulado."
+    },
+    "dataSpike()": { "text": "El objetivo recibe 1 `BUG`." },
+    "flashSpin()": { "text": "" },
+    "syncBlast()": { "text": "Con `energy` > 10 al declararlo, Daño +1." },
+    "relayNode()": {
+      "text": "Despliega un Nodo (`life`=2), máximo 2 en juego. Hace 2 de daño a quien entre o salga de un Hex adyacente."
+    },
+    "novaBlast()": { "text": "Genera 1 `BUG` al atacante por el retroceso." },
+    "empField()": {
+      "text": "Superan 1d6 (≥4) o reciben `DMZ`. Objetivo: un Bot o un Hex vacío."
+    }
+  }
+}

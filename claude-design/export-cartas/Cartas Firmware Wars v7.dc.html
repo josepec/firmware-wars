@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+doc-page:not(:defined) { visibility: hidden; }
+body { margin: 0; font-family: 'JetBrains Mono', monospace; }
+a { color: #1f7a3a; } a:hover { color: #0f5626; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+<doc-page size="a4">
+
+  <section class="page" style="position: relative; background: #ffffff; color: #111;">
+    <div style="position: absolute; left: 23mm; top: 11mm; right: 19mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 6.5pt; letter-spacing: .4pt; color: #6b6b6b;">
+      <div>FIRMWARE WARS · HOJA DE CARTAS · MINI USA 41 × 63 MM</div>
+      <div>CARA A · 16 CARTAS</div>
+    </div>
+    <div style="position: absolute; left: 23mm; top: 16mm; font-size: 6pt; letter-spacing: .3pt; color: #9a9a9a;">IMPRIMIR AL 100 % — SIN «AJUSTAR A PÁGINA». CORTAR SIGUIENDO LAS MARCAS DE LOS MÁRGENES.</div>
+
+    <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="20">
+      <div style="position: absolute; background: #9a9a9a; opacity: {{ marksOpacity }}; left: {{ t.left }}; top: {{ t.top }}; width: {{ t.w }}; height: {{ t.h }};"></div>
+    </sc-for>
+
+    <div style="position: absolute; left: 23mm; top: 28mm; width: 164mm; height: 252mm; display: grid; grid-template-columns: repeat(4, 41mm); grid-template-rows: repeat(4, 63mm);">
+      <sc-for list="{{ fronts }}" as="c" hint-placeholder-count="16">
+        <div style="position: relative; width: 41mm; height: 63mm; overflow: hidden; background: #0b0f0a; color: #e6ece4; box-sizing: border-box; padding: 2.9mm 2.7mm 4.4mm; display: flex; flex-direction: column; gap: 1.3mm;">
+          <div style="position: absolute; inset: 0; opacity: .5; background-image: linear-gradient(rgba(143,217,138,.13) 0.12mm, transparent 0.12mm), linear-gradient(90deg, rgba(143,217,138,.13) 0.12mm, transparent 0.12mm); background-size: 3mm 3mm;"></div>
+          <div style="position: absolute; inset: 1.1mm; border: 0.35mm solid {{ c.accent }}; border-radius: 1.2mm;"></div>
+          <div style="position: absolute; inset: 3.6mm; border: 0.15mm dashed rgba(255,120,120,.55); display: {{ safeDisplay }};"></div>
+
+          <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0 0.3mm;">
+            <div style="display: {{ c.badgeDisplay }}; font-size: 5.5pt; font-weight: 700; letter-spacing: .7pt; color: {{ c.accent }};">{{ c.version }}</div>
+            <div style="display: flex; align-items: center; gap: 0.9mm; margin-left: auto; color: rgba(230,236,228,.85);">
+              <span style="font-size: 8.5pt; line-height: 1; opacity: .75;">⚡</span>
+              <span style="font-size: 8.5pt; font-weight: 700; line-height: 1;">{{ c.cost }}</span>
+            </div>
+          </div>
+
+          <div style="position: relative; text-align: center; font-size: 9pt; font-weight: 800; letter-spacing: 0; line-height: 1.1; color: {{ c.accent }}; padding: 0 0.5mm; text-wrap: balance;">{{ c.name }}</div>
+
+          <div style="position: relative; display: flex; justify-content: center;">
+            <div style="font-size: 5.2pt; font-weight: 700; letter-spacing: .6pt; color: #8fd98a; border: 0.2mm solid rgba(143,217,138,.45); border-radius: 1.2mm; padding: 0.35mm 1.5mm 0.45mm;">{{ c.type }}</div>
+          </div>
+
+          <div style="position: relative; height: 13.8mm; border: 0.25mm solid rgba(255,255,255,.16); border-radius: 0.8mm; background: radial-gradient(circle at 50% 45%, rgba(143,217,138,.07), transparent 70%); display: flex; align-items: center; justify-content: center;">
+            <div style="font-size: 5pt; letter-spacing: 1pt; color: rgba(230,236,228,.28);">ARTE</div>
+          </div>
+
+          <div style="position: relative; display: flex; background: rgba(143,217,138,.07); border-radius: 0.8mm; padding: 1.3mm 0 1.5mm;">
+            <sc-for list="{{ c.stats }}" as="s" hint-placeholder-count="2">
+              <div style="flex: {{ s.flex }}; display: flex; flex-direction: column; align-items: center; gap: 0.5mm; border-left: {{ s.border }};">
+                <div style="font-size: 5pt; letter-spacing: .4pt; color: #7f8a7c;">{{ s.label }}</div>
+                <div style="font-size: 11pt; font-weight: 700; line-height: 1.15; color: #e6ece4; white-space: nowrap;">{{ s.valueText }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="position: relative; height: 15.4mm; overflow: hidden; font-size: 6.2pt; line-height: 1.4; color: #cdd6ca; background: rgba(255,255,255,.035); border-radius: 0.8mm; padding: 1.1mm 1.3mm; box-sizing: border-box; white-space: pre-line; text-wrap: pretty;">{{ c.text }}</div>
+
+          <div style="position: absolute; right: 2.7mm; bottom: 2mm; display: {{ c.valueDisplay }}; align-items: center; gap: 0.5mm; font-size: 5.5pt; font-weight: 500; color: rgba(230,236,228,.4);">
+            <span>{{ c.value }}</span><span style="font-size: 4.8pt;">◈</span>
+          </div>
+
+          <div style="position: absolute; bottom: 0.75mm; left: 50%; transform: translateX(-50%); width: 18mm; height: 1.1mm; background: #0b0f0a;"></div>
+          <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(8, 1.3mm); gap: 0.7mm; justify-content: center; width: 15.3mm; height: 3.6mm;">
+            <sc-for list="{{ pins }}" as="p" hint-placeholder-count="8">
+              <div style="height: 3.6mm; background: #c9a04a; border-radius: 0.3mm 0.3mm 0 0;"></div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 23mm; bottom: 8mm; right: 19mm; display: flex; justify-content: space-between; font-size: 5.8pt; letter-spacing: .3pt; color: #9a9a9a;">
+      <div>V7 · BANDA DE DATOS ADAPTADA A CADA FUNCIÓN (ATAQUE / SOPORTE / COMMON)</div>
+      <div>A4 · 1/2</div>
+    </div>
+  </section>
+
+  <section class="page" style="position: relative; background: #ffffff; color: #111;">
+    <div style="position: absolute; left: 23mm; top: 11mm; right: 19mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 6.5pt; letter-spacing: .4pt; color: #6b6b6b;">
+      <div>FIRMWARE WARS · HOJA DE CARTAS · MINI USA 41 × 63 MM</div>
+      <div>CARA B · DORSOS CON DATOS VISIBLES</div>
+    </div>
+    <div style="position: absolute; left: 23mm; top: 16mm; font-size: 6pt; letter-spacing: .3pt; color: #9a9a9a;">IMPRIMIR A DOBLE CARA POR EL BORDE LARGO. LA CUADRÍCULA YA ESTÁ REFLEJADA PARA QUE CADA DORSO CAIGA SOBRE SU CARTA.</div>
+
+    <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="20">
+      <div style="position: absolute; background: #9a9a9a; opacity: {{ marksOpacity }}; left: {{ t.left }}; top: {{ t.top }}; width: {{ t.w }}; height: {{ t.h }};"></div>
+    </sc-for>
+
+    <div style="position: absolute; left: 23mm; top: 28mm; width: 164mm; height: 252mm; display: grid; grid-template-columns: repeat(4, 41mm); grid-template-rows: repeat(4, 63mm);">
+      <sc-for list="{{ backs }}" as="b" hint-placeholder-count="16">
+        <div style="position: relative; width: 41mm; height: 63mm; overflow: hidden; background: #0b0f0a; box-sizing: border-box; padding: 9mm 2.7mm 4.4mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.4mm;">
+          <div style="position: absolute; inset: 0; opacity: .5; background-image: linear-gradient(rgba(143,217,138,.13) 0.12mm, transparent 0.12mm), linear-gradient(90deg, rgba(143,217,138,.13) 0.12mm, transparent 0.12mm); background-size: 3mm 3mm;"></div>
+          <div style="position: absolute; inset: 1.1mm; border: 0.35mm solid #8fd98a; border-radius: 1.2mm;"></div>
+
+          <div style="position: absolute; top: 1.45mm; left: 1.45mm; right: 1.45mm; padding: 1.6mm 2mm 1.6mm; display: flex; flex-direction: column; align-items: center; gap: 0.9mm; background: rgba(255,255,255,.045); border-bottom: 0.2mm solid rgba(143,217,138,.28);">
+            <div style="font-size: 5.4pt; font-weight: 700; letter-spacing: .7pt; color: {{ b.accent }};">{{ b.backLine }}</div>
+            <div style="font-size: 9pt; font-weight: 800; letter-spacing: .2pt; line-height: 1.1; color: #e6ece4; text-align: center; text-wrap: balance;">{{ b.name }}</div>
+          </div>
+
+          <svg width="12mm" height="13.2mm" viewBox="0 0 200 220" style="position: relative;">
+            <polygon points="100,10 186.6,60 186.6,160 100,210 13.4,160 13.4,60" fill="none" stroke="#8fd98a" stroke-width="12" stroke-linejoin="round"></polygon>
+            <g fill="none" stroke="#8fd98a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M100,138 L100,174 L155.4,142 L155.4,114"></path>
+              <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(120 100 110)"></path>
+              <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(240 100 110)"></path>
+            </g>
+            <polygon points="100,82 124.2,96 124.2,124 100,138 75.8,124 75.8,96" fill="none" stroke="#8fd98a" stroke-width="10" stroke-linejoin="round"></polygon>
+            <g fill="#0b0f0a" stroke="#8fd98a" stroke-width="8">
+              <circle cx="155.4" cy="104" r="10"></circle>
+              <circle cx="155.4" cy="104" r="10" transform="rotate(120 100 110)"></circle>
+              <circle cx="155.4" cy="104" r="10" transform="rotate(240 100 110)"></circle>
+            </g>
+          </svg>
+          <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.6mm;">
+            <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 1.2pt; color: #8fd98a; line-height: 1;">FIRMWARE</div>
+            <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 5pt; color: #8fd98a; line-height: 1; margin-left: 5pt;">WARS</div>
+          </div>
+          <div style="position: absolute; bottom: 0.75mm; left: 50%; transform: translateX(-50%); width: 18mm; height: 1.1mm; background: #0b0f0a;"></div>
+          <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(8, 1.3mm); gap: 0.7mm; justify-content: center; width: 15.3mm; height: 3.6mm;">
+            <sc-for list="{{ pins }}" as="p" hint-placeholder-count="8">
+              <div style="height: 3.6mm; background: #c9a04a; border-radius: 0.3mm 0.3mm 0 0;"></div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 23mm; bottom: 8mm; right: 19mm; display: flex; justify-content: space-between; font-size: 5.8pt; letter-spacing: .3pt; color: #9a9a9a;">
+      <div>DORSO CON VERSIÓN · TIPO · NOMBRE EN LA FRANJA SUPERIOR, VISIBLE PARA EL RIVAL</div>
+      <div>A4 · 2/2</div>
+    </div>
+  </section>
+
+</doc-page>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showCutMarks&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Impresión&quot;},&quot;showSafeArea&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Impresión&quot;}}">
+class Component extends DCLogic {
+  designs() {
+    const V1 = '#f2a93b', V2 = '#b79cff', V3 = '#6fd8e6', CM = '#8fd98a';
+    const atk = (version, accent, name, cost, range, tag, damage, value, text) => ({
+      version, accent, name, cost, type: 'ATAQUE', value,
+      stats: [{ label: 'RANGO', value: range, tag: tag }, { label: 'DAÑO', value: damage }],
+      text: text || 'Sin efecto adicional.',
+    });
+    return [
+      atk('V1', V1, 'powerSmash()', 2, '1', '', '2', 10, 'Empuja al objetivo 1 Hex.'),
+      atk('V1', V1, 'rocketPunch()', 2, '1', '', '1d4', 10, ''),
+      atk('V1', V1, 'laserBeam()', 3, '2-8', 'LR', '2', 20, ''),
+      atk('V1', V1, 'dashStrike()', 2, '1-2', '', '1d4', 15, 'Puede mover 1 Hex después de atacar.'),
+
+      atk('V1', V1, 'stabilizerHit()', 2, '1', '', '1', 10, 'El objetivo debe superar 1d6 (≥4) o recibe estado LAG.'),
+      atk('V2', V2, 'plasmaBolt()', 4, '2-3', '', '1d6', 20, 'Si saca 6, el Bot atacante pierde 2 puntos de energy por Sobrecalentamiento.'),
+      atk('V2', V2, 'traceShot()', 5, '2-6', 'SLDV', '1d4', 30, ''),
+      { version: 'V2', accent: V2, name: 'firewall()', cost: 4, type: 'ATAQUE · SOPORTE', value: 20,
+        stats: [{ label: 'ESTADO', value: 'SAFE_MODE', tag: '' }],
+        text: 'El Bot es inmune a recibir nuevos bugs durante el turno actual.' },
+      atk('V2', V2, 'gravityWell()', 5, '3-4', 'R(2)', '1d6', 30, 'Atrae un Hex hacia el centro del impacto a todos los Bots afectados. Requiere objetivo válido.'),
+      { version: 'V2', accent: V2, name: 'nanoRepair()', cost: 4, type: 'ATAQUE · SOPORTE', value: 20,
+        stats: [{ label: 'VIDA', value: '+1d4', tag: '' }, { label: 'OBJETIVO', value: 'PROPIO', tag: '' }],
+        text: 'Solo sobre el propio Bot. No necesita objetivo ni línea de visión.' },
+      atk('V3', V3, 'novaBlast()', 6, '2-5', '', '1d10', 50, 'Genera 1 BUG al Bot atacante por el retroceso masivo.'),
+      atk('V3', V3, 'railgun()', 6, '2-5', '', '1d8', 50, 'Atraviesa Objetivos. El daño baja en 2 por cada Bot.'),
+      atk('V3', V3, 'chargedStrike()', 6, '1', '', '*', 50, 'Lanza 1d4 recursivamente y acumula daño; paras cuando quieras. Si sale 1, recibes lo acumulado.'),
+      atk('V3', V3, 'empField()', 6, '2-5', 'R(1)', '1d6', 50, 'Los Bots deben superar 1d6 (≥4) o reciben DMZ. Requiere objetivo válido.'),
+      { version: 'COMMON', accent: CM, name: 'move(n)', cost: 'n', type: 'COMMON', value: '',
+        stats: [{ label: 'MOVIMIENTO', value: 'n', tag: '' }],
+        text: 'Mueve el Bot hasta n Hexes \n(1 ≤ n ≤ MAX_MOVEMENT).' },
+      { version: 'COMMON', accent: CM, name: 'shield()', cost: 2, type: 'COMMON', value: '',
+        stats: [{ label: 'ESCUDO', value: '+1', tag: '' }],
+        text: 'Cada punto de shield evita 1 daño y se pierde. No supera MAX_SHIELD.' },
+    ];
+  }
+
+  prepare(d) {
+    const isCommon = d.version === 'COMMON';
+    return Object.assign({}, d, {
+      badgeDisplay: isCommon ? 'none' : 'block',
+      backLine: isCommon ? d.type : d.version + ' · ' + d.type,
+      valueDisplay: d.value === '' ? 'none' : 'flex',
+      stats: d.stats.map((s, i) => Object.assign({}, s, {
+        border: i === 0 ? '0' : '0.15mm solid rgba(143,217,138,.2)',
+        valueText: s.tag ? s.value + ' ' + s.tag : s.value,
+        flex: d.stats.length === 2 && i === 0 ? (s.tag ? '1.35' : '1') : '1',
+      })),
+    });
+  }
+
+  buildTicks() {
+    const L = 23, T = 28, COL = 41, ROW = 63, COLS = 4, ROWS = 4, LEN = 4, W = '0.2mm';
+    const right = L + COL * COLS, bottom = T + ROW * ROWS, ticks = [];
+    for (let i = 0; i <= COLS; i++) {
+      const x = L + i * COL;
+      ticks.push({ left: x + 'mm', top: (T - LEN) + 'mm', w: W, h: LEN + 'mm' });
+      ticks.push({ left: x + 'mm', top: bottom + 'mm', w: W, h: LEN + 'mm' });
+    }
+    for (let j = 0; j <= ROWS; j++) {
+      const y = T + j * ROW;
+      ticks.push({ left: (L - LEN) + 'mm', top: y + 'mm', w: LEN + 'mm', h: W });
+      ticks.push({ left: right + 'mm', top: y + 'mm', w: LEN + 'mm', h: W });
+    }
+    return ticks;
+  }
+
+  renderVals() {
+    const grid = this.designs().slice(0, 16).map(d => this.prepare(d));
+    // dorso reflejado por filas: al imprimir a doble cara por el borde largo,
+    // cada dorso cae sobre su propia carta
+    const mirrored = [];
+    for (let i = 0; i < grid.length; i += 4) mirrored.push(...grid.slice(i, i + 4).reverse());
+    return {
+      fronts: grid,
+      backs: mirrored,
+      pins: Array.from({ length: 8 }, (_, i) => i),
+      ticks: this.buildTicks(),
+      marksOpacity: (this.props.showCutMarks ?? true) ? 1 : 0,
+      safeDisplay: (this.props.showSafeArea ?? false) ? 'block' : 'none',
+    };
+  }
+}
+</script>
+</body>
+</html>

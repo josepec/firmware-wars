@@ -1,0 +1,536 @@
+/* ════════════════════════════════════════════════════════════════
+   HOJA DE CARTAS — Mini USA 41 × 63 mm, 4 × 4 por cara A4.
+   Geometría calcada de claude-design/export-cartas: las medidas en mm
+   y pt son las del diseño, no se ajustan «a ojo». Si algo no cabe, lo
+   que cede es el cuerpo del texto (ver `--text-scale`), nunca la caja.
+   ════════════════════════════════════════════════════════════════ */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+:host {
+  display: block;
+  background: #6b6b6b;
+  min-height: 100vh;
+  padding: 22mm 0 8mm;
+  font-family: 'JetBrains Mono', monospace;
+
+  @media print {
+    background: #fff;
+    padding: 0;
+  }
+}
+
+/* ── Barra de control (solo pantalla) ───────────────────────── */
+
+.ctrl-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #0b0f0a;
+  border-bottom: 1px solid rgba(143, 217, 138, 0.25);
+  color: rgba(230, 236, 228, 0.7);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+
+  @media print { display: none; }
+}
+
+.ctrl-btn {
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(143, 217, 138, 0.5);
+  border-radius: 2px;
+  color: #8fd98a;
+  font: inherit;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(143, 217, 138, 0.12);
+    border-color: #8fd98a;
+  }
+}
+
+.page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto 8mm;
+  background: #fff;
+  color: #111;
+  overflow: hidden;
+  break-after: page;
+
+  @media print {
+    margin: 0;
+  }
+
+  &:last-child { break-after: auto; }
+}
+
+/* ── Cabecera, nota y pie de hoja ───────────────────────────── */
+
+.sheet-head {
+  position: absolute;
+  left: 23mm;
+  top: 11mm;
+  right: 19mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 6.5pt;
+  letter-spacing: 0.4pt;
+  color: #6b6b6b;
+}
+
+.sheet-note {
+  position: absolute;
+  left: 23mm;
+  top: 16mm;
+  font-size: 6pt;
+  letter-spacing: 0.3pt;
+  color: #9a9a9a;
+}
+
+.sheet-foot {
+  position: absolute;
+  left: 23mm;
+  bottom: 8mm;
+  right: 19mm;
+  display: flex;
+  justify-content: space-between;
+  font-size: 5.8pt;
+  letter-spacing: 0.3pt;
+  color: #9a9a9a;
+}
+
+.tick {
+  position: absolute;
+  background: #9a9a9a;
+}
+
+/* ── Rejilla ────────────────────────────────────────────────── */
+
+.card-grid {
+  position: absolute;
+  left: 23mm;
+  top: 28mm;
+  width: 164mm;
+  height: 252mm;
+  display: grid;
+  grid-template-columns: repeat(4, 41mm);
+  grid-template-rows: repeat(4, 63mm);
+}
+
+/* ── Carta ──────────────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  width: 41mm;
+  height: 63mm;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #0b0f0a;
+  color: #e6ece4;
+  padding: 2.9mm 2.7mm 4.4mm;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3mm;
+}
+
+.card--empty {
+  background: transparent;
+}
+
+.card-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(143, 217, 138, 0.13) 0.12mm, transparent 0.12mm),
+    linear-gradient(90deg, rgba(143, 217, 138, 0.13) 0.12mm, transparent 0.12mm);
+  background-size: 3mm 3mm;
+}
+
+.card-frame {
+  position: absolute;
+  inset: 1.1mm;
+  border: 0.35mm solid var(--accent, #8fd98a);
+  border-radius: 1.2mm;
+
+  &--common { border-color: #8fd98a; }
+}
+
+.card-safe {
+  position: absolute;
+  inset: 3.6mm;
+  border: 0.15mm dashed rgba(255, 120, 120, 0.55);
+}
+
+/* Cabecera única (v8): versión + tipo a la izquierda, energía a la derecha,
+   cerrada por un filete. Altura fija para que las 16 cartas de la hoja
+   tengan exactamente la misma geometría. */
+.card-top {
+  position: relative;
+  display: flex;
+  /* Por línea base, no por centro: el tipo va a 5,2 pt y la energía a 8,5,
+     y centrar cajas de altura distinta deja los textos a alturas distintas. */
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1mm;
+  height: 4.5mm;
+  box-sizing: border-box;
+  padding: 0.15mm 0.3mm 1.1mm;
+  border-bottom: 0.2mm solid rgba(143, 217, 138, 0.5);
+}
+
+/**
+ * Compartir línea base no basta para que se vean a la misma altura: con la
+ * base común, el texto pequeño queda ópticamente más bajo, porque su altura
+ * de mayúscula es menor y crece solo hacia arriba. Medido sobre el render,
+ * el centro de «V1 ◆ ATAQUE» caía 0,39 mm por debajo del de «⚡ 2».
+ *
+ * Se sube media diferencia de altura de mayúscula (≈0,37 em en JetBrains
+ * Mono) para que los dos bloques compartan eje. Si cambian los cuerpos de
+ * la cabecera, este cálculo se ajusta solo.
+ */
+.card-id {
+  display: flex;
+  align-items: baseline;
+  gap: 1.1mm;
+}
+
+/* Solo en la cara: la corrección compensa el cuerpo de la energía, que en
+   el dorso no existe. */
+.card-top .card-id {
+  transform: translateY(calc((5.5pt - 8.5pt) * 0.37));
+}
+
+.badge {
+  font-size: 5.5pt;
+  font-weight: 800;
+  letter-spacing: 0.7pt;
+  color: var(--accent);
+}
+
+/**
+ * Sin texto, su línea base es su borde inferior: al alinear por base, el
+ * rombo se apoya en la del texto y su centro queda 0,7 mm por encima —
+ * justo el medio de la altura de mayúscula (0,71 mm a 5,5 pt). Centrarlo
+ * en la caja de la fila, en cambio, lo dejaba 0,3 mm por debajo del eje.
+ */
+.badge-sep {
+  width: 1.4mm;
+  height: 1.4mm;
+  transform: rotate(45deg);
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+.energy {
+  display: flex;
+  align-items: center;
+  gap: 0.9mm;
+  margin-left: auto;
+  color: rgba(230, 236, 228, 0.85);
+
+  .bolt   { font-size: 8.5pt; line-height: 1; opacity: 0.75; }
+  .amount { font-size: 8.5pt; font-weight: 700; line-height: 1; }
+}
+
+.card-name {
+  position: relative;
+  text-align: center;
+  font-size: 9.5pt;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent);
+  padding: 0.6mm 0.5mm 0.2mm;
+  text-wrap: balance;
+}
+
+.type {
+  font-size: 5.2pt;
+  font-weight: 800;
+  letter-spacing: 0.7pt;
+  color: #cdeccb;
+  white-space: nowrap;
+}
+
+/* El arte se superpone al marcador: si el PNG aún no existe, la carta
+   sigue mostrando «ARTE» en vez de un hueco roto.
+   5:2 exacto — es la proporción a la que se dibujan los PNG. */
+.art {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  aspect-ratio: 5 / 2;
+  border: 0.25mm solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.8mm;
+  background: radial-gradient(circle at 50% 45%, rgba(143, 217, 138, 0.07), transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.art-ph {
+  font-size: 5pt;
+  letter-spacing: 1pt;
+  color: rgba(230, 236, 228, 0.28);
+}
+
+.art-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Banda de datos ─────────────────────────────────────────── */
+
+/* El filete va como sombra interior, no como borde: así marca el recuadro
+   al imprimir sin sumar altura ni robársela a la caja de texto. */
+.stats {
+  position: relative;
+  display: flex;
+  background: rgba(143, 217, 138, 0.12);
+  box-shadow: inset 0 0 0 0.15mm rgba(143, 217, 138, 0.3);
+  border-radius: 0.8mm;
+  padding: 1.3mm 0 1.5mm;
+}
+
+.stat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5mm;
+  padding: 0 0.5mm;
+
+  &--split { border-left: 0.15mm solid rgba(143, 217, 138, 0.38); }
+  &--wide  { flex: 1.35; }
+}
+
+.stat-label {
+  font-size: 5pt;
+  font-weight: 600;
+  letter-spacing: 0.4pt;
+  color: #a9b8a5;
+}
+
+.stat-value {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: calc(11pt * var(--stat-scale, 1));
+  font-weight: 700;
+  line-height: 1.15;
+  color: #e6ece4;
+  white-space: nowrap;
+}
+
+/* ── Texto de efectos + glosario ────────────────────────────── */
+
+/* Crece hasta el padding inferior de la carta: así el borde de abajo cae
+   siempre en el mismo sitio y la franja que queda hasta el marco de color
+   (1,1 → 4,4 mm) es constante — es donde se centra el coste en Nibbles. */
+.text {
+  position: relative;
+  flex: 1 1 15.4mm;
+  min-height: 15.4mm;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 0.15mm rgba(143, 217, 138, 0.24);
+  border-radius: 0.8mm;
+  padding: 1.1mm 1.3mm;
+  color: #dfe7dc;
+}
+
+.effects {
+  font-size: calc(6.2pt * var(--text-scale, 1));
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre-line;
+  text-wrap: pretty;
+
+  /* El texto entra por innerHTML: sin ::ng-deep no le llega el estilo. */
+  ::ng-deep code {
+    font-family: inherit;
+    font-weight: 700;
+
+    /* Mismos tokens que el reglamento: los estados y BUG, en rojo. */
+    &.bs-status,
+    &.bs-bug   { color: #fca5a5; }
+    &.bs-const { color: #7dd3fc; }
+    &.bs-var   { color: #67e8f9; }
+    &.bs-fn    { color: #fde047; }
+    &.bs-kw    { color: #fdba74; }
+  }
+}
+
+/* La línea separa el glosario del efecto. Sin efecto no separa nada. */
+.gloss {
+  margin-top: 0.7mm;
+  padding-top: 0.6mm;
+  border-top: 0.15mm solid rgba(143, 217, 138, 0.32);
+
+  &--solo {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.gloss-line {
+  font-size: calc(4.9pt * var(--text-scale, 1));
+  font-weight: 500;
+  line-height: 1.25;
+  color: #c3cdc0;
+
+  & + & { margin-top: 0.35mm; }
+}
+
+.gloss-term {
+  font-weight: 800;
+  color: #a8e5a3;
+
+  &--status { color: #fca5a5; }
+
+  &::after {
+    content: ' — ';
+    font-weight: 400;
+    color: rgba(205, 214, 202, 0.75);
+  }
+}
+
+/* ── Coste en Nibbles y pines de contacto ───────────────────── */
+
+/* Ocupa exactamente la franja entre la caja de texto y el marco de color,
+   con el número y el rombo centrados en la misma línea. */
+.nibbles {
+  position: absolute;
+  right: 2.7mm;
+  /* De la línea del marco (1,1 mm + 0,35 de grosor) al borde de la caja de
+     texto (4,4 mm): mismo aire arriba que abajo. */
+  bottom: 1.45mm;
+  height: 2.95mm;
+  display: flex;
+  align-items: center;
+  gap: 0.5mm;
+  font-size: 5.5pt;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(230, 236, 228, 0.72);
+
+  .rune {
+    font-size: 4.8pt;
+    line-height: 1;
+  }
+}
+
+.pin-mask {
+  position: absolute;
+  bottom: 0.75mm;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18mm;
+  height: 1.1mm;
+  background: #0b0f0a;
+}
+
+.pins {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(8, 1.3mm);
+  gap: 0.7mm;
+  justify-content: center;
+  width: 15.3mm;
+  height: 3.6mm;
+}
+
+.pin {
+  height: 3.6mm;
+  background: #c9a04a;
+  border-radius: 0.3mm 0.3mm 0 0;
+}
+
+/* ── Dorso ──────────────────────────────────────────────────── */
+
+.card-back {
+  padding: 9mm 2.7mm 4.4mm;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4mm;
+}
+
+.back-head {
+  position: absolute;
+  top: 1.45mm;
+  left: 1.45mm;
+  right: 1.45mm;
+  padding: 1.6mm 2mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9mm;
+  background: rgba(255, 255, 255, 0.045);
+  border-bottom: 0.2mm solid rgba(143, 217, 138, 0.5);
+}
+
+.back-name {
+  font-size: 9pt;
+  font-weight: 800;
+  letter-spacing: 0.2pt;
+  line-height: 1.1;
+  color: #e6ece4;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.back-logo {
+  position: relative;
+  width: 12mm;
+  height: 13.2mm;
+}
+
+.back-title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6mm;
+}
+
+.back-title-1 {
+  font-size: 10.5pt;
+  font-weight: 800;
+  letter-spacing: 1.2pt;
+  color: #8fd98a;
+  line-height: 1;
+}
+
+.back-title-2 {
+  font-size: 10.5pt;
+  font-weight: 800;
+  letter-spacing: 5pt;
+  color: #8fd98a;
+  line-height: 1;
+  margin-left: 5pt;
+}

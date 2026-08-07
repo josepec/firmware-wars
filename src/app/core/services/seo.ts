@@ -19,6 +19,16 @@ const PRINT_TITLES: Record<string, string> = {
   'docs/cover-print': 'Portada',
 };
 
+/**
+ * La hoja de cartas es la única vista de impresión cuyo título depende de la
+ * URL: con `fns` es la lista de un jugador, sin él el catálogo completo. Son
+ * nombres cerrados, sin el prefijo del sitio — es el nombre de archivo que
+ * propone Chrome al guardar como PDF. Ver `docs/cards/cards-print.ts`.
+ */
+const CARDS_PATH = '/docs/cards-print';
+const CARDS_LIST_TITLE = 'Firmware Wars - Cartas';
+const CARDS_CATALOG_TITLE = 'Firmware Wars - Cartas Completas';
+
 const HOME_TITLE = 'Firmware Wars — Wargame de robots y programación · Print & Play';
 const HOME_DESC =
   'Wargame de mesa de ciencia ficción donde programas robots de combate: escribe tu BattleScript, ' +
@@ -87,6 +97,16 @@ export class Seo {
     }
     if (path.startsWith('/list/')) {
       this.set({ title: SITE_NAME, desc: HOME_DESC, index: false, path });
+      return;
+    }
+    if (path === CARDS_PATH) {
+      const esLista = /[?&]fns=[^&]/.test(rawUrl);
+      this.set({
+        title: esLista ? CARDS_LIST_TITLE : CARDS_CATALOG_TITLE,
+        desc: '',
+        index: false,
+        path,
+      });
       return;
     }
     // Chrome copia document.title a los metadatos del PDF que genera, así que

@@ -8,7 +8,7 @@ const KW_SET = new Set([
 ]);
 
 const STATUS_SET = new Set([
-  'BUG', 'LAG', 'DMZ', 'OVERLOAD', 'REBOOTING', 'SAFE_MODE',
+  'BUG', 'LAG', 'DMZ', 'OVERLOAD', 'REBOOTING', 'SAFE_MODE', 'OVERCLOCK', 'BERSERK',
 ]);
 
 export function classifyCode(text: string): string {

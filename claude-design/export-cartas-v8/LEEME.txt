@@ -1,0 +1,33 @@
+CARTAS FIRMWARE WARS v8
+=======================
+
+Contenido
+---------
+  Cartas Firmware Wars v8.dc.html   diseno (2 hojas A4: caras + dorsos)
+  support.js                        runtime necesario
+  doc-page.js                       componente de pagina imprimible
+
+Uso
+---
+Manten los tres archivos en la MISMA carpeta y abre el .html en el
+navegador. Para imprimir: Ctrl/Cmd+P, escala 100%, sin "ajustar a pagina".
+Doble cara por el borde largo (los dorsos ya van reflejados por filas).
+
+Cartas: Mini USA, 41 x 63 mm. Corte a hueso, marcas en los margenes.
+
+Novedad v8
+----------
+Cabecera unica: version + tipo a la izquierda (V1 con rombo separador),
+energia a la derecha, cerrada por un filete verde. Altura fija 4,5 mm
+para que las 16 cartas tengan geometria identica.
+Arte 15,4 mm y panel de texto 15,4 mm, iguales en todas las cartas.
+
+Donde tocar el contenido
+------------------------
+Dentro del .html, en el bloque <script data-dc-script>, el metodo
+designs() contiene la lista de cartas: version, nombre, coste, stats
+y texto. La hoja muestra las 16 primeras de la lista.
+El texto respeta saltos de linea (\n). Limite practico ~95 caracteres.
+
+Colores: V1 #f2a93b · V2 #b79cff · V3 #6fd8e6 · COMMON #8fd98a
+Fondo de carta #0b0f0a · pines #c9a04a
