@@ -46,4 +46,4 @@ El tablero imprimible tiene un tamaño A4 con lo siguiente:
 
 ---
 
-/img-center /assets/img/programmer.png print-only h:150px
+/img-center /assets/img/programmer.png print-only h:200px

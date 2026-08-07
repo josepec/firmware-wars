@@ -176,7 +176,7 @@ Se puede utilizar para realizar ataques múltiples, combos de movimiento o una g
 - **Condición TRUE:** Ejecuta `funcion()` y continúa otro Bucle más.
 - **Condición FALSE:** No se ejecuta `funcion()` y se detiene el Bucle.
 - **Resolución:** Se comprueba la condición — cada Bucle genera una nueva condición.
-- **Bug:** Si la Función **no se ejecuta ni una sola vez**, se obtiene un `BUG` en `bugs`.
+- **Bug:** Si la Función **no se ejecuta ni una sola vez**, obtienes un `BUG` en `bugs`.
 
 ```bs
 WHILE (condición)
@@ -250,7 +250,6 @@ IF (condición)
 
 ---
 
-/page
 ## Listado de Funciones del Sistema
 
 Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no pueden usarlas en sus Operaciones**. Estas Funciones se llaman automáticamente en diferentes Fases del Sistema y no tienen Coste Energético.
@@ -319,7 +318,7 @@ Si no se puede pagar la energía `energy` de una Función, se produce `OVERLOAD`
 En Bucles, si en alguna iteración no se puede pagar el coste, esa iteración no se ejecuta, se produce `OVERLOAD` y el bucle se detiene.
 
 ---
-/page
+
 ### Ejecución de Movimiento
 
 Al ejecutar un movimiento mediante la Función `move()` el Bot puede moverse el número de Hexes declarados siempre que tenga Energía suficiente.
