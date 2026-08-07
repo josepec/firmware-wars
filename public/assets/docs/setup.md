@@ -10,7 +10,7 @@ Cada jugador se pone en la piel de un programador **Senior**. Utiliza tu **Alias
 - ¿Cuánto cobra?
 - ¿Cómo creó a sus Bots?
 
-Determinad el número de **Bots** de cada programador. Cada programador seleccionará los suyos en base a los modelos disponibles (ver sección **BOTS.CFG**).
+Determinad el número de **Bots** de cada programador. Luego, cada programador creará sus propios Bots (ver sección **BOTS.CFG**).
 
 ---
 
@@ -18,7 +18,7 @@ Determinad el número de **Bots** de cada programador. Cada programador seleccio
 
 ### Escala y Medidas
 
-Las distancias se miden en **Hexes** (casillas hexagonales del tablero). Tanto al mover como al determinar el rango de un ataque o habilidad, se cuenta el número mínimo de casillas hexagonales contiguas entre dos puntos del tablero, sin atravesar obstáculos o Bots no destruidos. El desplazamiento puede realizarse en cualquiera de las seis direcciones adyacentes al Hex actual.
+Las distancias se miden en **Hexes** (casillas hexagonales del tablero). Tanto al mover como al determinar el rango de un ataque o habilidad, se cuenta el número mínimo de casillas hexagonales contiguas entre dos puntos del tablero, sin atravesar obstáculos o Bots **no destruidos**. El desplazamiento puede realizarse en cualquiera de las seis direcciones adyacentes al Hex actual.
 
 No se usan reglas ni cintas métricas: el sistema hexagonal garantiza la equidad táctica de las distancias.
 

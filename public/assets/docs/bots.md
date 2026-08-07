@@ -44,8 +44,16 @@ Debe elegir:
 /table-cards
 /json tables/attack-functions.json
 
+> **LR** — {{rangeTypes.LR.name}}: {{rangeTypes.LR.description}}
+>
+> **SLDV** — {{rangeTypes.SLDV.name}}: {{rangeTypes.SLDV.description}}
+>
+> **R(n)** — {{rangeTypes.Rn.name}}: {{rangeTypes.Rn.description}}
+
+> Si un ataque afecta a varios objetivos y requiere tirar un dado, el dado de ataque se tira una única vez y afecta a todos por igual.
+
 /img-center /assets/img/lady.png print-only h:200px
-/page
+
 ## Funciones de Mantenimiento (DEBUG.INTERFACE)
 
 Todos los Bots tienen acceso a las siguientes Funciones de Mantenimiento que pueden utilizar en la fase de `DEBUG()`.

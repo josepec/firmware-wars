@@ -12,7 +12,7 @@ El objetivo es claro: superar a los Bots rivales mediante la combinación de est
 
 ## ¿Cómo se juega?
 
-Cada turno, el Programador ejecuta el **CORE.CYCLE** en cada uno de sus Bots. Este consiste en una secuencia de fases que simula el proceso de compilación y ejecución de código en tiempo real.
+Cada turno, se ejecuta el **CORE.CYCLE**. Este consiste en una secuencia de fases que simula el proceso de compilación y ejecución de código en tiempo real.
 
 Cada Bot difiere en estadísticas y Funciones. A medida que avanza la partida, los Bots evolucionan desbloqueando Operaciones, Funciones y capacidades más avanzadas.
 

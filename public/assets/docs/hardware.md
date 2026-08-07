@@ -7,7 +7,7 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 | Componente | Cantidad | Notas |
 |---|---|---|
 | Miniaturas (Bots) | Variable | Según lista acordada. Mínimo 1 por Programador. |
-| Fichas Hex (tablero) | 100 piezas | Una de las caras de cada Hex debe ser de color negro sólido. Esta cara representa un obstáculo físico y lógico que obstruye el movimiento y satura la Línea de Visión (LoS), impidiendo la propagación de datos y ataques. La cara activa (no opaca) de los Hexes debe estar vinculada al sistema de Dados de Energía. Los 100 Hexes se dividen en 5 subgrupos de 20 unidades; cada grupo debe estar marcado con un color distintivo (mediante un punto o indicador visual) que corresponda a una de las caras del dado. |
+| Fichas Hex (tablero) | 100 piezas | Una de las caras de cada Hex debe ser de color negro sólido. Esta cara representa un obstáculo físico y lógico que obstruye el movimiento y satura la Línea de Visión (LoS), impidiendo la propagación de datos y ataques. La cara activa (no opaca) de los Hexes debe estar vinculada al sistema del Dado Colores. Es decir, los 100 Hexes se dividen en 5 subgrupos de 20 unidades; cada grupo debe estar marcado con un color distintivo (mediante un punto o indicador visual) que corresponda a una de las caras del Dado Colores. |
 | Dado Piedra-Papel-Tijera | 1 | Para determinar iniciativa. |
 | Dado Colores | 1 | Dado de 6 caras, con 5 colores diferentes y un símbolo para volver a lanzar (Por si no sale color). |
 | Dado Operaciones | 1 | Dado de 6 caras, con los siguientes símbolos (<, ≤, ≥, >, !=, ==) |
@@ -30,26 +30,18 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 > Todos los dados de 6 Caras personalizados pueden ser sustituidos fácilmente por Tablas de Equivalencias (ver [Tablas de Dados](/docs/recursos/tables-equivalences) en los Recursos de la web).
 ---
 
+/page
 ## El Terminal de Programación
 
-Cada Programador dispone de un **Terminal** por cada Bot: una hoja/tablero de turno donde registra en tiempo real el estado de sus Bots y escribe el **BattleScript** — el código que sus unidades ejecutarán en la fase `RUN()`.
+Cada Programador dispone de un **Terminal** por cada Bot: una hoja/tablero de turno donde registra en tiempo real el estado de sus Bots y se escribe el **BattleScript** — el código que sus unidades ejecutarán en la fase `RUN()`.
 
-**El Terminal incluye:**
+En los recursos de la web encontrarás plantillas para poder imprimir tu propio terminal. Aunque una parte bonita de este juego, es montar tu propio terminal con los materiales que consideres. 
 
-### Modo Hoja
-- 8 Huecos donde alojar `numbers`.
-- 3 Ranuras de Operación para la fase `COMPILE()`.
-- Área de escritura del BattleScript.
-- Registro de efectos activos y estados alterados.
-
-/page
-### Modo tablero
-En los recursos de la web encontrarás plantillas para poderte imprimir tu propios tableros. El tablero tiene un tamaño A4 con lo siguiente:
+El tablero imprimible tiene un tamaño A4 con lo siguiente:
 - 8 Huecos para dados (d6) donde alojar `numbers`.
 - 3 Ranuras de Operación para la fase `COMPILE()`.
-- Varias tarjetas de Operaciones (IF, IF-ELSE, FOR, WHILE, TRY-CATCH) para insertar en las Ranuras de Operaciones.
+- Varias tarjetas de Operaciones (IF, IF-ELSE, FOR, WHILE, TRY-CATCH) para insertar en las Ranuras de Operaciones. En estas tarjetas de Operaciones, se insertan las cartas de Funciones.
 - 3 tarjetas de Bugs para insertar en las Ranuras de Operaciones.
-- Varias tarjetas de Funciones para insertar en las Ranuras de las tarjetas de Operaciones.
 
 > La integridad de tu Terminal es responsabilidad tuya y solo tuya. Un registro desfasado no es una excusa; es una sentencia de borrado inmediato.
 

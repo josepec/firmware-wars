@@ -32,8 +32,8 @@
 | Op. | Resolución |
 |---|---|
 | `IF` | TRUE → Ejecuta Función. FALSE → Nada. |
-| `IF-ELSE` | TRUE → Ejecuta Func. IF. FALSE → Ejecuta Func. ELSE. |
-| `FOR` | 1d6 vs un `numbers`: la diferencia = repeticiones.<br> Si > 3 o = 0 → `BUG`. |
+| `IF-ELSE` | TRUE → Ejecuta Función IF.<br>FALSE → Ejecuta Función ELSE. |
+| `FOR` | 1d6 vs un `numbers`:<br>la diferencia = repeticiones.<br> Si > 3 o = 0 → `BUG`. |
 | `WHILE` | Repite mientras TRUE (nueva condición por iteración).<br> Si 0 ejecuciones → `BUG`. |
 | `TRY-CATCH` | TRY falla por energía o BUG → ejecuta CATCH. <br> Si ninguna se ejecuta → `BUG`. |
 

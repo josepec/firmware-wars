@@ -9,7 +9,7 @@
   ],
 
   "glossary": {
-    "LR": "Línea recta: el objetivo debe estar alineado con una de las 6 caras del Hex. Un obstáculo o un Bot en la trayectoria corta la línea.",
+    "LR": "Objetivo alineado con una de las 6 caras del Hex. Un obstáculo o un Bot en la trayectoria corta la línea.",
     "SLDV": "Sin línea de visión: ignora obstáculos y Bots en la trayectoria, pero el objetivo debe seguir dentro del rango.",
     "R(n)": "Área n: alcanza a todo Bot a n Hexes o menos del impacto.",
     "BUG": "Cada BUG activo quita una Operación del turno. Máximo 3.",
@@ -90,7 +90,7 @@
     "overdriveStrike()": {
       "text": "Gasta toda la `energy` (mín. 2). 1 daño por cada 2 de `energy` gastada."
     },
-    "railgun()": { "text": "Atraviesa Objetivos. −2 de daño por cada Bot atravesado." },
+    "railgun()": { "text": "Impacta al primer Bot de la línea y sigue tras él. −2 de daño por Bot atravesado." },
     "chargedStrike()": {
       "text": "Tira 1d4 y acumula; paras cuando quieras. Con un 1, recibes lo acumulado."
     },

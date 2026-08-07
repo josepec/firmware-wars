@@ -81,11 +81,11 @@ Al terminar esta fase, el Programador con la **Prioridad de CPU** inicia el **Ci
 
 ## COMPILE()
 
-Una vez completada la inicialización, el robot entra en la fase de programación del turno. El programador define el flujo lógico que el robot seguirá durante el ciclo actual. Esta fase **no ejecuta acciones**: simplemente prepara la secuencia de operaciones que se compilarán y ejecutarán en la fase `RUN()`.
+Una vez completada la inicialización, el Bot entra en la fase de programación del turno. El programador define el flujo lógico que el Bot seguirá durante el ciclo actual. Esta fase **no ejecuta acciones**: simplemente prepara la secuencia de operaciones que se compilarán y ejecutarán en la fase `RUN()`.
 
 ### 1. Programación del Ciclo
 
-- El programador toma las Operaciones obtenidas en `BOOT()` y las dispone en el orden deseado en su terminal. Cada línea de código representa una instrucción que el robot ejecutará en ese orden durante `RUN()`.
+- El programador toma las Operaciones obtenidas en `BOOT()` y las dispone en el orden deseado en su terminal. Cada línea de código representa una instrucción que el Bot ejecutará en ese orden durante `RUN()`.
 - No es necesario programar todas las operaciones. Si no se puede programar ninguna, se salta a `DEBUG()`.
 
 ### 2. Vinculación de Operaciones y Funciones
@@ -95,10 +95,9 @@ Toda **Función** requiere una **Operación** para ser procesada; **no es posibl
  - **Ranura Secundaria:** Es de uso Opcional.
  - **Restricción de Duplicado:** Bajo ninguna circunstancia se puede asignar la misma Función a ambas ranuras de una misma Operación.
 
-Los Bots tienen Funciones comunes (`COMMON.INTERFACE`) y Funciones elegidas durante la construcción.
+Los Bots tienen Funciones comunes (`COMMON.INTERFACE`) y Funciones de Ataque elegidas durante su construcción.
 
-Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven `TRUE` o `FALSE`. Los Bots utilizan sus **números** (`numbers`) guardados en los condicionales, obtenidos mediante `getNumbers()`.
-//
+Las **condiciones** se evalúan en tiempo de ejecución, en `RUN()`, y devuelven `TRUE` o `FALSE`. Se utilizan los `numbers` guardados en los condicionales.
 
 ### BattleScript
 
@@ -229,7 +228,7 @@ IF (condición)
 
 - **Uso:** Recibe como parámetro una función de **Callback** de ataque configurada en el Bot. Se ejecutará tal y como esté definida.
 - **Coste energético:** El valor energético definido en la función de ataque.
-- **Detalles:** El coste, daño, rango y efectos se encuentran en la sección **BOTS.CFG**.
+- **Detalles:** El coste, daño, rango y efectos se encuentran en la tabla **FUNCIONES ATAQUE**.
 
 ```bs
 IF (condición)
@@ -274,7 +273,7 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 
 ### upgrade()
 
-- **Uso:** Sube un punto la versión `version` del Bot. En nivel 2: `MAX_NUMBERS` pasa a valer 7, se desbloquean las Funciones para versión 2 y el dado que determina las Operaciones pasa a ser Dado V2. En nivel 3: `MAX_NUMBERS` pasa a valer 8, se desbloquean las Funciones para versión 3 y el dado que determina las Operaciones pasa a ser Dado V3.
+- **Uso:** Sube un punto la versión `version` del Bot. <br>En nivel 2: `MAX_NUMBERS` pasa a valer 7, se desbloquean las Funciones para versión 2 y el dado que determina las Operaciones pasa a ser Dado V2. <br>En nivel 3: `MAX_NUMBERS` pasa a valer 8, se desbloquean las Funciones para versión 3 y el dado que determina las Operaciones pasa a ser Dado V3.
 - **Cuando:** En la fase de `INIT()`, rondas 3 y 5.
 - **Detalles:** La versión máxima es 3 (`MAX_VERSION`). Subir versión da acceso a más Operaciones, Funciones y Ataques.
 
@@ -282,7 +281,7 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 
 ## RUN()
 
-Una vez compilado el programa, comienza la fase de ejecución: el momento en que las órdenes escritas cobran vida y los robots despliegan su comportamiento sobre el campo de batalla.
+Una vez compilado el programa, comienza la fase de ejecución: el momento en que las órdenes escritas cobran vida y los Bots despliegan su comportamiento sobre el campo de batalla.
 
 Esta fase es donde **la estrategia y el caos se encuentran**. El código se transforma en acción, y la estrategia del programador se pone a prueba frente a la lógica implacable de las máquinas rivales.
 
@@ -311,7 +310,7 @@ La mayoría de Operaciones han de determinar el resultado de una condición para
 5. Resuelve la Operación y ejecuta la Función si procede.
 
 #### Interceptar
-Cada Bot puede **interceptar una Operación enemiga por turno**. Cuando un Bot enemigo declara una Operación, **el Bot rival más cercano** (en Hexes) puede declarar una Intercepción, en caso de empate, puede interceptar uno de ellos. Los Obstáculos no cuentan para calcular la distancia de interceptar. El Bot que intercepta puede **sustituir el dado en una condición** por cualquier valor de su propia reserva de `numbers`. Una vez realizada, el Bot no puede volver a interceptar hasta el inicio de su siguiente turno.
+Cada Bot puede **interceptar una Operación enemiga por turno**. Cuando un Bot enemigo declara una Operación, **el Bot rival más cercano** (en Hexes) puede declarar una Intercepción, en caso de varios Bots a la misma distancia, puede interceptar uno de ellos a elección del Programador que intercepta. Los Obstáculos no cuentan para calcular la distancia de interceptar. El Bot que intercepta puede **sustituir el dado numérico lanzado en una condición** por cualquier valor de su propia reserva de `numbers`. Una vez realizada, el Bot no puede volver a interceptar hasta el inicio de su siguiente turno.
 
 ### 4. Coste Energético
 
@@ -342,7 +341,7 @@ El ataque se ejecutará siempre que tenga Energía suficiente y cumpla cualquier
 
 #### 1. Selección del Objetivo
 
-El Programador elige un Bot dentro **del rango del ataque** especificado por su Función de ataque. Si no hay ningún Bot en el rango de ataque, se genera un `BUG` y la Energía se consume igualmente.
+El Programador elige un Objetivo dentro **del rango del ataque** especificado por su Función de ataque. Si no hay ningún Objetivo en el rango de ataque, se genera un `BUG` y la Energía se consume igualmente.
 
 Algunas Funciones de área permiten además **elegir un Hex vacío como punto de impacto**, en lugar de un Bot. Se indica en sus Efectos. En ese caso el Hex ha de estar dentro del rango y cumplir la línea de visión igual que si fuera un Bot; el área de efecto sí puede alcanzar Bots sin línea de visión directa. Al impactar sobre un Hex vacío no hay objetivo principal: todos los Bots afectados lo son por el área, en igualdad de condiciones.
 
@@ -355,7 +354,7 @@ Algunos ataques calculan su rango de otras maneras:
 - **{{rangeTypes.SLDV.name}} (SLDV):** {{rangeTypes.SLDV.description}}
 - **{{rangeTypes.Rn.name}} (R(n)):** {{rangeTypes.Rn.description}}
 
-> Ejemplo ataque de rango: `empField()` 5 R(1) -> El ataque se produce a 5 casillas del Bot atacante, respecto a ese punto, el ataque tiene un efecto de rango 1. Por lo tanto, todos los Bots a rango 1 desde ese punto, se ven afectados por el ataque.
+> Ejemplo ataque de rango: `empField()` 5 R(1) -> El ataque se produce a 5 casillas del Bot atacante en un Hex vacío, respecto a ese punto, el ataque tiene un efecto de rango 1. Por lo tanto, todos los Bots a rango 1 desde el punto de impacto, se ven afectados por el ataque.
 >
 > Ese punto puede ser un Bot o un Hex vacío. Apuntar a un Hex vacío entre dos enemigos permite alcanzarlos a los dos con un solo ataque, o llegar a uno que quedaba fuera de rango por poco.
 
@@ -375,7 +374,7 @@ Ante un ataque, siempre se ha de descontar el valor acumulado del escudo `shield
 
 ## DEBUG()
 
-La fase de depuración permite mantener a los robots operativos. El programador puede **depurar** su Bot gastando Energía. El programador puede realizar una o varias funciones, **siempre que pueda pagarlas**. Estas funciones no requieren ser ejecutadas dentro de Operaciones.
+La fase de depuración permite mantener a los Bots operativos. El programador puede **depurar** su Bot gastando Energía. El programador puede realizar una o varias funciones, **siempre que pueda pagarlas**. Estas funciones no requieren ser ejecutadas dentro de Operaciones.
 
 ### Funciones de Mantenimiento
 
@@ -385,12 +384,12 @@ La fase de depuración permite mantener a los robots operativos. El programador 
 
 ## END()
 
-Esta fase ocurre cuando se completa el ciclo operativo del Bot activo. Aquí se liberan recursos, se estabiliza la memoria y se prepara el flujo para el siguiente Bot.
+Esta fase ocurre cuando se completa el ciclo de Bot activo. Aquí se liberan recursos, se estabiliza la memoria y se prepara el flujo para el siguiente Bot.
 
 1. **Descartar Operaciones Ejecutadas.** Todas las Operaciones utilizadas se eliminan del terminal. El Bot limpia su pila de instrucciones para evitar residuos lógicos.
 2. **Conservar Números Guardados.** Los números `numbers` almacenados en la RAM se mantienen activos para futuros turnos, salvo que algún efecto indique lo contrario.
 3. **Conservar Energía.** La energía `energy` restante se mantiene para el siguiente turno.
-4. **Transferencia del Turno.** El control pasa al siguiente Programador del orden de iniciativa, que activa el siguiente Bot sin activar, comenzando su ciclo desde `COMPILE()`. Si todos los Bots han completado su activación, la ronda concluye.
+4. **Transferencia del Turno.** El control pasa al siguiente Programador del orden de iniciativa, que activa el siguiente Bot sin activar, comenzando su ciclo desde `COMPILE()`.
 5. **Fin de Ronda.** Si se han activado todos los Bots de todos los Programadores, termina la ronda. Se vuelve a la fase `INIT()`.
 6. **Fin de Partida**<br>
 **Escenarios:** En los escenarios se seguirán las instrucciones definidas en el propio escenario para dar por finalizada la partida.<br>
