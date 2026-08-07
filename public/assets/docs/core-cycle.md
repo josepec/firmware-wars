@@ -176,7 +176,7 @@ Se puede utilizar para realizar ataques múltiples, combos de movimiento o una g
 - **Condición TRUE:** Ejecuta `funcion()` y continúa otro Bucle más.
 - **Condición FALSE:** No se ejecuta `funcion()` y se detiene el Bucle.
 - **Resolución:** Se comprueba la condición — cada Bucle genera una nueva condición.
-- **Bug:** Si la Función **no se ejecuta ni una sola vez**, obtienes un `BUG` en `bugs`.
+- **Bug:** Si la Función **no se ejecuta ni una sola vez**, el Bot obtiene un `BUG` en `bugs`
 
 ```bs
 WHILE (condición)
@@ -203,8 +203,6 @@ TRY funcionA()
 ```
 
 Se puede utilizar para atacar o realizar acciones con seguridad. No requiere `numbers` y **no se puede interceptar**.
-
----
 
 ## Listado de Funciones Comunes
 
@@ -293,7 +291,7 @@ Durante esta fase, **no se pueden alterar ni reordenar las instrucciones ya comp
 ### 2. Verificación y Errores de Sintaxis
 
 Si una línea contiene un error — instrucción incompleta, mal expresada o imposible según las reglas — esa línea **no se ejecuta** y el Bot obtiene un `BUG` en `bugs`.
-/page
+
 ### 3. Ejecución de Operaciones
 
 La mayoría de Operaciones han de determinar el resultado de una condición para poder ejecutar Funciones o resolver Bucles. Si la Operación requiere, y no tiene, un número de `numbers`, no se ejecutará. Para determinar el resultado de una condición:
