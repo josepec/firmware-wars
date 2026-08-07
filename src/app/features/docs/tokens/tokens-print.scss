@@ -1,0 +1,374 @@
+/* ════════════════════════════════════════════════════════════════
+   HOJAS DE FICHAS — 4 páginas A4.
+   1/4 marcadores de estado (cara) · 2/4 dorsos · 3/4 moneda de
+   intercepción · 4/4 su reverso gastado.
+
+   Geometría calcada de claude-design/export-fichas. Lo que sí se
+   separa del prototipo son los contrastes: los grises por
+   transparencia y los colores medios se hunden al imprimir en una
+   inyección de tinta doméstica, donde cada elemento claro es un
+   hueco en una inundación de tinta y la tinta se expande al secar.
+   Los valores de aquí están medidos para quedar por encima de 8:1
+   sobre el fondo de la ficha.
+   ════════════════════════════════════════════════════════════════ */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+:host {
+  display: block;
+  background: #6b6b6b;
+  min-height: 100vh;
+  padding: 22mm 0 8mm;
+  font-family: 'JetBrains Mono', monospace;
+  /* Sin esto, imprimir desde el navegador exige marcar «gráficos de
+     fondo» a mano y las fichas salen en blanco. */
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+
+  @media print {
+    background: #fff;
+    padding: 0;
+  }
+}
+
+.page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto 8mm;
+  background: #fff;
+  color: #111;
+  overflow: hidden;
+  break-after: page;
+
+  @media print { margin: 0; }
+  &:last-child { break-after: auto; }
+}
+
+/* ── Barra de control (solo pantalla) ───────────────────────── */
+
+.ctrl-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #0b0f0a;
+  border-bottom: 1px solid rgba(143, 217, 138, 0.25);
+  color: rgba(230, 236, 228, 0.7);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+
+  @media print { display: none; }
+}
+
+.ctrl-btn {
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(143, 217, 138, 0.5);
+  border-radius: 2px;
+  color: #8fd98a;
+  font: inherit;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(143, 217, 138, 0.12);
+    border-color: #8fd98a;
+  }
+}
+
+/* ── Cabecera, nota, leyenda y pie de hoja ──────────────────── */
+
+.sheet-head {
+  position: absolute;
+  left: 19mm;
+  top: 12mm;
+  right: 19mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 6.5pt;
+  letter-spacing: 0.4pt;
+  color: #6b6b6b;
+}
+
+.sheet-note {
+  position: absolute;
+  left: 19mm;
+  top: 17mm;
+  font-size: 6pt;
+  letter-spacing: 0.3pt;
+  color: #9a9a9a;
+}
+
+.sheet-legend {
+  position: absolute;
+  left: 19mm;
+  bottom: 14mm;
+  right: 19mm;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+  font-size: 6pt;
+  line-height: 1.5;
+  color: #5c5c5c;
+}
+
+.legend-rule {
+  height: 0.2mm;
+  background: #c8c8c8;
+}
+
+.sheet-foot {
+  position: absolute;
+  left: 19mm;
+  bottom: 8mm;
+  right: 19mm;
+  display: flex;
+  justify-content: space-between;
+  font-size: 5.8pt;
+  letter-spacing: 0.3pt;
+  color: #9a9a9a;
+}
+
+/* Trama de fondo, común a hexágonos y monedas. */
+.token-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image:
+    linear-gradient(rgba(143, 217, 138, 0.13) 0.12mm, transparent 0.12mm),
+    linear-gradient(90deg, rgba(143, 217, 138, 0.13) 0.12mm, transparent 0.12mm);
+  background-size: 3mm 3mm;
+}
+
+/* ── Marcadores de estado ───────────────────────────────────── */
+
+.token-grid {
+  position: absolute;
+  left: 19.5mm;
+  top: 27mm;
+  display: grid;
+  grid-template-columns: repeat(5, 33mm);
+  grid-auto-rows: 33mm;
+  gap: 3.5mm;
+}
+
+/* El borde de color es el hexágono exterior asomando por debajo del
+   interior: es también la línea de corte. */
+.hex {
+  width: 33mm;
+  height: 33mm;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: var(--tone, #8fd98a);
+
+  &--back {
+    background: #8fd98a;
+
+    .hex-inner { gap: 1.6mm; }
+  }
+}
+
+/* Borde de ~1 mm en vez de los 0,43 mm del prototipo: es la línea de corte y
+   el identificador de color de la ficha, y a 0,4 mm ni se recorta bien ni se
+   distingue el estado de un vistazo sobre la mesa. */
+.hex-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(50% 3.1%, 97.1% 26.55%, 97.1% 73.45%, 50% 96.9%, 2.9% 73.45%, 2.9% 26.55%);
+  background: #0b0f0a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2mm;
+  box-sizing: border-box;
+  /* El borde más grueso come 1 mm de ancho útil; el margen lo devuelve para
+     que «Inmune a nuevos BUGS» siga cabiendo en una línea. */
+  padding: 0 2.7mm;
+}
+
+.hex-glyph {
+  position: relative;
+  font-size: 13pt;
+  line-height: 1;
+  color: var(--tone);
+}
+
+.hex-id {
+  position: relative;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.2pt;
+  line-height: 1;
+  color: var(--tone);
+}
+
+/* 0,2 mm al 40 % desaparecía en papel: el filete se sube al 62 %. */
+.hex-rule {
+  position: relative;
+  width: 11mm;
+  height: 0.2mm;
+  background: rgba(143, 217, 138, 0.62);
+}
+
+/* `pre-line` para poder forzar el corte desde `tokens.json`: hay rótulos que
+   solo quedan bien partidos por donde manda el sentido, no por donde cae. */
+.hex-label {
+  position: relative;
+  font-size: 6pt;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #dfe6dc;
+  text-align: center;
+  text-wrap: pretty;
+  white-space: pre-line;
+}
+
+.hex-logo {
+  position: relative;
+  width: 10mm;
+  height: 11mm;
+}
+
+.hex-title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5mm;
+}
+
+.hex-title-1,
+.hex-title-2 {
+  font-size: 7pt;
+  font-weight: 800;
+  line-height: 1;
+  color: #8fd98a;
+}
+
+.hex-title-1 { letter-spacing: 0.8pt; }
+.hex-title-2 { letter-spacing: 3.4pt; margin-left: 3.4pt; }
+
+/* ── Moneda de intercepción ─────────────────────────────────── */
+
+.coin-grid {
+  position: absolute;
+  left: 35mm;
+  top: 40mm;
+  display: grid;
+  grid-template-columns: repeat(4, 33mm);
+  grid-auto-rows: 33mm;
+  gap: 4.5mm;
+}
+
+.coin {
+  width: 33mm;
+  height: 33mm;
+  border-radius: 50%;
+  background: #8fd98a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  --glyph: #8fd98a;
+  --title: #8fd98a;
+  --rule: rgba(143, 217, 138, 0.62);
+  --label: #dfe6dc;
+  --face: #0b0f0a;
+}
+
+/* Cara gastada: los rojos del prototipo se aclaran un escalón. Un rojo
+   medio sobre casi negro es la peor combinación posible en inyección de
+   tinta — se trama con magenta y amarillo y a 8 pt sale sucio. */
+.coin--used {
+  background: #7a3a3a;
+
+  --glyph: #d98a8a;
+  --title: #eaa2a2;
+  --rule: rgba(240, 138, 138, 0.6);
+  --label: #d8c9c9;
+  --face: #120b0b;
+
+  /* Una pieza menos que la cara disponible: con el mismo interlineado se
+     apelotonaba abajo. Más aire entre elementos y líneas más cortas. */
+  .coin-inner { gap: 2mm; }
+
+  .token-bg {
+    opacity: 0.4;
+    background-image:
+      linear-gradient(rgba(224, 90, 90, 0.12) 0.12mm, transparent 0.12mm),
+      linear-gradient(90deg, rgba(224, 90, 90, 0.12) 0.12mm, transparent 0.12mm);
+  }
+}
+
+.coin-inner {
+  position: relative;
+  width: 31.2mm;
+  height: 31.2mm;
+  border-radius: 50%;
+  background: var(--face);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.3mm;
+}
+
+.coin-glyph {
+  position: relative;
+  font-size: 15pt;
+  line-height: 1;
+  color: var(--glyph);
+}
+
+.coin-title {
+  position: relative;
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: 0.6pt;
+  line-height: 1;
+  color: var(--title);
+}
+
+.coin-rule {
+  position: relative;
+  width: 13mm;
+  height: 0.2mm;
+  background: var(--rule);
+}
+
+.coin-label {
+  position: relative;
+  font-size: 6pt;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--label);
+  text-align: center;
+  white-space: pre-line;
+  /* El rótulo tiene que caber en dos líneas: a tres empuja la nota fuera de
+     la moneda. Con el aro de 1 mm hacen falta 21,5 caracteres por línea, y
+     eso pide bajar el margen a 1,8 mm. */
+  padding: 0 1.8mm;
+}
+
+/* Iba al 80 % de opacidad: en papel quedaba por debajo de 6:1. */
+.coin-note {
+  position: relative;
+  font-size: 5.6pt;
+  font-weight: 700;
+  letter-spacing: 0.5pt;
+  color: #a8e5a3;
+}

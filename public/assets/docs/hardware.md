@@ -18,14 +18,16 @@ Para ejecutar una partida de **Firmware Wars** necesitas los siguientes componen
 | Dado de 6 caras (d6) | 10-13 x Bot | Para combate, estados y algunas funciones. |
 | Dado de 8 caras (d8) | 1 | Para algunas funciones de ataque. |
 | Dado de 10 caras (d10) | 1 | Para algunas funciones de ataque. |
-| Marcadores de `bugs` | 3 x Bot | Uno por cada bug activo en el Bot. |
-| Marcadores de escudo | Variable | Para registrar `shield` activo. |
-| Marcadores de estado | Variable | LAG, DMZ, SAFE_MODE, REBOOTING… |
-| Fichas de energía | Variable | Para llevar el registro de `energy`. |
-| Fichas de vida | Variable | Para llevar el registro de `life`. |
-| Terminal de programación | 1 x Bot | Hoja de turno donde anotar el BattleScript (organizar tus Operaciones, Funciones, Números, etc.) |
+| Tarjetas Operaciones y `bugs` | 3 x Operación y Bot | Se insertan en las Ranuras de Operación del Terminal: `IF`, `IF-ELSE`, `FOR`, `WHILE` y `TRY-CATCH`, con sus huecos para las Funciones. Las de `BUG` ocupan una Ranura y la inutilizan; el máximo acumulable son 3.<br>Ver [Terminal de Programación](/docs/recursos/terminal) en los Recursos de la web |
+| Cartas de Funciones | 3 x Función y Bot | Las Funciones de ataque elegidas en `BOTS.CFG` más las Comunes. Se colocan en los huecos de las tarjetas de Operación. Tres copias de cada una: las que caben en las 3 Operaciones de un turno.<br>Ver [Cartas de Función](/docs/recursos/cards) en los Recursos de la web |
+| Contador de escudo | 1 x Bot | Para registrar `shield` activo. |
+| Contador de energía | 1 x Bot | Para llevar el registro de `energy`. |
+| Contador de vida | 1 x Bot | Para llevar el registro de `life`. |
+| Fichas de estado | 1 x Estado y Bot | `LAG`, `DMZ`, `SAFE_MODE`, `OVERCLOCK`, `BERSERK`, `REBOOTING`… Se colocan junto al Bot mientras dura el estado y se retiran en `BOOT()`.<br>Ver [Fichas](/docs/recursos/tokens) en los Recursos de la web |
+| Ficha de Intercepción | 1 x Bot | Ficha de dos caras. Con el lado verde **INTERCEPT** arriba, el Bot tiene su Intercepción disponible; al declararla se gira al lado rojo **USED**, y vuelve al verde al inicio de su siguiente turno.<br>Ver [Fichas](/docs/recursos/tokens) en los Recursos de la web |
+| Terminal de programación | 1 x Bot | Hoja de turno donde anotar el BattleScript (organizar tus Operaciones, Funciones, Números, etc.)<br>Ver [Terminal de Programación](/docs/recursos/terminal) en los Recursos de la web |
 
-> Todos los dados de 6 Caras personalizados pueden ser sustituido fácilmente por Tablas de Equivalencias (ver sección Tablas de Equivalencias en los Recursos de la web).
+> Todos los dados de 6 Caras personalizados pueden ser sustituidos fácilmente por Tablas de Equivalencias (ver [Tablas de Dados](/docs/recursos/tables-equivalences) en los Recursos de la web).
 ---
 
 ## El Terminal de Programación

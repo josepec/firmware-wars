@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+doc-page:not(:defined) { visibility: hidden; }
+body { margin: 0; font-family: 'JetBrains Mono', monospace; }
+a { color: #1f7a3a; } a:hover { color: #0f5626; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+<doc-page size="a4">
+
+  <section class="page" style="position: relative; background: #ffffff; color: #111;">
+    <div style="position: absolute; left: 19mm; top: 12mm; right: 19mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 6.5pt; letter-spacing: .4pt; color: #6b6b6b;">
+      <div>FIRMWARE WARS · MARCADORES DE ESTADO · HEXÁGONO 33 MM</div>
+      <div>30 FICHAS · 5 POR ESTADO</div>
+    </div>
+    <div style="position: absolute; left: 19mm; top: 17mm; font-size: 6pt; letter-spacing: .3pt; color: #9a9a9a;">IMPRIMIR AL 100 % — SIN «AJUSTAR A PÁGINA». RECORTAR SIGUIENDO EL BORDE DE COLOR DE CADA HEXÁGONO.</div>
+
+    <div style="position: absolute; left: 19.5mm; top: 27mm; display: grid; grid-template-columns: repeat(5, 33mm); grid-template-rows: repeat(6, 33mm); gap: 3.5mm;">
+      <sc-for list="{{ stateTokens }}" as="t" hint-placeholder-count="30">
+        <div style="width: 33mm; height: 33mm; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: {{ t.color }};">
+          <div style="position: relative; width: 100%; height: 100%; clip-path: polygon(50% 1.4%, 98.7% 25.7%, 98.7% 74.3%, 50% 98.6%, 1.3% 74.3%, 1.3% 25.7%); background: #0b0f0a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2mm; box-sizing: border-box; padding: 0 3.4mm;">
+            <div style="position: absolute; inset: 0; opacity: .45; background-image: linear-gradient(rgba(143,217,138,.13) 0.12mm, transparent 0.12mm), linear-gradient(90deg, rgba(143,217,138,.13) 0.12mm, transparent 0.12mm); background-size: 3mm 3mm;"></div>
+            <div style="position: relative; font-size: 13pt; line-height: 1; color: {{ t.color }};">{{ t.glyph }}</div>
+            <div style="position: relative; font-size: 8pt; font-weight: 800; letter-spacing: .2pt; line-height: 1; color: {{ t.color }};">{{ t.id }}</div>
+            <div style="position: relative; width: 11mm; height: 0.2mm; background: rgba(143,217,138,.4);"></div>
+            <div style="position: relative; font-size: 6pt; font-weight: 500; line-height: 1.35; color: #dfe6dc; text-align: center; text-wrap: pretty;">{{ t.effect }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 19mm; bottom: 14mm; right: 19mm; display: flex; flex-direction: column; gap: 1.5mm;">
+      <div style="height: 0.2mm; background: #d8d8d8;"></div>
+      <div style="font-size: 6pt; line-height: 1.5; color: #6b6b6b;">Todos los estados duran el turno actual y se limpian en la fase BOOT(), salvo REBOOTING, que hace perder el turno siguiente.</div>
+    </div>
+    <div style="position: absolute; left: 19mm; bottom: 8mm; right: 19mm; display: flex; justify-content: space-between; font-size: 5.8pt; letter-spacing: .3pt; color: #9a9a9a;">
+      <div>DATOS SEGÚN TECH.REF · ESTADOS ALTERADOS · v0.1.15</div>
+      <div>A4 · 1/4</div>
+    </div>
+  </section>
+
+  <section class="page" style="position: relative; background: #ffffff; color: #111;">
+    <div style="position: absolute; left: 19mm; top: 12mm; right: 19mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 6.5pt; letter-spacing: .4pt; color: #6b6b6b;">
+      <div>FIRMWARE WARS · MARCADORES DE ESTADO · HEXÁGONO 33 MM</div>
+      <div>CARA B · DORSOS</div>
+    </div>
+    <div style="position: absolute; left: 19mm; top: 17mm; font-size: 6pt; letter-spacing: .3pt; color: #9a9a9a;">REVERSO DE LA HOJA ANTERIOR. IMPRIMIR A DOBLE CARA POR EL BORDE LARGO. DORSO ÚNICO: NO REQUIERE REFLEJO.</div>
+
+    <div style="position: absolute; left: 19.5mm; top: 27mm; display: grid; grid-template-columns: repeat(5, 33mm); grid-template-rows: repeat(6, 33mm); gap: 3.5mm;">
+      <sc-for list="{{ stateTokens }}" as="t" hint-placeholder-count="30">
+        <div style="width: 33mm; height: 33mm; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: #8fd98a;">
+          <div style="position: relative; width: 100%; height: 100%; clip-path: polygon(50% 1.4%, 98.7% 25.7%, 98.7% 74.3%, 50% 98.6%, 1.3% 74.3%, 1.3% 25.7%); background: #0b0f0a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6mm; box-sizing: border-box; padding: 0 3.4mm;">
+            <div style="position: absolute; inset: 0; opacity: .45; background-image: linear-gradient(rgba(143,217,138,.13) 0.12mm, transparent 0.12mm), linear-gradient(90deg, rgba(143,217,138,.13) 0.12mm, transparent 0.12mm); background-size: 3mm 3mm;"></div>
+            <svg width="10mm" height="11mm" viewBox="0 0 200 220" style="position: relative;">
+              <polygon points="100,10 186.6,60 186.6,160 100,210 13.4,160 13.4,60" fill="none" stroke="#8fd98a" stroke-width="12" stroke-linejoin="round"></polygon>
+              <g fill="none" stroke="#8fd98a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M100,138 L100,174 L155.4,142 L155.4,114"></path>
+                <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(120 100 110)"></path>
+                <path d="M100,138 L100,174 L155.4,142 L155.4,114" transform="rotate(240 100 110)"></path>
+              </g>
+              <polygon points="100,82 124.2,96 124.2,124 100,138 75.8,124 75.8,96" fill="none" stroke="#8fd98a" stroke-width="10" stroke-linejoin="round"></polygon>
+              <g fill="#0b0f0a" stroke="#8fd98a" stroke-width="8">
+                <circle cx="155.4" cy="104" r="10"></circle>
+                <circle cx="155.4" cy="104" r="10" transform="rotate(120 100 110)"></circle>
+                <circle cx="155.4" cy="104" r="10" transform="rotate(240 100 110)"></circle>
+              </g>
+            </svg>
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.5mm;">
+              <div style="font-size: 7pt; font-weight: 800; letter-spacing: .8pt; line-height: 1; color: #8fd98a;">FIRMWARE</div>
+              <div style="font-size: 7pt; font-weight: 800; letter-spacing: 3.4pt; line-height: 1; color: #8fd98a; margin-left: 3.4pt;">WARS</div>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 19mm; bottom: 8mm; right: 19mm; display: flex; justify-content: space-between; font-size: 5.8pt; letter-spacing: .3pt; color: #9a9a9a;">
+      <div>DORSO ÚNICO · SIMÉTRICO PARA EVITAR FICHAS MARCADAS</div>
+      <div>A4 · 2/4</div>
+    </div>
+  </section>
+
+  <section class="page" style="position: relative; background: #ffffff; color: #111;">
+    <div style="position: absolute; left: 19mm; top: 12mm; right: 19mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 6.5pt; letter-spacing: .4pt; color: #6b6b6b;">
+      <div>FIRMWARE WARS · FICHA DE INTERCEPCIÓN · MONEDA Ø 33 MM</div>
+      <div>CARA A · DISPONIBLE</div>
+    </div>
+    <div style="position: absolute; left: 19mm; top: 17mm; font-size: 6pt; letter-spacing: .3pt; color: #9a9a9a;">FICHA DE DOS CARAS: IMPRIMIR A DOBLE CARA POR EL BORDE LARGO. LADO VERDE ARRIBA = INTERCEPCIÓN DISPONIBLE.</div>
+
+    <div style="position: absolute; left: 35mm; top: 40mm; display: grid; grid-template-columns: repeat(4, 33mm); grid-template-rows: repeat(3, 33mm); gap: 4.5mm;">
+      <sc-for list="{{ coins }}" as="c" hint-placeholder-count="12">
+        <div style="width: 33mm; height: 33mm; border-radius: 50%; background: #8fd98a; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 32.2mm; height: 32.2mm; border-radius: 50%; background: #0b0f0a; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.3mm;">
+            <div style="position: absolute; inset: 0; opacity: .45; background-image: linear-gradient(rgba(143,217,138,.13) 0.12mm, transparent 0.12mm), linear-gradient(90deg, rgba(143,217,138,.13) 0.12mm, transparent 0.12mm); background-size: 3mm 3mm;"></div>
+            <div style="position: absolute; top: 1.5mm; left: 1.5mm; right: 1.5mm; bottom: 1.5mm; border-radius: 50%; border: 0.2mm dashed rgba(143,217,138,.35);"></div>
+            <div style="position: relative; font-size: 15pt; line-height: 1; color: #8fd98a;">⤫</div>
+            <div style="position: relative; font-size: 8.5pt; font-weight: 800; letter-spacing: .6pt; line-height: 1; color: #8fd98a;">INTERCEPT</div>
+            <div style="position: relative; width: 13mm; height: 0.2mm; background: rgba(143,217,138,.4);"></div>
+            <div style="position: relative; font-size: 6pt; font-weight: 500; line-height: 1.35; color: #dfe6dc; text-align: center; padding: 0 3.6mm;">Sustituye el dado por un numbers propio</div>
+            <div style="position: relative; font-size: 5.6pt; font-weight: 700; letter-spacing: .5pt; color: rgba(143,217,138,.8);">1 VEZ POR TURNO</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 19mm; bottom: 14mm; right: 19mm; display: flex; flex-direction: column; gap: 1.5mm;">
+      <div style="height: 0.2mm; background: #d8d8d8;"></div>
+      <div style="font-size: 6pt; line-height: 1.5; color: #6b6b6b;">Cada Bot recibe una ficha. Al declarar una Intercepción, gírala al lado USED; vuelve a ponerse verde al inicio de su siguiente turno.</div>
+    </div>
+    <div style="position: absolute; left: 19mm; bottom: 8mm; right: 19mm; display: flex; justify-content: space-between; font-size: 5.8pt; letter-spacing: .3pt; color: #9a9a9a;">
+      <div>UNA FICHA POR BOT · 12 FICHAS POR HOJA</div>
+      <div>A4 · 3/4</div>
+    </div>
+  </section>
+
+  <section class="page" style="position: relative; background: #ffffff; color: #111;">
+    <div style="position: absolute; left: 19mm; top: 12mm; right: 19mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 6.5pt; letter-spacing: .4pt; color: #6b6b6b;">
+      <div>FIRMWARE WARS · FICHA DE INTERCEPCIÓN · MONEDA Ø 33 MM</div>
+      <div>CARA B · GASTADA</div>
+    </div>
+    <div style="position: absolute; left: 19mm; top: 17mm; font-size: 6pt; letter-spacing: .3pt; color: #9a9a9a;">REVERSO DE LA HOJA ANTERIOR. LADO ROJO ARRIBA = INTERCEPCIÓN YA GASTADA ESTE TURNO.</div>
+
+    <div style="position: absolute; left: 35mm; top: 40mm; display: grid; grid-template-columns: repeat(4, 33mm); grid-template-rows: repeat(3, 33mm); gap: 4.5mm;">
+      <sc-for list="{{ coins }}" as="c" hint-placeholder-count="12">
+        <div style="width: 33mm; height: 33mm; border-radius: 50%; background: #7a3a3a; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 32.2mm; height: 32.2mm; border-radius: 50%; background: #120b0b; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.3mm;">
+            <div style="position: absolute; inset: 0; opacity: .4; background-image: linear-gradient(rgba(224,90,90,.12) 0.12mm, transparent 0.12mm), linear-gradient(90deg, rgba(224,90,90,.12) 0.12mm, transparent 0.12mm); background-size: 3mm 3mm;"></div>
+            <div style="position: absolute; top: 1.5mm; left: 1.5mm; right: 1.5mm; bottom: 1.5mm; border-radius: 50%; border: 0.2mm dashed rgba(224,90,90,.3);"></div>
+            <div style="position: relative; font-size: 15pt; line-height: 1; color: #b06060;">⊘</div>
+            <div style="position: relative; font-size: 8.5pt; font-weight: 800; letter-spacing: .6pt; line-height: 1; color: #cf8080;">USED</div>
+            <div style="position: relative; width: 13mm; height: 0.2mm; background: rgba(224,90,90,.3);"></div>
+            <div style="position: relative; font-size: 6pt; font-weight: 500; line-height: 1.35; color: #c4b4b4; text-align: center; padding: 0 3.6mm;">Disponible de nuevo al inicio de tu turno</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="position: absolute; left: 19mm; bottom: 8mm; right: 19mm; display: flex; justify-content: space-between; font-size: 5.8pt; letter-spacing: .3pt; color: #9a9a9a;">
+      <div>SIMÉTRICO EN LA RETÍCULA · NO REQUIERE REFLEJO AL IMPRIMIR</div>
+      <div>A4 · 4/4</div>
+    </div>
+  </section>
+
+</doc-page>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;copiesPerState&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:5,&quot;min&quot;:1,&quot;max&quot;:5,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Impresión&quot;}}">
+class Component extends DCLogic {
+  states() {
+    return [
+      { id: 'LAG', glyph: '≈', color: '#f2a93b', effect: '−1 MAX_MOVEMENT' },
+      { id: 'DMZ', glyph: '⊘', color: '#e05a5a', effect: 'No puede atacar' },
+      { id: 'SAFE_MODE', glyph: '⬡', color: '#8fd98a', effect: 'Inmune a nuevos BUGS' },
+      { id: 'OVERCLOCK', glyph: '▲', color: '#6fd8e6', effect: '+1 daño de ataque' },
+      { id: 'BERSERK', glyph: '✦', color: '#b79cff', effect: 'Daño de ataque ×2' },
+      { id: 'REBOOTING', glyph: '↺', color: '#9aa39a', effect: 'Pierde el turno siguiente' },
+    ];
+  }
+
+  renderVals() {
+    const perState = this.props.copiesPerState ?? 5;
+    const stateTokens = [];
+    this.states().forEach(s => { for (let i = 0; i < perState; i++) stateTokens.push(s); });
+    return {
+      stateTokens,
+      coins: Array.from({ length: 12 }, (_, i) => i),
+    };
+  }
+}
+</script>
+</body>
+</html>

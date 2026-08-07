@@ -16,6 +16,10 @@
   min-height: 100vh;
   padding: 22mm 0 8mm;
   font-family: 'JetBrains Mono', monospace;
+  /* Sin esto, imprimir desde el navegador exige marcar «gráficos de
+     fondo» a mano y las cartas salen en blanco. */
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 
   @media print {
     background: #fff;

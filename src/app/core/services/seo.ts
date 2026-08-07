@@ -29,6 +29,10 @@ const CARDS_PATH = '/docs/cards-print';
 const CARDS_LIST_TITLE = 'Firmware Wars - Cartas';
 const CARDS_CATALOG_TITLE = 'Firmware Wars - Cartas Completas';
 
+/** Hoja de fichas: nombre cerrado, igual que la de cartas. */
+const TOKENS_PATH = '/docs/tokens-print';
+const TOKENS_TITLE = 'Firmware Wars - Fichas';
+
 const HOME_TITLE = 'Firmware Wars — Wargame de robots y programación · Print & Play';
 const HOME_DESC =
   'Wargame de mesa de ciencia ficción donde programas robots de combate: escribe tu BattleScript, ' +
@@ -97,6 +101,10 @@ export class Seo {
     }
     if (path.startsWith('/list/')) {
       this.set({ title: SITE_NAME, desc: HOME_DESC, index: false, path });
+      return;
+    }
+    if (path === TOKENS_PATH) {
+      this.set({ title: TOKENS_TITLE, desc: '', index: false, path });
       return;
     }
     if (path === CARDS_PATH) {

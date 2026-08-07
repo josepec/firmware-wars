@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, shareReplay, map } from 'rxjs';
 import type { CardsMeta } from '../../features/docs/cards/card-model';
+import type { TokensMeta } from '../../features/docs/tokens/tokens-print';
 
 @Injectable({
   providedIn: 'root',
@@ -67,6 +68,11 @@ export class DataService {
   /** Metadatos de las cartas imprimibles — ver `docs/cards/card-model.ts`. */
   getCardsMeta(): Observable<CardsMeta> {
     return this.get<CardsMeta>('assets/data/cards.json');
+  }
+
+  /** Metadatos de las fichas imprimibles — ver `docs/tokens/tokens-print.ts`. */
+  getTokensMeta(): Observable<TokensMeta> {
+    return this.get<TokensMeta>('assets/data/tokens.json');
   }
 }
 

@@ -1,0 +1,40 @@
+FICHAS FIRMWARE WARS v2
+=======================
+
+Contenido
+---------
+  Fichas Firmware Wars v2.dc.html   4 hojas A4
+  support.js                        runtime necesario
+  doc-page.js                       componente de pagina imprimible
+
+Hojas
+-----
+  1/4  Marcadores de estado (cara)   30 fichas, 5 por estado
+       LAG · DMZ · SAFE_MODE · OVERCLOCK · BERSERK · REBOOTING
+       Hexagono de 33 mm con simbolo, nombre y efecto.
+  2/4  Marcadores de estado (dorso)  logo Firmware Wars, dorso unico
+  3/4  Moneda de intercepcion (cara) 12 monedas, 33 mm, lado INTERCEPT
+  4/4  Moneda de intercepcion (dorso) lado USED
+
+Uso
+---
+Manten los tres archivos en la MISMA carpeta y abre el .html en el
+navegador. Para imprimir: Ctrl/Cmd+P, escala 100%, sin "ajustar a pagina".
+Doble cara por el borde largo. Los dorsos son unicos: no hay que reflejar.
+
+La moneda de intercepcion es de dos caras: verde arriba = disponible;
+al declarar una Intercepcion se gira a USED y vuelve al verde al inicio
+del siguiente turno del Bot.
+
+Donde tocar el contenido
+------------------------
+Dentro del .html, en el bloque <script data-dc-script>, el metodo
+states() contiene los seis estados: nombre, simbolo, color y efecto.
+El tweak copiesPerState ajusta cuantas copias se imprimen de cada
+estado (maximo 5: mas no caben en la hoja).
+
+Ningun texto baja de 6 pt para que se lea impreso.
+
+Colores: LAG #f2a93b · DMZ #e05a5a · SAFE_MODE #8fd98a
+         OVERCLOCK #6fd8e6 · BERSERK #b79cff · REBOOTING #9aa39a
+Fondo #0b0f0a · verde de marca #8fd98a
