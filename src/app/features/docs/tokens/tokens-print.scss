@@ -154,9 +154,13 @@
 
 /* ── Marcadores de estado ───────────────────────────────────── */
 
+/* Centrada a mano, no con un margen fijo: al imprimir a doble cara por el
+   borde largo la hoja se voltea sobre el eje vertical, así que una rejilla
+   descentrada cae desplazada el doble de su descuadre en el reverso. */
 .token-grid {
   position: absolute;
-  left: 19.5mm;
+  left: 50%;
+  transform: translateX(-50%);
   top: 27mm;
   display: grid;
   grid-template-columns: repeat(5, 33mm);
@@ -265,7 +269,8 @@
 
 .coin-grid {
   position: absolute;
-  left: 35mm;
+  left: 50%;
+  transform: translateX(-50%);
   top: 40mm;
   display: grid;
   grid-template-columns: repeat(4, 33mm);
