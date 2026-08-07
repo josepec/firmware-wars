@@ -52,8 +52,9 @@ Debe elegir:
 
 > Si un ataque afecta a varios objetivos y requiere tirar un dado, el dado de ataque se tira una única vez y afecta a todos por igual.
 
-/img-center /assets/img/lady.png print-only h:200px
+/img-center /assets/img/lady.png print-only h:250px
 
+/page
 ## Funciones de Mantenimiento (DEBUG.INTERFACE)
 
 Todos los Bots tienen acceso a las siguientes Funciones de Mantenimiento que pueden utilizar en la fase de `DEBUG()`.
