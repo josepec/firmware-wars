@@ -273,7 +273,7 @@ Los Bots tienen acceso a las Funciones del Sistema `SYSTEM.INTERFACE` pero **no 
 - **Detalles:** La versión máxima es 3 (`MAX_VERSION`). Subir versión da acceso a más Operaciones, Funciones y Ataques.
 
 ---
-\page
+/page
 ## RUN()
 
 Una vez compilado el programa, comienza la fase de ejecución: el momento en que las órdenes escritas cobran vida y los Bots despliegan su comportamiento sobre el campo de batalla.
